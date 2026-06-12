@@ -297,12 +297,12 @@ class DataService extends ChangeNotifier {
 
   // ---- 今日统计 ----
   Map<String, dynamic> todayStats() {
+    final now = DateTime.now();
     final feedings = todayFeedings();
     final diapers = todayDiapers();
-    final sleeps = sleepRecords.where((s) {
-      final now = DateTime.now();
-      return s.startTime.year == now.year && s.startTime.month == now.month && s.startTime.day == now.day;
-    }).toList();
+    final sleeps = sleepRecords.where((s) =>
+      s.startTime.year == now.year && s.startTime.month == now.month && s.startTime.day == now.day
+    ).toList();
 
     int totalBottleMl = 0;
     int totalBreastMinutes = 0;

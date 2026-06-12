@@ -31,8 +31,6 @@ class StatsScreen extends StatelessWidget {
     final feedingCount = stats['feedingCount'] ?? 0;
     final totalBottleMl = stats['totalBottleMl'] ?? 0;
     final diaperCount = stats['diaperCount'] ?? 0;
-    final peeCount = stats['peeCount'] ?? 0;
-    final poopCount = stats['poopCount'] ?? 0;
     final peeSimpleCount = stats['peeSimpleCount'] ?? 0;
     final poopSimpleCount = stats['poopSimpleCount'] ?? 0;
     final medCount = stats['medCount'] ?? 0;

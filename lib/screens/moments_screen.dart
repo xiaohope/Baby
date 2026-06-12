@@ -14,8 +14,6 @@ class MomentsScreen extends StatefulWidget {
 }
 
 class _MomentsScreenState extends State<MomentsScreen> {
-  final _picker = ImagePicker();
-
   Future<void> _addMoment() async {
     final result = await showDialog<MomentResult>(
       context: context,

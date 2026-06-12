@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/simple_record.dart';
 import '../services/data_service.dart';
 
 class HistoryScreen extends StatefulWidget {
