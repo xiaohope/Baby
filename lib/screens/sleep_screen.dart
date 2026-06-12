@@ -214,6 +214,10 @@ class _SleepScreenState extends State<SleepScreen> {
                             if (states.contains(WidgetState.selected)) return Colors.white;
                             return Colors.black87;
                           }),
+                          textStyle: WidgetStateProperty.resolveWith((states) {
+                            if (states.contains(WidgetState.selected)) return const TextStyle(color: Colors.white);
+                            return const TextStyle(color: Colors.black87);
+                          }),
                           backgroundColor: WidgetStateProperty.resolveWith((states) {
                             if (states.contains(WidgetState.selected)) return const Color(0xFF7C3AED);
                             return Colors.grey.shade100;

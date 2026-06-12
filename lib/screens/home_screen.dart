@@ -59,17 +59,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildMainPage(DataService ds, Map stats, dynamic ongoingSleep, dynamic supplement) {
     final size = MediaQuery.of(context).size;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
+      decoration: BoxDecoration(
+        gradient: isDark ? null : const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFF8F0FF),
-            Color(0xFFFFF5EE),
-            Color(0xFFF0F8FF),
-          ],
+          colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)],
         ),
+        color: isDark ? const Color(0xFF121212) : null,
       ),
       child: SafeArea(
         child: SingleChildScrollView(
@@ -158,20 +156,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
               ],
-            ),
-          ),
-          // 编辑按钮
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.edit_outlined, color: Colors.white, size: 20),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              ),
             ),
           ),
         ],

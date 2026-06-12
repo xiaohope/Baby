@@ -72,11 +72,10 @@ class _FoodScreenState extends State<FoodScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('辅食记录'), centerTitle: true),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)],
-            begin: Alignment.topCenter, end: Alignment.bottomCenter,
-          ),
+        decoration: BoxDecoration(
+          gradient: Theme.of(context).brightness == Brightness.dark
+              ? null : const LinearGradient(colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF121212) : null,
         ),
         child: ListView(
           padding: const EdgeInsets.all(16),
