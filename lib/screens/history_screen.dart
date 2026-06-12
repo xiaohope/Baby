@@ -176,7 +176,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final records = ds.tempRecords.where((r) => _isSameDay(r.time, _selectedDate)).toList();
     return _buildList(ds, records, (r) {
       final isHot = r.temperature > 37.5;
-      return _card(icon: Icons.thermostat, color: isHot ? Colors.red : Colors.green, title: '${r.temperature.toStringAsFixed(1)}℃', subtitle: '${_fmtTime(r.time)}${r.note != null ? '  📝${r.note}' : ''}', onDelete: () => ds.deleteTemperature(r.id), deleteLabel: '这条体温记录'));
+      return _card(icon: Icons.thermostat, color: isHot ? Colors.red : Colors.green, title: '${r.temperature.toStringAsFixed(1)}℃', subtitle: '${_fmtTime(r.time)}${r.note != null ? '  📝${r.note}' : ''}', onDelete: () => ds.deleteTemperature(r.id), deleteLabel: '这条体温记录');
     });
   }
 
