@@ -164,12 +164,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Widget _buildSimpleList(DataService ds, String category, String label, IconData icon, Color color, String emoji) {
     final records = ds.simpleRecordsByCategory(category).where((r) => _isSameDay(r.time, _selectedDate)).toList();
-    return _buildList(ds, records, (r) => _card(icon: icon, color: color, title: '$emoji $label', subtitle: '${_fmtTime(r.time)}${r.note.isNotEmpty ? '  ${r.note}' : ''}', onDelete: () => ds.deleteSimpleRecord(r.id), deleteLabel: '这条${label}记录')));
+    return _buildList(ds, records, (r) => _card(icon: icon, color: color, title: '$emoji $label', subtitle: '${_fmtTime(r.time)}${r.note.isNotEmpty ? '  ${r.note}' : ''}', onDelete: () => ds.deleteSimpleRecord(r.id), deleteLabel: '这条${label}记录'));
   }
 
   Widget _buildFoodList(DataService ds) {
     final records = ds.foodRecords.where((r) => _isSameDay(r.time, _selectedDate)).toList();
-    return _buildList(ds, records, (r) => _card(icon: Icons.restaurant, color: const Color(0xFFFF8A80), title: r.name, subtitle: '${_fmtTime(r.time)}${r.portion != null ? '  ${r.portion}' : ''}${r.feeling != null ? '  ${r.feeling}' : ''}${r.note != null ? '  📝${r.note}' : ''}', onDelete: () => ds.deleteFood(r.id), deleteLabel: '这条辅食记录')));
+    return _buildList(ds, records, (r) => _card(icon: Icons.restaurant, color: const Color(0xFFFF8A80), title: r.name, subtitle: '${_fmtTime(r.time)}${r.portion != null ? '  ${r.portion}' : ''}${r.feeling != null ? '  ${r.feeling}' : ''}${r.note != null ? '  📝${r.note}' : ''}', onDelete: () => ds.deleteFood(r.id), deleteLabel: '这条辅食记录'));
   }
 
   Widget _buildTempList(DataService ds) {
