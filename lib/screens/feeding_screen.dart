@@ -594,7 +594,18 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
         ),
         trailing: IconButton(
           icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
-          onPressed: () => ds.deleteFeeding(r.id),
+          onPressed: () => showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text('确认删除'),
+              content: const Text('确定要删除这条喂奶记录吗？'),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+                FilledButton(onPressed: () { Navigator.pop(ctx); ds.deleteFeeding(r.id); }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('删除')),
+              ],
+            ),
+          ),
         ),
       ),
     );

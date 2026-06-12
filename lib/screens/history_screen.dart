@@ -132,26 +132,26 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final idx = _tabs.indexOf(tab);
     switch (idx) {
       case 0: return _buildList(ds, ds.feedingRecords.where((r) => _isSameDay(r.time, _selectedDate)).toList(),
-        (r) => _card(icon: Icons.local_drink, color: Colors.blue, title: r.typeName, subtitle: '${_fmtTime(r.time)}  ${r.displayAmount}', onDelete: () => ds.deleteFeeding(r.id)));
+        (r) => _card(icon: Icons.local_drink, color: Colors.blue, title: r.typeName, subtitle: '${_fmtTime(r.time)}  ${r.displayAmount}', onDelete: () => ds.deleteFeeding(r.id), deleteLabel: '这条喂奶记录'));
       case 1: return _buildList(ds, ds.diaperRecords.where((r) => _isSameDay(r.time, _selectedDate)).toList(),
-        (r) => _card(icon: Icons.baby_changing_station, color: Colors.orange, title: r.typeName, subtitle: '${_fmtTime(r.time)}${r.poopColor != null ? '  ${r.poopColor}' : ''}', onDelete: () => ds.deleteDiaper(r.id)));
+        (r) => _card(icon: Icons.baby_changing_station, color: Colors.orange, title: r.typeName, subtitle: '${_fmtTime(r.time)}${r.poopColor != null ? '  ${r.poopColor}' : ''}', onDelete: () => ds.deleteDiaper(r.id), deleteLabel: '这条尿布记录'));
       case 2: return _buildList(ds, ds.sleepRecords.where((r) => _isSameDay(r.startTime, _selectedDate)).toList(),
-        (r) => _card(icon: Icons.bedtime, color: Colors.purple, title: r.isOngoing ? '睡眠中' : '睡眠', subtitle: '${_fmtTime(r.startTime)}${r.endTime != null ? ' - ${_fmtTime(r.endTime!)}' : ''}  ${r.durationStr}', onDelete: () => ds.deleteSleep(r.id)));
+        (r) => _card(icon: Icons.bedtime, color: Colors.purple, title: r.isOngoing ? '睡眠中' : '睡眠', subtitle: '${_fmtTime(r.startTime)}${r.endTime != null ? ' - ${_fmtTime(r.endTime!)}' : ''}  ${r.durationStr}', onDelete: () => ds.deleteSleep(r.id), deleteLabel: '这条睡眠记录'));
       case 3: return _buildList(ds, ds.growthRecords.where((r) => _isSameDay(r.date, _selectedDate)).toList(),
         (r) => _card(icon: Icons.straighten, color: Colors.teal, title: '${r.date.month}/${r.date.day}', subtitle: [
           if (r.weightKg != null) '体重: ${r.weightKg}kg',
           if (r.heightCm != null) '身长: ${r.heightCm}cm',
           if (r.headCircumferenceCm != null) '头围: ${r.headCircumferenceCm}cm',
-        ].join('  '), onDelete: () => ds.deleteGrowth(r.id)));
+        ].join('  '), onDelete: () => ds.deleteGrowth(r.id), deleteLabel: '这条成长记录'));
       case 4: return _buildList(ds, ds.allSupplementRecords().where((r) => _isSameDay(r.date, _selectedDate)).toList(),
-        (r) => _card(icon: Icons.medication, color: Colors.green, title: '${r.date.month}月${r.date.day}日', subtitle: r.items.join('、'), onDelete: () => ds.deleteSupplement(r.id)));
+        (r) => _card(icon: Icons.medication, color: Colors.green, title: '${r.date.month}月${r.date.day}日', subtitle: r.items.join('、'), onDelete: () => ds.deleteSupplement(r.id), deleteLabel: '这条补充记录'));
       case 5: return _buildList(ds, ds.milestoneRecords.where((r) => _isSameDay(r.date, _selectedDate)).toList(),
         (r) {
           final emoji = r.category == 'hospital' ? '🏥' : (r.category == 'vaccine' ? '💉' : '🌟');
-          return _card(icon: Icons.star, color: Colors.amber, title: '$emoji ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id));
+          return _card(icon: Icons.star, color: Colors.amber, title: '$emoji ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: '这条里程碑记录');
         });
       case 6: return _buildList(ds, ds.momentRecords.where((r) => _isSameDay(r.date, _selectedDate)).toList(),
-        (r) => _card(icon: Icons.photo_library, color: const Color(0xFFFF6B6B), title: r.text.isNotEmpty ? r.text : '[图片]', subtitle: '${_fmtTime(r.date)}${r.imagePaths.isNotEmpty ? '  📸${r.imagePaths.length}张' : ''}', onDelete: () => ds.deleteMoment(r.id)));
+        (r) => _card(icon: Icons.photo_library, color: const Color(0xFFFF6B6B), title: r.text.isNotEmpty ? r.text : '[图片]', subtitle: '${_fmtTime(r.date)}${r.imagePaths.isNotEmpty ? '  📸${r.imagePaths.length}张' : ''}', onDelete: () => ds.deleteMoment(r.id), deleteLabel: '这条动态'));
       case 7: return _buildSimpleList(ds, 'pee', '尿尿', Icons.water_drop, const Color(0xFF4A90D9), '💦');
       case 8: return _buildSimpleList(ds, 'poop', '粑粑', Icons.report, const Color(0xFF8B5E3C), '💩');
       case 9: return _buildSimpleList(ds, 'medication', '用药', Icons.medication, const Color(0xFFE74C3C), '💊');
@@ -165,19 +165,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Widget _buildSimpleList(DataService ds, String category, String label, IconData icon, Color color, String emoji) {
     final records = ds.simpleRecordsByCategory(category).where((r) => _isSameDay(r.time, _selectedDate)).toList();
-    return _buildList(ds, records, (r) => _card(icon: icon, color: color, title: '$emoji $label', subtitle: '${_fmtTime(r.time)}${r.note.isNotEmpty ? '  ${r.note}' : ''}', onDelete: () => ds.deleteSimpleRecord(r.id)));
+    return _buildList(ds, records, (r) => _card(icon: icon, color: color, title: '$emoji $label', subtitle: '${_fmtTime(r.time)}${r.note.isNotEmpty ? '  ${r.note}' : ''}', onDelete: () => ds.deleteSimpleRecord(r.id), deleteLabel: '这条${label}记录')));
   }
 
   Widget _buildFoodList(DataService ds) {
     final records = ds.foodRecords.where((r) => _isSameDay(r.time, _selectedDate)).toList();
-    return _buildList(ds, records, (r) => _card(icon: Icons.restaurant, color: const Color(0xFFFF8A80), title: r.name, subtitle: '${_fmtTime(r.time)}${r.portion != null ? '  ${r.portion}' : ''}${r.feeling != null ? '  ${r.feeling}' : ''}${r.note != null ? '  📝${r.note}' : ''}', onDelete: () => ds.deleteFood(r.id)));
+    return _buildList(ds, records, (r) => _card(icon: Icons.restaurant, color: const Color(0xFFFF8A80), title: r.name, subtitle: '${_fmtTime(r.time)}${r.portion != null ? '  ${r.portion}' : ''}${r.feeling != null ? '  ${r.feeling}' : ''}${r.note != null ? '  📝${r.note}' : ''}', onDelete: () => ds.deleteFood(r.id), deleteLabel: '这条辅食记录')));
   }
 
   Widget _buildTempList(DataService ds) {
     final records = ds.tempRecords.where((r) => _isSameDay(r.time, _selectedDate)).toList();
     return _buildList(ds, records, (r) {
       final isHot = r.temperature > 37.5;
-      return _card(icon: Icons.thermostat, color: isHot ? Colors.red : Colors.green, title: '${r.temperature.toStringAsFixed(1)}℃', subtitle: '${_fmtTime(r.time)}${r.note != null ? '  📝${r.note}' : ''}', onDelete: () => ds.deleteTemperature(r.id));
+      return _card(icon: Icons.thermostat, color: isHot ? Colors.red : Colors.green, title: '${r.temperature.toStringAsFixed(1)}℃', subtitle: '${_fmtTime(r.time)}${r.note != null ? '  📝${r.note}' : ''}', onDelete: () => ds.deleteTemperature(r.id), deleteLabel: '这条体温记录'));
     });
   }
 
@@ -205,6 +205,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _card({
     required IconData icon, required Color color, required String title,
     required String subtitle, required VoidCallback onDelete,
+    String deleteLabel = '这条记录',
   }) {
     return Card(
       margin: EdgeInsets.zero,
@@ -219,7 +220,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
         subtitle: subtitle.isNotEmpty ? Text(subtitle, style: const TextStyle(fontSize: 11)) : null,
         trailing: IconButton(
           icon: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
-          onPressed: onDelete,
+          onPressed: () => showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text('确认删除'),
+              content: Text('确定要删除$deleteLabel吗？'),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+                FilledButton(onPressed: () { Navigator.pop(ctx); onDelete(); }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('删除')),
+              ],
+            ),
+          ),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
         ),

@@ -244,7 +244,18 @@ class _DiaperScreenState extends State<DiaperScreen> {
         subtitle: Text('${_fmt(r.time)}${r.poopColor != null ? '  ${r.poopColor}' : ''}${r.note != null ? '  📝${r.note}' : ''}'),
         trailing: IconButton(
           icon: const Icon(Icons.delete_outline, color: Colors.red),
-          onPressed: () => ds.deleteDiaper(r.id),
+          onPressed: () => showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text('确认删除'),
+              content: const Text('确定要删除这条尿布记录吗？'),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+                FilledButton(onPressed: () { Navigator.pop(ctx); ds.deleteDiaper(r.id); }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('删除')),
+              ],
+            ),
+          ),
         ),
       ),
     );
