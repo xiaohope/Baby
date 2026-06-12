@@ -22,6 +22,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
+  static const _accentColors = [
+    Color(0xFF6C63FF),
+    Color(0xFFFF8A80),
+    Color(0xFF81C9D6),
+    Color(0xFFFFB347),
+    Color(0xFFA8E6CF),
+    Color(0xFFD4A5FF),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -38,19 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFE6F7FF), Color(0xFFF0FAFF)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: screens[_currentIndex],
-      ),
+      body: screens[_currentIndex],
       bottomNavigationBar: NavigationBar(
-        backgroundColor: Colors.white.withOpacity(0.8),
-        surfaceTintColor: Colors.transparent,
         selectedIndex: _currentIndex,
         onDestinationSelected: (i) => setState(() => _currentIndex = i),
         destinations: const [
@@ -64,214 +61,492 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMainPage(DataService ds, Map stats, dynamic ongoingSleep, dynamic supplement) {
-    final primaryColor = Theme.of(context).colorScheme.primary;
+    final size = MediaQuery.of(context).size;
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 👶 宝宝信息栏（卡通风格）
-            Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: primaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.child_care, color: Color(0xFF4A90E2), size: 24),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            ds.babyName,
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                          ),
-                          if (ds.babyBirthday != null)
-                            Text(
-                              _calcAge(ds.babyBirthday!),
-                              style: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
-                            ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined, size: 20),
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // 📊 今日概览（横向滚动）
-            Text('今日概况', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 120,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: 4,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  final items = [
-                    {'label': '喂奶', 'value': '${stats['feedingCount'] ?? 0}次', 'icon': Icons.local_drink_outlined, 'color': Colors.blue},
-                    {'label': '奶量', 'value': '${stats['totalBottleMl'] ?? 0}ml', 'icon': Icons.water_drop, 'color': Colors.cyan},
-                    {'label': '换尿布', 'value': '${stats['diaperCount'] ?? 0}次', 'icon': Icons.baby_changing_station, 'color': Colors.orange},
-                    {'label': '睡眠', 'value': _formatSleep(stats['totalSleepMinutes'] ?? 0), 'icon': Icons.bedtime, 'color': Colors.purple},
-                  ];
-                  final item = items[index];
-                  return Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    color: Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Icon(item['icon'] as IconData, color: item['color'] as Color, size: 28),
-                          const SizedBox(height: 8),
-                          Text(item['value'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          Text(item['label'] as String, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // ✨ 快捷入口（大图标按钮）
-            Text('快捷记录', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _quickButton('🍼 喂奶', Icons.local_drink, Colors.blue, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FeedingScreen()))),
-                _quickButton('🧷 换尿布', Icons.baby_changing_station, Colors.orange, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiaperScreen()))),
-                _quickButton('💊 营养补充', Icons.medication, Colors.green, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SupplementScreen()))),
-                _quickButton('😴 睡眠', Icons.bedtime, Colors.purple, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SleepScreen()))),
-                _quickButton('📏 身高体重', Icons.straighten, Colors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GrowthScreen()))),
-                _quickButton('🌟 里程碑', Icons.star, Colors.amber, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MilestoneScreen()))),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // 📅 近期记录（时间轴样式）
-            _buildRecentSection('最近喂奶', ds.todayFeedings().take(3).toList(), context),
-            const SizedBox(height: 12),
-            _buildRecentSection('最近换尿布', ds.todayDiapers().take(3).toList(), context),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFFF8F0FF),
+            Color(0xFFFFF5EE),
+            Color(0xFFF0F8FF),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _quickButton(String label, IconData icon, Color color, VoidCallback onTap) {
-    return SizedBox(
-      width: 120,
-      height: 120,
-      child: FilledButton.tonal(
-        onPressed: onTap,
-        style: FilledButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: color,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          padding: const EdgeInsets.all(16),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 32),
-            const SizedBox(height: 8),
-            Text(label.split(' ')[1], style: const TextStyle(fontSize: 14)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecentSection(String title, List records, BuildContext context) {
-    if (records.isEmpty) {
-      return Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Text('今日暂无记录', style: const TextStyle(color: Colors.grey)),
+              _buildBabyCard(ds, size),
+              const SizedBox(height: 20),
+              _buildTodayStats(stats),
+              const SizedBox(height: 24),
+              _buildQuickActions(context),
+              const SizedBox(height: 24),
+              _buildRecentSection('🍼 最近喂奶', ds.todayFeedings().take(3).toList(), context),
+              const SizedBox(height: 12),
+              _buildRecentSection('🧷 最近换尿布', ds.todayDiapers().take(3).toList(), context),
+              const SizedBox(height: 24),
             ],
           ),
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            ...records.map((r) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: r is FeedingRecord ? Colors.blue : Colors.orange,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(r.typeName, style: const TextStyle(fontSize: 14)),
-                            Text(
-                              '${_fmtTime(r.time)}  ${r.displayAmount}',
-                              style: const TextStyle(fontSize: 12, color: Colors.grey),
-                            ),
-                          ],
-                        ),
+  // ====== 👶 宝宝信息卡片 ======
+  Widget _buildBabyCard(DataService ds, Size size) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF6C63FF), Color(0xFFFF8A80)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6C63FF).withValues(alpha: 0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // 宝宝头像
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(Icons.child_care, color: Colors.white, size: 30),
+          ),
+          const SizedBox(width: 16),
+          // 名字 + 年龄
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  ds.babyName,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                if (ds.babyBirthday != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '👶 ${_calcAge(ds.babyBirthday!)}',
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          // 编辑按钮
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.edit_outlined, color: Colors.white, size: 20),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ====== 📊 今日概览 ======
+  Widget _buildTodayStats(Map stats) {
+    final items = [
+      _StatItem(
+        label: '喂奶',
+        value: '${stats['feedingCount'] ?? 0}次',
+        icon: Icons.local_drink,
+        gradient: const LinearGradient(colors: [Color(0xFF6C63FF), Color(0xFF8B7FFF)]),
+      ),
+      _StatItem(
+        label: '奶量',
+        value: '${stats['totalBottleMl'] ?? 0}ml',
+        icon: Icons.water_drop,
+        gradient: const LinearGradient(colors: [Color(0xFF81C9D6), Color(0xFFA8E6CF)]),
+      ),
+      _StatItem(
+        label: '尿布',
+        value: '${stats['diaperCount'] ?? 0}次',
+        icon: Icons.baby_changing_station,
+        gradient: const LinearGradient(colors: [Color(0xFFFFB347), Color(0xFFFF8A80)]),
+      ),
+      _StatItem(
+        label: '睡眠',
+        value: _formatSleep(stats['totalSleepMinutes'] ?? 0),
+        icon: Icons.bedtime,
+        gradient: const LinearGradient(colors: [Color(0xFFD4A5FF), Color(0xFF6C63FF)]),
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              Container(
+                width: 4,
+                height: 18,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6C63FF), Color(0xFFFF8A80)],
+                  ),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text('今日概况', style: Theme.of(context).textTheme.titleMedium),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        SizedBox(
+          height: 112,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: items.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return _buildStatCard(item);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(_StatItem item) {
+    return Container(
+      width: 130,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: item.gradient,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: item.gradient.colors[0].withValues(alpha: 0.25),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Icon(item.icon, color: Colors.white.withValues(alpha: 0.9), size: 24),
+          const Spacer(),
+          Text(
+            item.value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            item.label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.8),
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ====== ✨ 快捷入口 ======
+  Widget _buildQuickActions(BuildContext context) {
+    final actions = [
+      _QuickAction(emoji: '🍼', label: '喂奶', icon: Icons.local_drink, color: const Color(0xFF6C63FF), screen: const FeedingScreen()),
+      _QuickAction(emoji: '🧷', label: '尿布', icon: Icons.baby_changing_station, color: const Color(0xFFFF8A80), screen: const DiaperScreen()),
+      _QuickAction(emoji: '💊', label: '补充', icon: Icons.medication, color: const Color(0xFF81C9D6), screen: const SupplementScreen()),
+      _QuickAction(emoji: '😴', label: '睡眠', icon: Icons.bedtime, color: const Color(0xFFD4A5FF), screen: const SleepScreen()),
+      _QuickAction(emoji: '📏', label: '成长', icon: Icons.straighten, color: const Color(0xFFA8E6CF), screen: const GrowthScreen()),
+      _QuickAction(emoji: '🌟', label: '里程碑', icon: Icons.star, color: const Color(0xFFFFB347), screen: const MilestoneScreen()),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              Container(
+                width: 4,
+                height: 18,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6C63FF), Color(0xFFFF8A80)],
+                  ),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text('快捷记录', style: Theme.of(context).textTheme.titleMedium),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: actions.map((a) => _buildActionCard(a)).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionCard(_QuickAction action) {
+    return SizedBox(
+      width: 108,
+      height: 108,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => action.screen),
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        action.color,
+                        action.color.withValues(alpha: 0.7),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: action.color.withValues(alpha: 0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                )),
-          ],
+                  child: Center(
+                    child: Text(action.emoji, style: const TextStyle(fontSize: 20)),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  action.label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: action.color,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
+  // ====== 📅 近期记录 ======
+  Widget _buildRecentSection(String title, List records, BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: Theme.of(context).textTheme.titleSmall),
+              const SizedBox(height: 12),
+              if (records.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.inbox_outlined, size: 18, color: Colors.grey.shade300),
+                        const SizedBox(width: 6),
+                        Text('今日暂无记录', style: TextStyle(color: Colors.grey.shade400, fontSize: 14)),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                ...records.asMap().entries.map((entry) {
+                  final i = entry.key;
+                  final r = entry.value;
+                  final isLast = i == records.length - 1;
+                  final color = r is FeedingRecord
+                      ? const Color(0xFF6C63FF)
+                      : const Color(0xFFFF8A80);
+                  return _buildTimelineItem(r, color, isLast);
+                }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimelineItem(dynamic r, Color color, bool isLast) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 时间线竖线 + 圆点
+          SizedBox(
+            width: 24,
+            child: Column(
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.3),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                ),
+                if (!isLast)
+                  Expanded(
+                    child: Container(
+                      width: 2,
+                      color: color.withValues(alpha: 0.15),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          // 记录内容
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          r.typeName,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF2D3436),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${_fmtTime(r.time)}  ${r.displayAmount}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      r is FeedingRecord ? '🍼' : '🧷',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ====== 工具方法 ======
   String _calcAge(DateTime birthday) {
     final now = DateTime.now();
     int months = (now.year - birthday.year) * 12 + now.month - birthday.month;
@@ -294,4 +569,33 @@ class _HomeScreenState extends State<HomeScreen> {
   String _fmtTime(DateTime t) {
     return '${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}';
   }
+}
+
+// ====== 辅助数据类 ======
+class _StatItem {
+  final String label;
+  final String value;
+  final IconData icon;
+  final LinearGradient gradient;
+  const _StatItem({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.gradient,
+  });
+}
+
+class _QuickAction {
+  final String emoji;
+  final String label;
+  final IconData icon;
+  final Color color;
+  final Widget screen;
+  const _QuickAction({
+    required this.emoji,
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.screen,
+  });
 }
