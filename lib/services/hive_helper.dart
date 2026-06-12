@@ -1,11 +1,4 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:path_provider/path_provider.dart';
-import '../models/feeding_record.dart';
-import '../models/diaper_record.dart';
-import '../models/sleep_record.dart';
-import '../models/growth_record.dart';
-import '../models/milestone_record.dart';
-import '../models/supplement_record.dart';
 import '../adapters/feeding_record_adapter.dart';
 import '../adapters/diaper_record_adapter.dart';
 import '../adapters/sleep_record_adapter.dart';
@@ -39,6 +32,7 @@ class HiveHelper {
     await Hive.openBox<SleepRecordBox>(_sleepBox);
     await Hive.openBox<GrowthRecordBox>(_growthBox);
     await Hive.openBox<MilestoneRecordBox>(_milestoneBox);
+    await Hive.openBox<SupplementRecordBox>(_supplementBox);
     await Hive.openBox(_settingsBox);
   }
 
@@ -48,6 +42,7 @@ class HiveHelper {
   static Box<SleepRecordBox> get sleepBox => Hive.box<SleepRecordBox>(_sleepBox);
   static Box<GrowthRecordBox> get growthBox => Hive.box<GrowthRecordBox>(_growthBox);
   static Box<MilestoneRecordBox> get milestoneBox => Hive.box<MilestoneRecordBox>(_milestoneBox);
+  static Box<SupplementRecordBox> get supplementBox => Hive.box<SupplementRecordBox>(_supplementBox);
   static Box get settingsBox => Hive.box(_settingsBox);
 
   // 关闭所有 box

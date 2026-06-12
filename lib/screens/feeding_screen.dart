@@ -293,11 +293,12 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
               ],
               selected: {_selectedType},
               onSelectionChanged: (s) => setState(() => _selectedType = s.first),
-              style: SegmentedButtonStyle(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                selectedBackgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF4A90E2)),
-                unselectedBackgroundColor: MaterialStateProperty.all<Color>(Colors.grey.shade100),
-                thumbShape: const _CustomThumbShape(),
+              style: ButtonStyle(
+                shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                backgroundColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) return const Color(0xFF4A90E2);
+                  return Colors.grey.shade100;
+                }),
               ),
             ),
             const SizedBox(height: 16),
@@ -314,7 +315,6 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                     selected: !_useManualInput,
                     onSelected: (_) => setState(() => _useManualInput = false),
                     selectedColor: const Color(0xFF4A90E2),
-                    fillColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   ),
                   FilterChip(
@@ -322,7 +322,6 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                     selected: _useManualInput,
                     onSelected: (_) => setState(() => _useManualInput = true),
                     selectedColor: const Color(0xFF4A90E2),
-                    fillColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   ),
                 ],
@@ -345,7 +344,6 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                         if (_isTimerRunning) _breastSeconds = 0;
                       }),
                       selectedColor: const Color(0xFF4A90E2),
-                      fillColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       avatar: _currentSide == BreastSide.left 
                           ? const Icon(Icons.check, size: 16, color: Colors.white) 
@@ -360,7 +358,6 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                         if (_isTimerRunning) _breastSeconds = 0;
                       }),
                       selectedColor: const Color(0xFF4A90E2),
-                      fillColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       avatar: _currentSide == BreastSide.right 
                           ? const Icon(Icons.check, size: 16, color: Colors.white) 
@@ -371,7 +368,7 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                         avatar: const Icon(Icons.swap_horiz_outlined, size: 16, color: Color(0xFF4A90E2)),
                         label: const Text('换边'),
                         onPressed: _switchSide,
-                        backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                        backgroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       ),
                   ],
@@ -494,7 +491,6 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                       selected: _currentSide == BreastSide.left,
                       onSelected: (_) => setState(() => _currentSide = BreastSide.left),
                       selectedColor: const Color(0xFF4A90E2),
-                      fillColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     ),
                     const SizedBox(width: 8),
@@ -503,7 +499,6 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                       selected: _currentSide == BreastSide.right,
                       onSelected: (_) => setState(() => _currentSide = BreastSide.right),
                       selectedColor: const Color(0xFF4A90E2),
-                      fillColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     ),
                   ],
@@ -601,20 +596,3 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
   }
 }
 
-// 自定义计时器拇指形状（圆角）
-class _CustomThumbShape extends ContinuousRectangleBorder {
-  const _CustomThumbShape();
-
-  @override
-  Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
-    return Path()..addRRect(RRect.fromRectAndRadius(rect, const Radius.circular(12)));
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is _CustomThumbShape && runtimeType == other.runtimeType;
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-}

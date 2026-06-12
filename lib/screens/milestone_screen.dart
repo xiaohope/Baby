@@ -22,12 +22,6 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
     'vaccine': ['疫苗接种'],
   };
 
-  final Map<String, String> _categoryLabel = {
-    'milestone': '🌟 里程碑',
-    'hospital': '🏥 就医',
-    'vaccine': '💉 疫苗',
-  };
-
   @override
   void dispose() {
     _titleController.dispose();
@@ -118,10 +112,12 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
               ],
               selected: {_category},
               onSelectionChanged: (s) => setState(() => _category = s.first),
-              style: SegmentedButtonStyle(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                selectedBackgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF4A90E2)),
-                unselectedBackgroundColor: MaterialStateProperty.all<Color>(Colors.grey.shade100),
+              style: ButtonStyle(
+                shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                backgroundColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) return const Color(0xFF4A90E2);
+                  return Colors.grey.shade100;
+                }),
               ),
             ),
             const SizedBox(height: 12),

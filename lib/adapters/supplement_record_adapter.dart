@@ -20,6 +20,8 @@ class SupplementRecordBox extends HiveObject {
   @HiveField(4)
   late List<String> others;
 
+  SupplementRecordBox();
+
   SupplementRecordBox.fromModel(SupplementRecord record) {
     id = record.id;
     date = record.date;

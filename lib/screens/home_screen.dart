@@ -146,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         children: [
-                          Icon(item['icon'], color: item['color'] as Color, size: 28),
+                          Icon(item['icon'] as IconData, color: item['color'] as Color, size: 28),
                           const SizedBox(height: 8),
                           Text(item['value'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                           Text(item['label'] as String, style: const TextStyle(fontSize: 12, color: Colors.grey)),

@@ -20,6 +20,8 @@ class DiaperRecordBox extends HiveObject {
   @HiveField(4)
   String? note;
 
+  DiaperRecordBox();
+
   DiaperRecordBox.fromModel(DiaperRecord record) {
     id = record.id;
     time = record.time;

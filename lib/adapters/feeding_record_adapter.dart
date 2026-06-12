@@ -26,6 +26,8 @@ class FeedingRecordBox extends HiveObject {
   @HiveField(6)
   int? breastSide;
 
+  FeedingRecordBox();
+
   FeedingRecordBox.fromModel(FeedingRecord record) {
     id = record.id;
     time = record.time;

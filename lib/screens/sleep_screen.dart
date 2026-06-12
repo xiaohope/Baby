@@ -187,9 +187,12 @@ class _SleepScreenState extends State<SleepScreen> {
                         ],
                         selected: {_quality},
                         onSelectionChanged: (s) => setState(() => _quality = s.first),
-                        style: SegmentedButtonStyle(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          selectedBackgroundColor: MaterialStateProperty.all<Color>(const Color(0xFF7C3AED)),
+                        style: ButtonStyle(
+                          shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                          backgroundColor: WidgetStateProperty.resolveWith((states) {
+                            if (states.contains(WidgetState.selected)) return const Color(0xFF7C3AED);
+                            return null;
+                          }),
                         ),
                       ),
                       const SizedBox(height: 16),

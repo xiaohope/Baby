@@ -20,6 +20,8 @@ class MilestoneRecordBox extends HiveObject {
   @HiveField(4)
   late String category;
 
+  MilestoneRecordBox();
+
   MilestoneRecordBox.fromModel(MilestoneRecord record) {
     id = record.id;
     date = record.date;

@@ -23,6 +23,8 @@ class GrowthRecordBox extends HiveObject {
   @HiveField(5)
   String? note;
 
+  GrowthRecordBox();
+
   GrowthRecordBox.fromModel(GrowthRecord record) {
     id = record.id;
     date = record.date;

@@ -20,6 +20,8 @@ class SleepRecordBox extends HiveObject {
   @HiveField(4)
   String? note;
 
+  SleepRecordBox();
+
   SleepRecordBox.fromModel(SleepRecord record) {
     id = record.id;
     startTime = record.startTime;
