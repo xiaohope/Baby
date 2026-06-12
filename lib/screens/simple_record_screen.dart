@@ -26,6 +26,23 @@ class SimpleRecordScreen extends StatefulWidget {
 class _SimpleRecordScreenState extends State<SimpleRecordScreen> {
   final _noteController = TextEditingController();
   DateTime _recordTime = DateTime.now();
+  String? _editingId;
+
+  void _startEdit(SimpleRecord r) {
+    setState(() {
+      _editingId = r.id;
+      _noteController.text = r.note;
+      _recordTime = r.time;
+    });
+  }
+
+  void _cancelEdit() {
+    setState(() {
+      _editingId = null;
+      _noteController.clear();
+      _recordTime = DateTime.now();
+    });
+  }
 
   @override
   void dispose() {
@@ -35,7 +52,9 @@ class _SimpleRecordScreenState extends State<SimpleRecordScreen> {
 
   Future<void> _save() async {
     final ds = context.read<DataService>();
+    if (_editingId != null) await ds.deleteSimpleRecord(_editingId!);
     await ds.addSimpleRecord(SimpleRecord(
+      id: _editingId,
       category: widget.category,
       time: _recordTime,
       note: _noteController.text.trim(),
@@ -93,7 +112,9 @@ class _SimpleRecordScreenState extends State<SimpleRecordScreen> {
                         child: Icon(widget.icon, color: widget.color, size: 20),
                       ),
                       const SizedBox(width: 10),
-                      Text('新增${widget.title}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(_editingId != null ? '编辑${widget.title}' : '新增${widget.title}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      if (_editingId != null)
+                        TextButton(onPressed: _cancelEdit, child: const Text('取消', style: TextStyle(color: Colors.grey))),
                       const Spacer(),
                       // 时间选择
                       TextButton.icon(
@@ -179,6 +200,7 @@ class _SimpleRecordScreenState extends State<SimpleRecordScreen> {
               ...records.map((r) => Card(
                 margin: const EdgeInsets.only(bottom: 8),
                 child: ListTile(
+                  onTap: () => _startEdit(r),
                   leading: CircleAvatar(
                     backgroundColor: widget.color.withValues(alpha: 0.1),
                     child: Text(widget.emoji, style: const TextStyle(fontSize: 18)),

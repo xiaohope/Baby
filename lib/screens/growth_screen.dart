@@ -15,6 +15,27 @@ class _GrowthScreenState extends State<GrowthScreen> {
   final _heightController = TextEditingController();
   final _headController = TextEditingController();
   final _noteController = TextEditingController();
+  String? _editingId;
+
+  void _startEdit(GrowthRecord r) {
+    setState(() {
+      _editingId = r.id;
+      _weightController.text = r.weightKg?.toString() ?? '';
+      _heightController.text = r.heightCm?.toString() ?? '';
+      _headController.text = r.headCircumferenceCm?.toString() ?? '';
+      _noteController.text = r.note ?? '';
+    });
+  }
+
+  void _cancelEdit() {
+    setState(() {
+      _editingId = null;
+      _weightController.clear();
+      _heightController.clear();
+      _headController.clear();
+      _noteController.clear();
+    });
+  }
 
   @override
   void dispose() {
@@ -27,7 +48,9 @@ class _GrowthScreenState extends State<GrowthScreen> {
 
   Future<void> _save() async {
     final ds = context.read<DataService>();
+    if (_editingId != null) await ds.deleteGrowth(_editingId!);
     await ds.addGrowth(GrowthRecord(
+      id: _editingId,
       date: DateTime.now(),
       weightKg: double.tryParse(_weightController.text),
       heightCm: double.tryParse(_heightController.text),

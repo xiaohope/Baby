@@ -15,6 +15,27 @@ class _DiaperScreenState extends State<DiaperScreen> {
   String? _poopColor;
   final _noteController = TextEditingController();
   DateTime _recordTime = DateTime.now();
+  String? _editingId;
+
+  void _startEdit(DiaperRecord r) {
+    setState(() {
+      _editingId = r.id;
+      _selectedType = r.type;
+      _poopColor = r.poopColor;
+      _noteController.text = r.note ?? '';
+      _recordTime = r.time;
+    });
+  }
+
+  void _cancelEdit() {
+    setState(() {
+      _editingId = null;
+      _selectedType = DiaperType.pee;
+      _poopColor = null;
+      _noteController.clear();
+      _recordTime = DateTime.now();
+    });
+  }
 
   final List<String> _poopColors = [
     '黄色', '棕色', '绿色', '黑色', '灰色', '奶瓣', '水便'
@@ -29,7 +50,9 @@ class _DiaperScreenState extends State<DiaperScreen> {
   Future<void> _save() async {
     try {
       final ds = context.read<DataService>();
+      if (_editingId != null) await ds.deleteDiaper(_editingId!);
       final record = DiaperRecord(
+        id: _editingId,
         time: _recordTime,
         type: _selectedType,
         poopColor: (_selectedType == DiaperType.poop || _selectedType == DiaperType.both) ? _poopColor : null,
@@ -41,6 +64,7 @@ class _DiaperScreenState extends State<DiaperScreen> {
           const SnackBar(content: Text('✅ 已保存'), duration: Duration(seconds: 1)),
         );
         setState(() {
+          _editingId = null;
           _selectedType = DiaperType.pee;
           _poopColor = null;
           _noteController.clear();
@@ -106,7 +130,12 @@ class _DiaperScreenState extends State<DiaperScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('新增记录', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(_editingId != null ? '编辑记录' : '新增记录', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                if (_editingId != null)
+                  TextButton(
+                    onPressed: _cancelEdit,
+                    child: const Text('取消', style: TextStyle(color: Colors.grey)),
+                  ),
                 TextButton.icon(
                   icon: const Icon(Icons.access_time_outlined, size: 18, color: Color(0xFF4A90E2)),
                   label: Text(
@@ -240,6 +269,7 @@ class _DiaperScreenState extends State<DiaperScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       color: Colors.white,
       child: ListTile(
+        onTap: () => _startEdit(r),
         leading: CircleAvatar(
           backgroundColor: Colors.orange.withOpacity(0.1),
           child: const Icon(Icons.baby_changing_station, color: Colors.orange),
