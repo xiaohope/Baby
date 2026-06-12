@@ -45,18 +45,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ds = context.watch<DataService>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('设置'),
         centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFE6F7FF), Color(0xFFF0FAFF)],
+            colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -64,31 +63,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // 宝宝信息
+            // ====== 主题设置 ======
             Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              color: Colors.white,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(children: [
-                      const Icon(Icons.child_care, color: Color(0xFF4A90E2)),
+                      const Icon(Icons.dark_mode, color: Color(0xFF6C63FF)),
+                      const SizedBox(width: 8),
+                      Text('主题设置', style: Theme.of(context).textTheme.titleMedium),
+                    ]),
+                    const SizedBox(height: 12),
+                    _buildThemeOption(ds, ThemeMode.light, '☀️ 浅色模式', '始终使用浅色主题'),
+                    const Divider(height: 4),
+                    _buildThemeOption(ds, ThemeMode.dark, '🌙 深色模式', '始终使用深色主题'),
+                    const Divider(height: 4),
+                    _buildThemeOption(ds, ThemeMode.system, '🔄 跟随系统', '自动跟随系统设置'),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // ====== 宝宝信息 ======
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      const Icon(Icons.child_care, color: Color(0xFF6C63FF)),
                       const SizedBox(width: 8),
                       Text('宝宝信息', style: Theme.of(context).textTheme.titleMedium),
                     ]),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _nameController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: '宝宝姓名',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -103,20 +118,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         if (d != null) setState(() => _birthday = d);
                       },
                       child: InputDecorator(
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: '出生日期',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          suffixIcon: const Icon(Icons.calendar_today, color: Color(0xFF4A90E2)),
+                          suffixIcon: Icon(Icons.calendar_today, color: Color(0xFF6C63FF)),
                         ),
                         child: Text(
                           _birthday != null
-                              ? '${_birthday!.year}/${_birthday!.month}/${_birthday!.day}'
-                              : '请填写宝宝姓名和出生日期',
+                              ? '${_birthday!.year}年${_birthday!.month}月${_birthday!.day}日'
+                              : '请选择出生日期',
                           style: TextStyle(color: _birthday == null ? Colors.grey : null),
                         ),
                       ),
@@ -128,11 +137,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onPressed: _saveBabyInfo,
                         icon: const Icon(Icons.check),
                         label: const Text('保存'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF4A90E2),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
                       ),
                     ),
                   ],
@@ -141,20 +145,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 12),
 
-            // 关于
+            // ====== 关于 ======
             Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              color: Colors.white,
               child: Column(
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.info_outline, color: Color(0xFF4A90E2)),
+                    leading: const Icon(Icons.info_outline, color: Color(0xFF6C63FF)),
                     title: const Text('版本'),
                     trailing: const Text('3.0.0'),
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    leading: const Icon(Icons.favorite_outline, color: Color(0xFF4A90E2)),
+                    leading: const Icon(Icons.favorite_outline, color: Color(0xFF6C63FF)),
                     title: const Text('关于'),
                     subtitle: const Text('宝宝喂养记录 App — 用心陪伴每一步'),
                     onTap: () => _showAbout(context),
@@ -162,19 +164,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
 
-            // 数据导出
+            // ====== 数据导出 ======
             Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              color: Colors.white,
               child: ListTile(
-                leading: const Icon(Icons.download, color: Color(0xFF4A90E2)),
+                leading: const Icon(Icons.download, color: Color(0xFF6C63FF)),
                 title: const Text('数据导出 (开发中)'),
                 subtitle: const Text('导出 Excel 方便给医生查看'),
                 trailing: const Icon(Icons.lock_outline, color: Colors.grey),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThemeOption(DataService ds, ThemeMode mode, String title, String subtitle) {
+    final isSelected = ds.themeMode == mode;
+    return InkWell(
+      onTap: () => ds.setThemeMode(mode),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+        child: Row(
+          children: [
+            Radio<ThemeMode>(
+              value: mode,
+              groupValue: ds.themeMode,
+              onChanged: (v) => ds.setThemeMode(v!),
+              activeColor: const Color(0xFF6C63FF),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                  Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text('当前', style: TextStyle(fontSize: 11, color: Color(0xFF6C63FF), fontWeight: FontWeight.w500)),
+              ),
           ],
         ),
       ),

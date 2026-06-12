@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'services/data_service.dart';
 import 'services/hive_helper.dart';
@@ -24,13 +25,27 @@ class BabyTrackerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '宝宝记录',
-      debugShowCheckedModeBanner: false,
-      darkTheme: _buildDarkTheme(),
-      themeMode: ThemeMode.system,
-      theme: _buildLightTheme(),
-      home: const HomeScreen(),
+    return Consumer<DataService>(
+      builder: (context, ds, _) {
+        return MaterialApp(
+          title: '宝宝记录',
+          debugShowCheckedModeBanner: false,
+          themeMode: ds.themeMode,
+          darkTheme: _buildDarkTheme(),
+          theme: _buildLightTheme(),
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('zh', 'CN'),
+            Locale('en', 'US'),
+          ],
+          locale: const Locale('zh', 'CN'),
+          home: const HomeScreen(),
+        );
+      },
     );
   }
 
@@ -155,45 +170,44 @@ class BabyTrackerApp extends StatelessWidget {
     const colorScheme = ColorScheme(
       brightness: Brightness.dark,
       primary: Color(0xFF9D97FF),
-      onPrimary: Color(0xFF1A1A2E),
+      onPrimary: Colors.white,
       secondary: Color(0xFFFF9E96),
-      onSecondary: Color(0xFF1A1A2E),
+      onSecondary: Colors.white,
       tertiary: Color(0xFF81C9D6),
-      onTertiary: Color(0xFF1A1A2E),
-      surface: Color(0xFF1A1A2E),
+      onTertiary: Colors.white,
+      surface: Color(0xFF121212),
       onSurface: Color(0xFFE8E8E8),
-      error: Color(0xFFE74C3C),
-      onError: Color(0xFF1A1A2E),
-      surfaceContainerHighest: Color(0xFF2D2D44),
+      error: Color(0xFFCF6679),
+      onError: Colors.black,
+      surfaceContainerHighest: Color(0xFF1E1E1E),
       outline: Color(0xFF4A4A5A),
     );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
+      scaffoldBackgroundColor: const Color(0xFF121212),
       textTheme: const TextTheme(
-        displayLarge: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: -0.5),
-        headlineMedium: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        titleSmall: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        bodyLarge: TextStyle(fontSize: 16, height: 1.5),
-        bodyMedium: TextStyle(fontSize: 14, height: 1.5),
-        bodySmall: TextStyle(fontSize: 12, height: 1.4),
-        labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-      ).apply(
-        bodyColor: const Color(0xFFE8E8E8),
-        displayColor: const Color(0xFFE8E8E8),
+        displayLarge: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: -0.5, color: Colors.white),
+        headlineMedium: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+        titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
+        titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+        titleSmall: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
+        bodyLarge: TextStyle(fontSize: 16, height: 1.5, color: Colors.white),
+        bodyMedium: TextStyle(fontSize: 14, height: 1.5, color: Colors.white70),
+        bodySmall: TextStyle(fontSize: 12, height: 1.4, color: Colors.white60),
+        labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+        labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.white70),
       ),
       cardTheme: CardThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        elevation: 0,
-        color: const Color(0xFF2D2D44),
+        elevation: 2,
+        shadowColor: Colors.black.withValues(alpha: 0.2),
+        color: const Color(0xFF1E1E1E),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF2D2D44),
+        fillColor: const Color(0xFF2A2A2A),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
@@ -203,17 +217,35 @@ class BabyTrackerApp extends StatelessWidget {
           borderSide: const BorderSide(color: Color(0xFF9D97FF), width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        labelStyle: const TextStyle(color: Color(0xFF9E9E9E)),
       ),
       navigationBarTheme: NavigationBarThemeData(
         indicatorColor: const Color(0xFF9D97FF).withValues(alpha: 0.15),
         backgroundColor: const Color(0xFF1A1A2E),
         elevation: 3,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF9D97FF));
+          }
+          return const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E));
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: Color(0xFF9D97FF), size: 22);
+          }
+          return const IconThemeData(color: Color(0xFF9E9E9E), size: 22);
+        }),
       ),
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: Color(0xFFE8E8E8),
+        foregroundColor: Colors.white,
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
       ),
     );
   }

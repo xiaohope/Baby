@@ -320,9 +320,13 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 14),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Wrap(
-            spacing: 12,
-            runSpacing: 12,
+          child: GridView.count(
+            crossAxisCount: 3,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.0,
             children: actions.map((a) => _buildActionCard(a)).toList(),
           ),
         ),
@@ -331,10 +335,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildActionCard(_QuickAction action) {
-    return SizedBox(
-      width: 108,
-      height: 108,
-      child: Material(
+    return Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(20),

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../models/feeding_record.dart';
 import '../models/diaper_record.dart';
 import '../models/supplement_record.dart';
@@ -22,6 +22,7 @@ class DataService extends ChangeNotifier {
   List<MilestoneRecord> _milestoneRecords = [];
   String _babyName = '宝宝';
   DateTime? _babyBirthday;
+  ThemeMode _themeMode = ThemeMode.system;
 
   List<FeedingRecord> get feedingRecords => _feedingRecords;
   List<DiaperRecord> get diaperRecords => _diaperRecords;
@@ -31,6 +32,7 @@ class DataService extends ChangeNotifier {
   List<MilestoneRecord> get milestoneRecords => _milestoneRecords;
   String get babyName => _babyName;
   DateTime? get babyBirthday => _babyBirthday;
+  ThemeMode get themeMode => _themeMode;
 
   Future<void> init() async {
     // 从 Hive 加载数据
@@ -43,6 +45,8 @@ class DataService extends ChangeNotifier {
     if (birthdayStr != null) {
       _babyBirthday = DateTime.parse(birthdayStr);
     }
+    final themeIndex = settingsBox.get('theme_mode', defaultValue: 0);
+    _themeMode = ThemeMode.values[themeIndex];
     
     notifyListeners();
   }
@@ -88,6 +92,14 @@ class DataService extends ChangeNotifier {
     await settingsBox.put('baby_name', name);
     await settingsBox.put('baby_birthday', birthday.toIso8601String());
     
+    notifyListeners();
+  }
+
+  // ---- 主题切换 ----
+  Future<void> setThemeMode(ThemeMode mode) async {
+    _themeMode = mode;
+    final settingsBox = HiveHelper.settingsBox;
+    await settingsBox.put('theme_mode', mode.index);
     notifyListeners();
   }
 
