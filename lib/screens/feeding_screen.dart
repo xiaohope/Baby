@@ -189,14 +189,6 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
     });
   }
 
-  Color _typeColor(FeedingType type) {
-    switch (type) {
-      case FeedingType.breastDirect: return const Color(0xFF4A90E2);
-      case FeedingType.breastBottle: return const Color(0xFF673AB7);
-      case FeedingType.formula: return const Color(0xFF2196F3);
-    }
-  }
-
   IconData _typeIcon(FeedingType type) {
     switch (type) {
       case FeedingType.breastDirect: return Icons.child_care;
@@ -211,7 +203,6 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).colorScheme.primary;
     final ds = context.watch<DataService>();
     final records = ds.feedingRecords.take(30).toList();
 
@@ -236,8 +227,6 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
   }
 
   Widget _buildForm() {
-    final primaryColor = Theme.of(context).colorScheme.primary;
-
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       color: Colors.white,

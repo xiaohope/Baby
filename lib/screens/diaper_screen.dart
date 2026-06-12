@@ -77,8 +77,6 @@ class _DiaperScreenState extends State<DiaperScreen> {
   }
 
   Widget _buildForm() {
-    final primaryColor = Theme.of(context).colorScheme.primary;
-
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       color: Colors.white,
