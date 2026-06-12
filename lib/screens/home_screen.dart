@@ -22,15 +22,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  static const _accentColors = [
-    Color(0xFF6C63FF),
-    Color(0xFFFF8A80),
-    Color(0xFF81C9D6),
-    Color(0xFFFFB347),
-    Color(0xFFA8E6CF),
-    Color(0xFFD4A5FF),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final ds = context.watch<DataService>();
