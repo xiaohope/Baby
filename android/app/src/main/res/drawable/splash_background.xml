@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- splash_background.xml - 启动页渐变色背景 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:startColor="#E6F7FF"
+        android:endColor="#F0FAFF"
+        android:angle="135" />
+</shape>
