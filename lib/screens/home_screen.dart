@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import '../services/data_service.dart';
 import '../models/feeding_record.dart';
+import '../models/growth_record.dart';
 import 'feeding_screen.dart';
 import 'diaper_screen.dart';
 import 'supplement_screen.dart';
@@ -11,6 +13,8 @@ import 'milestone_screen.dart';
 import 'settings_screen.dart';
 import 'history_screen.dart';
 import 'stats_screen.dart';
+import 'moments_screen.dart';
+import 'simple_record_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
           NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: '首页'),
           NavigationDestination(icon: Icon(Icons.history_outlined), selectedIcon: Icon(Icons.history), label: '历史'),
           NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: '统计'),
-          NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: '设置'),
+          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: '我的'),
         ],
       ),
     );
@@ -75,6 +79,8 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildBabyCard(ds, size),
               const SizedBox(height: 20),
               _buildTodayStats(stats),
+              const SizedBox(height: 24),
+              _buildGrowthChart(ds),
               const SizedBox(height: 24),
               _buildQuickActions(context),
               const SizedBox(height: 24),
@@ -199,6 +205,24 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: Icons.bedtime,
         gradient: const LinearGradient(colors: [Color(0xFFD4A5FF), Color(0xFF6C63FF)]),
       ),
+      _StatItem(
+        label: '尿急',
+        value: '${stats['peeSimpleCount'] ?? 0}次',
+        icon: Icons.water_drop,
+        gradient: const LinearGradient(colors: [Color(0xFF4A90D9), Color(0xFF74B9FF)]),
+      ),
+      _StatItem(
+        label: '粑粑',
+        value: '${stats['poopSimpleCount'] ?? 0}次',
+        icon: Icons.report,
+        gradient: const LinearGradient(colors: [Color(0xFF8B5E3C), Color(0xFFA67B5B)]),
+      ),
+      _StatItem(
+        label: '用药',
+        value: '${stats['medCount'] ?? 0}次',
+        icon: Icons.medication,
+        gradient: const LinearGradient(colors: [Color(0xFFE74C3C), Color(0xFFFF6B6B)]),
+      ),
     ];
 
     return Column(
@@ -284,6 +308,208 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ====== 📈 成长曲线 ======
+  Widget _buildGrowthChart(DataService ds) {
+    final records = ds.growthRecords.reversed.toList();
+    final weightPoints = <FlSpot>[];
+    final heightPoints = <FlSpot>[];
+    int idx = 0;
+
+    for (final r in records) {
+      if (r.weightKg != null) {
+        weightPoints.add(FlSpot(idx.toDouble(), r.weightKg!));
+      }
+      if (r.heightCm != null) {
+        heightPoints.add(FlSpot(idx.toDouble(), r.heightCm!));
+      }
+      idx++;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              Container(
+                width: 4,
+                height: 18,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6C63FF), Color(0xFFFF8A80)],
+                  ),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text('成长趋势', style: Theme.of(context).textTheme.titleMedium),
+              const Spacer(),
+              if (weightPoints.isNotEmpty)
+                _chartLegend('体重', const Color(0xFF6C63FF)),
+              const SizedBox(width: 12),
+              if (heightPoints.isNotEmpty)
+                _chartLegend('身高', const Color(0xFF27AE60)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        records.length < 2
+            ? Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(Icons.show_chart, size: 36, color: Colors.grey.shade300),
+                        const SizedBox(height: 8),
+                        Text('继续添加记录可查看成长趋势', style: TextStyle(color: Colors.grey.shade400, fontSize: 14)),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 16, 20, 12),
+                    child: SizedBox(
+                      height: 180,
+                      child: LineChart(
+                        LineChartData(
+                          gridData: FlGridData(
+                            show: true,
+                            drawVerticalLine: false,
+                            horizontalInterval: _calcInterval(weightPoints, heightPoints),
+                            getDrawingHorizontalLine: (value) => FlLine(
+                              color: Colors.grey.shade200,
+                              strokeWidth: 1,
+                            ),
+                          ),
+                          titlesData: FlTitlesData(
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 36,
+                                getTitlesWidget: (value, meta) => Text(
+                                  value.toStringAsFixed(0),
+                                  style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                                ),
+                              ),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 24,
+                                interval: 1,
+                                getTitlesWidget: (value, meta) {
+                                  final i = value.toInt();
+                                  if (i < 0 || i >= records.length) return const SizedBox();
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text(
+                                      '${records[i].date.month}/${records[i].date.day}',
+                                      style: TextStyle(fontSize: 9, color: Colors.grey.shade500),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          ),
+                          borderData: FlBorderData(show: false),
+                          minY: _calcMinY(weightPoints, heightPoints),
+                          maxY: _calcMaxY(weightPoints, heightPoints),
+                          lineBarsData: [
+                            if (weightPoints.length >= 2)
+                              LineChartBarData(
+                                spots: weightPoints,
+                                isCurved: true,
+                                color: const Color(0xFF6C63FF),
+                                barWidth: 3,
+                                dotData: FlDotData(
+                                  show: true,
+                                  getDotPainter: (spot, percent, bar, index) =>
+                                    FlDotCirclePainter(
+                                      radius: 3,
+                                      color: const Color(0xFF6C63FF),
+                                      strokeWidth: 0,
+                                    ),
+                                ),
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  color: const Color(0xFF6C63FF).withValues(alpha: 0.08),
+                                ),
+                              ),
+                            if (heightPoints.length >= 2)
+                              LineChartBarData(
+                                spots: heightPoints,
+                                isCurved: true,
+                                color: const Color(0xFF27AE60),
+                                barWidth: 3,
+                                dotData: FlDotData(
+                                  show: true,
+                                  getDotPainter: (spot, percent, bar, index) =>
+                                    FlDotCirclePainter(
+                                      radius: 3,
+                                      color: const Color(0xFF27AE60),
+                                      strokeWidth: 0,
+                                    ),
+                                ),
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  color: const Color(0xFF27AE60).withValues(alpha: 0.08),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+      ],
+    );
+  }
+
+  Widget _chartLegend(String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        const SizedBox(width: 4),
+        Text(label, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+      ],
+    );
+  }
+
+  double _calcInterval(List<FlSpot> weight, List<FlSpot> height) {
+    double maxVal = 0;
+    for (final s in weight) { if (s.y > maxVal) maxVal = s.y; }
+    for (final s in height) { if (s.y > maxVal) maxVal = s.y; }
+    if (maxVal <= 5) return 1;
+    if (maxVal <= 20) return 5;
+    if (maxVal <= 50) return 10;
+    return 20;
+  }
+
+  double _calcMinY(List<FlSpot> weight, List<FlSpot> height) {
+    double minVal = 1e10;
+    for (final s in weight) { if (s.y < minVal) minVal = s.y; }
+    for (final s in height) { if (s.y < minVal) minVal = s.y; }
+    return (minVal - 1).floorToDouble().clamp(0, double.infinity);
+  }
+
+  double _calcMaxY(List<FlSpot> weight, List<FlSpot> height) {
+    double maxVal = 0;
+    for (final s in weight) { if (s.y > maxVal) maxVal = s.y; }
+    for (final s in height) { if (s.y > maxVal) maxVal = s.y; }
+    return (maxVal + 1).ceilToDouble();
+  }
+
   // ====== ✨ 快捷入口 ======
   Widget _buildQuickActions(BuildContext context) {
     final actions = [
@@ -292,7 +518,13 @@ class _HomeScreenState extends State<HomeScreen> {
       _QuickAction(emoji: '💊', label: '补充', icon: Icons.medication, color: const Color(0xFF81C9D6), screen: const SupplementScreen()),
       _QuickAction(emoji: '😴', label: '睡眠', icon: Icons.bedtime, color: const Color(0xFFD4A5FF), screen: const SleepScreen()),
       _QuickAction(emoji: '📏', label: '成长', icon: Icons.straighten, color: const Color(0xFFA8E6CF), screen: const GrowthScreen()),
-      _QuickAction(emoji: '🌟', label: '里程碑', icon: Icons.star, color: const Color(0xFFFFB347), screen: const MilestoneScreen()),
+      _QuickAction(emoji: '🌟', label: '里程碑', icon: Icons.star, color: const Color(0xFFFF8A80), screen: const MilestoneScreen(initialCategory: 'milestone')),
+      _QuickAction(emoji: '🏥', label: '就医', icon: Icons.local_hospital, color: const Color(0xFFE74C3C), screen: const MilestoneScreen(initialCategory: 'hospital')),
+      _QuickAction(emoji: '💉', label: '疫苗', icon: Icons.vaccines, color: const Color(0xFF27AE60), screen: const MilestoneScreen(initialCategory: 'vaccine')),
+      _QuickAction(emoji: '📸', label: '动态', icon: Icons.photo_library, color: const Color(0xFFFF6B6B), screen: const MomentsScreen()),
+      _QuickAction(emoji: '💦', label: '尿急', icon: Icons.water_drop, color: const Color(0xFF4A90D9), screen: const SimpleRecordScreen(category: 'pee', title: '尿急', icon: Icons.water_drop, color: Color(0xFF4A90D9), emoji: '💦')),
+      _QuickAction(emoji: '💩', label: '粑粑', icon: Icons.report, color: const Color(0xFF8B5E3C), screen: const SimpleRecordScreen(category: 'poop', title: '粑粑', icon: Icons.report, color: Color(0xFF8B5E3C), emoji: '💩')),
+      _QuickAction(emoji: '💊', label: '用药', icon: Icons.medication, color: const Color(0xFFE74C3C), screen: const SimpleRecordScreen(category: 'medication', title: '用药', icon: Icons.medication, color: Color(0xFFE74C3C), emoji: '💊')),
     ];
 
     return Column(

@@ -4,14 +4,16 @@ import '../models/milestone_record.dart';
 import '../services/data_service.dart';
 
 class MilestoneScreen extends StatefulWidget {
-  const MilestoneScreen({super.key});
+  final String initialCategory;
+
+  const MilestoneScreen({super.key, this.initialCategory = 'milestone'});
 
   @override
   State<MilestoneScreen> createState() => _MilestoneScreenState();
 }
 
 class _MilestoneScreenState extends State<MilestoneScreen> {
-  String _category = 'milestone';
+  late String _category;
   final _titleController = TextEditingController();
   final _noteController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
@@ -21,6 +23,12 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
     'hospital': ['体检', '就诊', '复查', '用药'],
     'vaccine': ['疫苗接种'],
   };
+
+  @override
+  void initState() {
+    super.initState();
+    _category = widget.initialCategory;
+  }
 
   @override
   void dispose() {
@@ -114,10 +122,15 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
               onSelectionChanged: (s) => setState(() => _category = s.first),
               style: ButtonStyle(
                 shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                foregroundColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) return Colors.white;
+                  return Colors.black87;
+                }),
                 backgroundColor: WidgetStateProperty.resolveWith((states) {
-                  if (states.contains(WidgetState.selected)) return const Color(0xFF4A90E2);
+                  if (states.contains(WidgetState.selected)) return const Color(0xFF6C63FF);
                   return Colors.grey.shade100;
                 }),
+                side: WidgetStateProperty.all(const BorderSide(color: Color(0xFF6C63FF), width: 1)),
               ),
             ),
             const SizedBox(height: 12),

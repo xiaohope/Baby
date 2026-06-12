@@ -11,8 +11,8 @@ class SupplementScreen extends StatefulWidget {
 }
 
 class _SupplementScreenState extends State<SupplementScreen> {
-  bool _tookAD = false;
-  bool _tookD3 = false;
+  final _newItemController = TextEditingController();
+  List<String> _items = [];
 
   @override
   void initState() {
@@ -20,120 +20,292 @@ class _SupplementScreenState extends State<SupplementScreen> {
     final ds = context.read<DataService>();
     final today = ds.todaySupplement();
     if (today != null) {
-      _tookAD = today.tookAD;
-      _tookD3 = today.tookD3;
+      _items = List.from(today.items);
     }
+  }
+
+  @override
+  void dispose() {
+    _newItemController.dispose();
+    super.dispose();
   }
 
   Future<void> _save() async {
     final ds = context.read<DataService>();
     await ds.setSupplement(SupplementRecord(
       date: DateTime.now(),
-      tookAD: _tookAD,
-      tookD3: _tookD3,
+      items: _items,
     ));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已保存！'), duration: Duration(seconds: 1)),
+        const SnackBar(content: Text('✅ 已保存'), duration: Duration(seconds: 1)),
       );
     }
   }
 
+  void _addItem() {
+    final text = _newItemController.text.trim();
+    if (text.isEmpty) return;
+    setState(() {
+      _items.add(text);
+    });
+    _newItemController.clear();
+  }
+
+  void _deleteItem(int index) {
+    setState(() {
+      _items.removeAt(index);
+    });
+  }
+
+  void _editItem(int index, String newValue) {
+    setState(() {
+      _items[index] = newValue;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final ds = context.watch<DataService>();
+    final allRecords = ds.allSupplementRecords();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('营养补充'),
         centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFE6F7FF), Color(0xFFF0FAFF)],
+            colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
-        child: Padding(
+        child: ListView(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                color: Colors.white,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      const Icon(Icons.medication, size: 48, color: Colors.green),
-                      const SizedBox(height: 12),
-                      const Text('今日营养补充', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 20),
-                      SwitchListTile(
-                        title: const Text('维生素 AD'),
-                        subtitle: const Text('促进骨骼发育、免疫力'),
-                        value: _tookAD,
-                        onChanged: (v) => setState(() => _tookAD = v),
-                        secondary: CircleAvatar(
-                          backgroundColor: _tookAD ? Colors.green.shade100 : Colors.grey.shade200,
-                          child: const Icon(Icons.visibility, color: Colors.green),
+          children: [
+            // ====== 今日记录 ======
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      const Icon(Icons.medication, color: Color(0xFF6C63FF)),
+                      const SizedBox(width: 8),
+                      Text('今日补充', style: Theme.of(context).textTheme.titleMedium),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: _items.isNotEmpty
+                              ? Colors.green.withValues(alpha: 0.1)
+                              : Colors.grey.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ),
-                      const Divider(),
-                      SwitchListTile(
-                        title: const Text('维生素 D3'),
-                        subtitle: const Text('促进钙吸收、预防佝偻病'),
-                        value: _tookD3,
-                        onChanged: (v) => setState(() => _tookD3 = v),
-                        secondary: CircleAvatar(
-                          backgroundColor: _tookD3 ? Colors.blue.shade100 : Colors.grey.shade200,
-                          child: const Icon(Icons.wb_sunny, color: Colors.blue),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton.icon(
-                          onPressed: _save,
-                          icon: const Icon(Icons.check),
-                          label: const Text('保存'),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF4A90E2),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: Text(
+                          '${_items.length}项',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: _items.isNotEmpty ? Colors.green : Colors.grey,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                color: Colors.white,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('💡 小贴士', style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'AD 和 D3 通常在宝宝出生后 15 天开始补充，建议在早上喂奶后服用。具体用量请遵医嘱。',
-                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                    ]),
+                    const SizedBox(height: 16),
+
+                    // 添加新项目
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _newItemController,
+                            decoration: const InputDecoration(
+                              hintText: '输入补充剂名称',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(12)),
+                                borderSide: BorderSide(color: Color(0xFFD4C5B5)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(12)),
+                                borderSide: BorderSide(color: Color(0xFFD4C5B5)),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              isDense: true,
+                            ),
+                            onSubmitted: (_) => _addItem(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton(
+                          onPressed: _addItem,
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: const Text('添加'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 已添加项目列表
+                    if (_items.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Icon(Icons.medication_outlined, size: 40, color: Colors.grey.shade300),
+                              const SizedBox(height: 8),
+                              Text('今日尚未添加', style: TextStyle(color: Colors.grey.shade400)),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      ...List.generate(_items.length, (i) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF6C63FF),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF6C63FF).withValues(alpha: 0.05),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          _items[i],
+                                          style: const TextStyle(fontSize: 15),
+                                        ),
+                                      ),
+                                      InkWell(
+                                        onTap: () => _editItemDialog(i),
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(4),
+                                          child: Icon(Icons.edit_outlined, size: 18, color: Colors.grey.shade500),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      InkWell(
+                                        onTap: () => _deleteItem(i),
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(4),
+                                          child: Icon(Icons.close, size: 18, color: Colors.red.shade300),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: _save,
+                        icon: const Icon(Icons.check),
+                        label: const Text('保存今日记录'),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // ====== 历史记录 ======
+            Text('历史记录', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            if (allRecords.isEmpty)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Center(
+                    child: Text('暂无记录', style: TextStyle(color: Colors.grey.shade400)),
+                  ),
+                ),
+              )
+            else
+              ...allRecords.map((r) => Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.green.withValues(alpha: 0.1),
+                    child: const Icon(Icons.medication, color: Colors.green),
+                  ),
+                  title: Text(
+                    '${r.date.month}月${r.date.day}日',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(r.items.join('、'), style: const TextStyle(fontSize: 13)),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                    onPressed: () => ds.deleteSupplement(r.id),
+                  ),
+                ),
+              )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _editItemDialog(int index) {
+    final controller = TextEditingController(text: _items[index]);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('编辑补充剂'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: '输入名称',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
           ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                _editItem(index, controller.text.trim());
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('确定'),
+          ),
+        ],
       ),
     );
   }

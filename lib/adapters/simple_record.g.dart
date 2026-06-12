@@ -1,35 +1,38 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'supplement_record_adapter.dart';
+part of 'simple_record_adapter.dart';
 
-class SupplementRecordBoxAdapter extends TypeAdapter<SupplementRecordBox> {
+class SimpleRecordBoxAdapter extends TypeAdapter<SimpleRecordBox> {
   @override
-  final int typeId = 5;
+  final int typeId = 7;
 
   @override
-  SupplementRecordBox read(BinaryReader reader) {
+  SimpleRecordBox read(BinaryReader reader) {
     final numFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numFields; i++) reader.readByte(): reader.read(),
     };
 
-    final result = SupplementRecordBox();
+    final result = SimpleRecordBox();
     result.id = fields[0] as String;
-    result.date = fields[1] as DateTime;
-    result.items = (fields[2] as List).cast<String>();
+    result.category = fields[1] as String;
+    result.time = fields[2] as DateTime;
+    result.note = fields[3] as String;
     return result;
   }
 
   @override
-  void write(BinaryWriter writer, SupplementRecordBox obj) {
+  void write(BinaryWriter writer, SimpleRecordBox obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.date)
+      ..write(obj.category)
       ..writeByte(2)
-      ..write(obj.items);
+      ..write(obj.time)
+      ..writeByte(3)
+      ..write(obj.note);
   }
 
   @override
@@ -38,7 +41,7 @@ class SupplementRecordBoxAdapter extends TypeAdapter<SupplementRecordBox> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is SupplementRecordBoxAdapter &&
+      other is SimpleRecordBoxAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

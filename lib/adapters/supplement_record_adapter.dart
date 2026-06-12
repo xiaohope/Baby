@@ -12,31 +12,21 @@ class SupplementRecordBox extends HiveObject {
   late DateTime date;
 
   @HiveField(2)
-  late bool tookAD;
-
-  @HiveField(3)
-  late bool tookD3;
-
-  @HiveField(4)
-  late List<String> others;
+  late List<String> items;
 
   SupplementRecordBox();
 
   SupplementRecordBox.fromModel(SupplementRecord record) {
     id = record.id;
     date = record.date;
-    tookAD = record.tookAD;
-    tookD3 = record.tookD3;
-    others = record.others;
+    items = record.items;
   }
 
   SupplementRecord toModel() {
     return SupplementRecord(
       id: id,
       date: date,
-      tookAD: tookAD,
-      tookD3: tookD3,
-      others: others,
+      items: items,
     );
   }
 }

@@ -49,7 +49,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('设置'),
+        title: const Text('我的'),
         centerTitle: true,
       ),
       body: Container(

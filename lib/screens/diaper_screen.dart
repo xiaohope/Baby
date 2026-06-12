@@ -27,15 +27,28 @@ class _DiaperScreenState extends State<DiaperScreen> {
   }
 
   Future<void> _save() async {
-    final ds = context.read<DataService>();
-    final record = DiaperRecord(
-      time: _recordTime,
-      type: _selectedType,
-      poopColor: (_selectedType == DiaperType.poop || _selectedType == DiaperType.both) ? _poopColor : null,
-      note: _noteController.text.isEmpty ? null : _noteController.text,
-    );
-    await ds.addDiaper(record);
-    if (mounted) Navigator.pop(context);
+    try {
+      final ds = context.read<DataService>();
+      final record = DiaperRecord(
+        time: _recordTime,
+        type: _selectedType,
+        poopColor: (_selectedType == DiaperType.poop || _selectedType == DiaperType.both) ? _poopColor : null,
+        note: _noteController.text.isEmpty ? null : _noteController.text,
+      );
+      await ds.addDiaper(record);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ 已保存'), duration: Duration(seconds: 1)),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('保存失败: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   String _fmt(DateTime t) {
@@ -131,10 +144,15 @@ class _DiaperScreenState extends State<DiaperScreen> {
               onSelectionChanged: (s) => setState(() => _selectedType = s.first),
               style: ButtonStyle(
                 shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                foregroundColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) return Colors.white;
+                  return Colors.black87;
+                }),
                 backgroundColor: WidgetStateProperty.resolveWith((states) {
-                  if (states.contains(WidgetState.selected)) return const Color(0xFF4A90E2);
+                  if (states.contains(WidgetState.selected)) return const Color(0xFF6C63FF);
                   return Colors.grey.shade100;
                 }),
+                side: WidgetStateProperty.all(const BorderSide(color: Color(0xFF6C63FF), width: 1)),
               ),
             ),
             if (_selectedType == DiaperType.poop || _selectedType == DiaperType.both) ...[

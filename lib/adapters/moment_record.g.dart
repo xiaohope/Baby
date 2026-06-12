@@ -1,35 +1,38 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'supplement_record_adapter.dart';
+part of 'moment_record_adapter.dart';
 
-class SupplementRecordBoxAdapter extends TypeAdapter<SupplementRecordBox> {
+class MomentRecordBoxAdapter extends TypeAdapter<MomentRecordBox> {
   @override
-  final int typeId = 5;
+  final int typeId = 6;
 
   @override
-  SupplementRecordBox read(BinaryReader reader) {
+  MomentRecordBox read(BinaryReader reader) {
     final numFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numFields; i++) reader.readByte(): reader.read(),
     };
 
-    final result = SupplementRecordBox();
+    final result = MomentRecordBox();
     result.id = fields[0] as String;
     result.date = fields[1] as DateTime;
-    result.items = (fields[2] as List).cast<String>();
+    result.text = fields[2] as String;
+    result.imagePaths = (fields[3] as List).cast<String>();
     return result;
   }
 
   @override
-  void write(BinaryWriter writer, SupplementRecordBox obj) {
+  void write(BinaryWriter writer, MomentRecordBox obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.date)
       ..writeByte(2)
-      ..write(obj.items);
+      ..write(obj.text)
+      ..writeByte(3)
+      ..write(obj.imagePaths);
   }
 
   @override
@@ -38,7 +41,7 @@ class SupplementRecordBoxAdapter extends TypeAdapter<SupplementRecordBox> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is SupplementRecordBoxAdapter &&
+      other is MomentRecordBoxAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

@@ -284,10 +284,15 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
               onSelectionChanged: (s) => setState(() => _selectedType = s.first),
               style: ButtonStyle(
                 shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                foregroundColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) return Colors.white;
+                  return Colors.black87;
+                }),
                 backgroundColor: WidgetStateProperty.resolveWith((states) {
-                  if (states.contains(WidgetState.selected)) return const Color(0xFF4A90E2);
+                  if (states.contains(WidgetState.selected)) return const Color(0xFF6C63FF);
                   return Colors.grey.shade100;
                 }),
+                side: WidgetStateProperty.all(const BorderSide(color: Color(0xFF6C63FF), width: 1)),
               ),
             ),
             const SizedBox(height: 16),

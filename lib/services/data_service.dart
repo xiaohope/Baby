@@ -5,12 +5,16 @@ import '../models/supplement_record.dart';
 import '../models/sleep_record.dart';
 import '../models/growth_record.dart';
 import '../models/milestone_record.dart';
+import '../models/moment_record.dart';
+import '../models/simple_record.dart';
 import '../adapters/feeding_record_adapter.dart';
 import '../adapters/diaper_record_adapter.dart';
 import '../adapters/sleep_record_adapter.dart';
 import '../adapters/growth_record_adapter.dart';
 import '../adapters/milestone_record_adapter.dart';
 import '../adapters/supplement_record_adapter.dart';
+import '../adapters/moment_record_adapter.dart';
+import '../adapters/simple_record_adapter.dart';
 import 'hive_helper.dart';
 
 class DataService extends ChangeNotifier {
@@ -20,6 +24,8 @@ class DataService extends ChangeNotifier {
   List<SleepRecord> _sleepRecords = [];
   List<GrowthRecord> _growthRecords = [];
   List<MilestoneRecord> _milestoneRecords = [];
+  List<MomentRecord> _momentRecords = [];
+  List<SimpleRecord> _simpleRecords = [];
   String _babyName = '宝宝';
   DateTime? _babyBirthday;
   ThemeMode _themeMode = ThemeMode.system;
@@ -30,6 +36,8 @@ class DataService extends ChangeNotifier {
   List<SleepRecord> get sleepRecords => _sleepRecords;
   List<GrowthRecord> get growthRecords => _growthRecords;
   List<MilestoneRecord> get milestoneRecords => _milestoneRecords;
+  List<MomentRecord> get momentRecords => _momentRecords;
+  List<SimpleRecord> get simpleRecords => _simpleRecords;
   String get babyName => _babyName;
   DateTime? get babyBirthday => _babyBirthday;
   ThemeMode get themeMode => _themeMode;
@@ -81,6 +89,16 @@ class DataService extends ChangeNotifier {
     final supplementBox = HiveHelper.supplementBox;
     _supplementRecords = supplementBox.values.map((box) => box.toModel()).toList()
       ..sort((a, b) => b.date.compareTo(a.date));
+
+    // 加载动态记录
+    final momentsBox = HiveHelper.momentsBox;
+    _momentRecords = momentsBox.values.map((box) => box.toModel()).toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+
+    // 加载通用记录
+    final simpleBox = HiveHelper.simpleBox;
+    _simpleRecords = simpleBox.values.map((box) => box.toModel()).toList()
+      ..sort((a, b) => b.time.compareTo(a.time));
   }
 
   // ---- 宝宝信息 ----
@@ -147,24 +165,27 @@ class DataService extends ChangeNotifier {
 
   // ---- 营养补充 ----
   Future<void> setSupplement(SupplementRecord record) async {
-    // 检查是否已有今天的记录
-    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final todayKey = record.date.toIso8601String().substring(0, 10);
     final existingIdx = _supplementRecords.indexWhere(
-      (r) => r.date.toIso8601String().substring(0, 10) == today
+      (r) => r.date.toIso8601String().substring(0, 10) == todayKey
     );
     
     if (existingIdx >= 0) {
-      // 更新现有记录
       final oldId = _supplementRecords[existingIdx].id;
       _supplementRecords[existingIdx] = record;
       final box = SupplementRecordBox.fromModel(record);
       await HiveHelper.supplementBox.put(oldId, box);
     } else {
-      // 添加新记录
       _supplementRecords.insert(0, record);
       final box = SupplementRecordBox.fromModel(record);
       await HiveHelper.supplementBox.put(record.id, box);
     }
+    notifyListeners();
+  }
+
+  Future<void> deleteSupplement(String id) async {
+    await HiveHelper.supplementBox.delete(id);
+    _supplementRecords.removeWhere((r) => r.id == id);
     notifyListeners();
   }
 
@@ -178,6 +199,8 @@ class DataService extends ChangeNotifier {
       return null;
     }
   }
+
+  List<SupplementRecord> allSupplementRecords() => List.unmodifiable(_supplementRecords);
 
   // ---- 睡眠 ----
   Future<void> addSleep(SleepRecord record) async {
@@ -240,6 +263,38 @@ class DataService extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ---- 动态 ----
+  Future<void> addMoment(MomentRecord record) async {
+    final box = MomentRecordBox.fromModel(record);
+    await HiveHelper.momentsBox.put(record.id, box);
+    _momentRecords.insert(0, record);
+    notifyListeners();
+  }
+
+  Future<void> deleteMoment(String id) async {
+    await HiveHelper.momentsBox.delete(id);
+    _momentRecords.removeWhere((r) => r.id == id);
+    notifyListeners();
+  }
+
+  // ---- 通用记录(尿急/粑粑/用药) ----
+  Future<void> addSimpleRecord(SimpleRecord record) async {
+    final box = SimpleRecordBox.fromModel(record);
+    await HiveHelper.simpleBox.put(record.id, box);
+    _simpleRecords.insert(0, record);
+    notifyListeners();
+  }
+
+  Future<void> deleteSimpleRecord(String id) async {
+    await HiveHelper.simpleBox.delete(id);
+    _simpleRecords.removeWhere((r) => r.id == id);
+    notifyListeners();
+  }
+
+  List<SimpleRecord> simpleRecordsByCategory(String category) {
+    return _simpleRecords.where((r) => r.category == category).toList();
+  }
+
   // ---- 今日统计 ----
   Map<String, dynamic> todayStats() {
     final feedings = todayFeedings();
@@ -262,6 +317,18 @@ class DataService extends ChangeNotifier {
     int peeCount = diapers.where((d) => d.type == DiaperType.pee || d.type == DiaperType.both).length;
     int poopCount = diapers.where((d) => d.type == DiaperType.poop || d.type == DiaperType.both).length;
 
+    // SimpleRecord 统计
+    final nowStr = '${now.year}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')}';
+    int peeSimpleCount = _simpleRecords.where((r) =>
+      r.category == 'pee' && r.time.toIso8601String().substring(0, 10) == nowStr
+    ).length;
+    int poopSimpleCount = _simpleRecords.where((r) =>
+      r.category == 'poop' && r.time.toIso8601String().substring(0, 10) == nowStr
+    ).length;
+    int medCount = _simpleRecords.where((r) =>
+      r.category == 'medication' && r.time.toIso8601String().substring(0, 10) == nowStr
+    ).length;
+
     int totalSleepMinutes = 0;
     for (final s in sleeps) {
       if (s.duration != null) {
@@ -276,6 +343,9 @@ class DataService extends ChangeNotifier {
       'diaperCount': diapers.length,
       'peeCount': peeCount,
       'poopCount': poopCount,
+      'peeSimpleCount': peeSimpleCount,
+      'poopSimpleCount': poopSimpleCount,
+      'medCount': medCount,
       'totalSleepMinutes': totalSleepMinutes,
     };
   }

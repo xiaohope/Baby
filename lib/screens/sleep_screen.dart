@@ -42,13 +42,25 @@ class _SleepScreenState extends State<SleepScreen> {
     final ongoing = ds.ongoingSleep;
     if (ongoing == null) return;
 
+    final endTime = DateTime.now();
     final updated = SleepRecord(
       id: ongoing.id,
       startTime: ongoing.startTime,
-      endTime: DateTime.now(),
+      endTime: endTime,
       quality: _quality,
     );
     await ds.updateSleep(updated);
+
+    final duration = endTime.difference(ongoing.startTime);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('😴 睡眠结束，共 ${duration.inHours}小时${duration.inMinutes % 60}分钟${duration.inSeconds % 60}秒'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+
     setState(() {
       _isOngoing = false;
       _startTime = null;
@@ -75,9 +87,6 @@ class _SleepScreenState extends State<SleepScreen> {
       appBar: AppBar(
         title: const Text('睡眠记录'),
         centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -104,8 +113,8 @@ class _SleepScreenState extends State<SleepScreen> {
                       height: 56,
                       decoration: BoxDecoration(
                         color: _isOngoing 
-                            ? const Color(0xFF7C3AED).withOpacity(0.1) 
-                            : Colors.grey.withOpacity(0.1),
+                            ? const Color(0xFF7C3AED).withValues(alpha: 0.1) 
+                            : Colors.grey.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -125,9 +134,20 @@ class _SleepScreenState extends State<SleepScreen> {
                         stream: Stream.periodic(const Duration(seconds: 1)),
                         builder: (_, __) {
                           final duration = DateTime.now().difference(_startTime!);
+                          final h = duration.inHours;
+                          final m = duration.inMinutes % 60;
+                          final s = duration.inSeconds % 60;
+                          final timeStr = h > 0
+                              ? '${h}时${m.toString().padLeft(2, '0')}分${s.toString().padLeft(2, '0')}秒'
+                              : '${m.toString().padLeft(2, '0')}分${s.toString().padLeft(2, '0')}秒';
                           return Text(
-                            '已睡 ${duration.inHours}小时${duration.inMinutes % 60}分钟',
-                            style: const TextStyle(fontSize: 16, color: Color(0xFF7C3AED)),
+                            timeStr,
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF7C3AED),
+                              fontFeatures: [FontFeature.tabularFigures()],
+                            ),
                           );
                         },
                       ),
@@ -189,10 +209,15 @@ class _SleepScreenState extends State<SleepScreen> {
                         onSelectionChanged: (s) => setState(() => _quality = s.first),
                         style: ButtonStyle(
                           shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                          foregroundColor: WidgetStateProperty.resolveWith((states) {
+                            if (states.contains(WidgetState.selected)) return Colors.white;
+                            return Colors.black87;
+                          }),
                           backgroundColor: WidgetStateProperty.resolveWith((states) {
                             if (states.contains(WidgetState.selected)) return const Color(0xFF7C3AED);
-                            return null;
+                            return Colors.grey.shade100;
                           }),
+                          side: WidgetStateProperty.all(const BorderSide(color: Color(0xFF7C3AED), width: 1)),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -226,7 +251,7 @@ class _SleepScreenState extends State<SleepScreen> {
                 color: Colors.white,
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: Colors.purple.withOpacity(0.1),
+                    backgroundColor: Colors.purple.withValues(alpha: 0.1),
                     child: const Icon(Icons.bedtime, color: Colors.purple),
                   ),
                   title: Text('${_fmt(r.startTime)}', style: const TextStyle(fontWeight: FontWeight.bold)),

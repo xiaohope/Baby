@@ -20,35 +20,22 @@ class StatsScreen extends StatelessWidget {
     return '${h}小时${m}分钟';
   }
 
-  List<Map> _getWeekData(DataService ds, String type) {
-    final now = DateTime.now();
-    final result = <Map>[];
-    final weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-    for (int i = 6; i >= 0; i--) {
-      final d = now.subtract(Duration(days: i));
-      int count = 0;
-      if (type == 'feeding') {
-        count = ds.feedingRecords.where((r) => r.time.year == d.year && r.time.month == d.month && r.time.day == d.day).length;
-      } else {
-        count = ds.diaperRecords.where((r) => r.time.year == d.year && r.time.month == d.month && r.time.day == d.day).length;
-      }
-      result.add({'label': weekdays[d.weekday % 7], 'count': count, 'date': d});
-    }
-    return result;
-  }
+  bool _isSameDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
 
   @override
   Widget build(BuildContext context) {
     final ds = context.watch<DataService>();
     final stats = ds.todayStats();
-    final weekFeedings = _getWeekData(ds, 'feeding');
-    final weekDiapers = _getWeekData(ds, 'diaper');
 
     final feedingCount = stats['feedingCount'] ?? 0;
     final totalBottleMl = stats['totalBottleMl'] ?? 0;
     final diaperCount = stats['diaperCount'] ?? 0;
     final peeCount = stats['peeCount'] ?? 0;
     final poopCount = stats['poopCount'] ?? 0;
+    final peeSimpleCount = stats['peeSimpleCount'] ?? 0;
+    final poopSimpleCount = stats['poopSimpleCount'] ?? 0;
+    final medCount = stats['medCount'] ?? 0;
     final totalSleepMinutes = stats['totalSleepMinutes'] ?? 0;
     final totalBreastMinutes = stats['totalBreastMinutes'] ?? 0;
 
@@ -60,236 +47,166 @@ class StatsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // 今日概况
+          // ====== 今日概况 ======
           Text('今日概况', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            color: Colors.white,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      _statCard('喂奶次数', '$feedingCount次', Icons.local_drink, Colors.blue),
-                      _statCard('总奶量', '${totalBottleMl}ml', Icons.water_drop, Colors.cyan),
-                    ],
-                  ),
+                  Row(children: [
+                    _statCard('喂奶', '$feedingCount次', Icons.local_drink, const Color(0xFF6C63FF)),
+                    _statCard('奶量', '${totalBottleMl}ml', Icons.water_drop, const Color(0xFF81C9D6)),
+                    _statCard('尿布', '$diaperCount次', Icons.baby_changing_station, const Color(0xFFFF8A80)),
+                  ]),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      _statCard('换尿布', '$diaperCount次', Icons.baby_changing_station, Colors.orange),
-                      _statCard('便/尿', '$peeCount/$poopCount', Icons.show_chart, Colors.amber),
-                    ],
-                  ),
+                  Row(children: [
+                    _statCard('睡眠', _formatSleep(totalSleepMinutes), Icons.bedtime, const Color(0xFFD4A5FF)),
+                    _statCard('母乳', '$totalBreastMinutes分', Icons.child_care, const Color(0xFFFF6B6B)),
+                    _statCard('尿急', '$peeSimpleCount次', Icons.water_drop, const Color(0xFF4A90D9)),
+                  ]),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      _statCard('睡眠总长', _formatSleep(totalSleepMinutes), Icons.bedtime, Colors.purple),
-                      _statCard('母乳时长', '$totalBreastMinutes分钟', Icons.child_care, Colors.pink),
-                    ],
-                  ),
+                  Row(children: [
+                    _statCard('粑粑', '$poopSimpleCount次', Icons.report, const Color(0xFF8B5E3C)),
+                    _statCard('用药', '$medCount次', Icons.medication, const Color(0xFFE74C3C)),
+                  ]),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 24),
 
-          // 近7天喂奶趋势（渐变柱状图）
-          Text('近7天喂奶趋势', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            color: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                height: 220,
-                child: BarChart(
-                  BarChartData(
-                    alignment: BarChartAlignment.spaceAround,
-                    maxY: (weekFeedings.map((e) => e['count'] as int).fold(0, (a, b) => a > b ? a : b) + 2).toDouble(),
-                    barGroups: weekFeedings.asMap().entries.map((e) {
-                      final count = e.value['count'] as int;
-                      return BarChartGroupData(x: e.key, barRods: [
-                        BarChartRodData(
-                          toY: count.toDouble(),
-                          color: Colors.blue,
-                          width: 28,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-                          // 渐变效果（从蓝到浅蓝）
-                          fromY: 0,
-                        ),
-                      ]);
-                    }).toList(),
-                    titlesData: FlTitlesData(
-                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 30,
-                          getTitlesWidget: (v, _) => Text('${v.toInt()}', style: const TextStyle(fontSize: 10)),
-                        ),
-                      ),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          getTitlesWidget: (v, _) => Text(
-                            weekFeedings[v.toInt()]['label'] as String,
-                            style: const TextStyle(fontSize: 10),
-                          ),
-                        ),
-                      ),
-                    ),
-                    borderData: FlBorderData(show: false),
-                    gridData: const FlGridData(show: true, drawVerticalLine: false),
-                    barTouchData: BarTouchData(
-                      touchTooltipData: BarTouchTooltipData(
-                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                          return BarTooltipItem(
-                            '${weekFeedings[group.x]['label']}\n${rod.toY.toInt()}次',
-                            const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          // ====== 近7天喂奶趋势 ======
+          _buildWeekChart(
+            title: '近7天喂奶趋势',
+            getData: (d) => ds.feedingRecords.where((r) => _isSameDay(r.time, d)).length,
+            color: const Color(0xFF6C63FF),
           ),
           const SizedBox(height: 24),
 
-          // 近7天换尿布趋势（渐变柱状图）
-          Text('近7天换尿布趋势', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            color: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                height: 220,
-                child: BarChart(
-                  BarChartData(
-                    alignment: BarChartAlignment.spaceAround,
-                    maxY: (weekDiapers.map((e) => e['count'] as int).fold(0, (a, b) => a > b ? a : b) + 2).toDouble(),
-                    barGroups: weekDiapers.asMap().entries.map((e) {
-                      return BarChartGroupData(x: e.key, barRods: [
-                        BarChartRodData(
-                          toY: e.value['count']!.toDouble(),
-                          color: Colors.orange,
-                          width: 28,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-                          fromY: 0,
-                        ),
-                      ]);
-                    }).toList(),
-                    titlesData: FlTitlesData(
-                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 30,
-                          getTitlesWidget: (v, _) => Text('${v.toInt()}', style: const TextStyle(fontSize: 10)),
-                        ),
-                      ),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          getTitlesWidget: (v, _) => Text(
-                            weekDiapers[v.toInt()]['label'] as String,
-                            style: const TextStyle(fontSize: 10),
-                          ),
-                        ),
-                      ),
-                    ),
-                    borderData: FlBorderData(show: false),
-                    gridData: const FlGridData(show: true, drawVerticalLine: false),
-                    barTouchData: BarTouchData(
-                      touchTooltipData: BarTouchTooltipData(
-                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                          return BarTooltipItem(
-                            '${weekDiapers[group.x]['label']}\n${rod.toY.toInt()}次',
-                            const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          // ====== 近7天尿布趋势 ======
+          _buildWeekChart(
+            title: '近7天尿布趋势',
+            getData: (d) => ds.diaperRecords.where((r) => _isSameDay(r.time, d)).length,
+            color: const Color(0xFFFF8A80),
           ),
           const SizedBox(height: 24),
 
-          // 间隔分析
+          // ====== 近7天睡眠趋势 ======
+          _buildWeekChart(
+            title: '近7天睡眠时长趋势',
+            getData: (d) {
+              int totalMin = 0;
+              for (final s in ds.sleepRecords.where((r) => _isSameDay(r.startTime, d))) {
+                if (s.duration != null) totalMin += s.duration!.inMinutes;
+              }
+              return totalMin ~/ 60; // 显示小时
+            },
+            color: const Color(0xFFD4A5FF),
+            unit: '小时',
+          ),
+          const SizedBox(height: 24),
+
+          // ====== 近7天尿急/粑粑/用药趋势 ======
+          _buildSimpleWeekChart(ds),
+          const SizedBox(height: 24),
+
+          // ====== 间隔分析 ======
           _buildIntervalSection(
             title: '喂奶间隔分析',
             intervals: ds.getIntervals('feeding'),
-            iconColor: Colors.blue,
-            context: context,
+            color: const Color(0xFF6C63FF),
           ),
           const SizedBox(height: 16),
           _buildIntervalSection(
             title: '换尿布间隔分析',
             intervals: ds.getIntervals('diaper'),
-            iconColor: Colors.orange,
-            context: context,
+            color: const Color(0xFFFF8A80),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
-          // 本周汇总
+          // ====== 本周汇总 ======
           _buildWeekSummary(ds, context),
+          const SizedBox(height: 32),
         ],
       ),
     );
   }
 
+  // ====== 组件 ======
   Widget _statCard(String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Column(
         children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 4),
-          Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 2),
+          Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: color)),
+          Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
         ],
       ),
     );
   }
 
-  Widget _buildIntervalSection({
+  Widget _buildWeekChart({
     required String title,
-    required List<Map<String, dynamic>> intervals,
-    required Color iconColor,
-    required BuildContext context,
+    required int Function(DateTime) getData,
+    required Color color,
+    String unit = '次',
   }) {
-    if (intervals.isEmpty) return const SizedBox.shrink();
-
-    final avg = intervals.map((e) => e['minutes'] as int).reduce((a, b) => a + b) ~/ intervals.length;
-    final minVal = intervals.map((e) => e['minutes'] as int).reduce((a, b) => a < b ? a : b);
-    final maxVal = intervals.map((e) => e['minutes'] as int).reduce((a, b) => a > b ? a : b);
+    final now = DateTime.now();
+    final weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    final data = List.generate(7, (i) {
+      final d = now.subtract(Duration(days: 6 - i));
+      return {'label': weekdays[d.weekday % 7], 'count': getData(d)};
+    });
+    final maxVal = data.map((e) => e['count'] as int).fold(0, (a, b) => a > b ? a : b);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         const SizedBox(height: 12),
         Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          color: Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                _statCard('平均', _formatInterval(avg), Icons.timelapse, iconColor),
-                _statCard('最短', _formatInterval(minVal), Icons.speed, Colors.green),
-                _statCard('最长', _formatInterval(maxVal), Icons.slow_motion_video, Colors.red),
-              ],
+            child: SizedBox(
+              height: 180,
+              child: BarChart(BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: (maxVal + 2).toDouble().clamp(4, double.infinity),
+                barGroups: data.asMap().entries.map((e) {
+                  return BarChartGroupData(x: e.key, barRods: [
+                    BarChartRodData(
+                      toY: (e.value['count'] as int).toDouble(),
+                      color: color,
+                      width: 24,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                      fromY: 0,
+                    ),
+                  ]);
+                }).toList(),
+                titlesData: FlTitlesData(
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  leftTitles: AxisTitles(sideTitles: SideTitles(
+                    showTitles: true, reservedSize: 30,
+                    getTitlesWidget: (v, _) => Text('${v.toInt()}$unit', style: const TextStyle(fontSize: 10)),
+                  )),
+                  bottomTitles: AxisTitles(sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (v, _) => Text(data[v.toInt()]['label'] as String, style: const TextStyle(fontSize: 10)),
+                  )),
+                ),
+                borderData: FlBorderData(show: false),
+                gridData: const FlGridData(show: true, drawVerticalLine: false),
+                barTouchData: BarTouchData(touchTooltipData: BarTouchTooltipData(
+                  getTooltipItem: (g, gi, rod, ri) => BarTooltipItem(
+                    '${data[g.x]['label']}\n${rod.toY.toInt()}$unit',
+                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                )),
+              )),
             ),
           ),
         ),
@@ -297,38 +214,137 @@ class StatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWeekSummary(DataService ds, BuildContext context) {
-    final freqStats = ds.getFrequencyStats();
+  Widget _buildSimpleWeekChart(DataService ds) {
+    final now = DateTime.now();
+    final weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+
+    final peeData = List.generate(7, (i) {
+      final d = now.subtract(Duration(days: 6 - i));
+      return ds.simpleRecordsByCategory('pee').where((r) => _isSameDay(r.time, d)).length;
+    });
+    final poopData = List.generate(7, (i) {
+      final d = now.subtract(Duration(days: 6 - i));
+      return ds.simpleRecordsByCategory('poop').where((r) => _isSameDay(r.time, d)).length;
+    });
+    final medData = List.generate(7, (i) {
+      final d = now.subtract(Duration(days: 6 - i));
+      return ds.simpleRecordsByCategory('medication').where((r) => _isSameDay(r.time, d)).length;
+    });
+
+    final allMax = [...peeData, ...poopData, ...medData].fold(0, (a, b) => a > b ? a : b);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('本周汇总', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        const Text('近7天尿急/粑粑/用药趋势', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         const SizedBox(height: 12),
         Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          color: Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    _statCard('日均喂奶', '${freqStats['avgFeedingPerDay']}次', Icons.local_drink, Colors.blue),
-                    _statCard('本周喂奶', '${freqStats['totalFeeding']}次', Icons.calendar_today, Colors.cyan),
-                  ],
+            child: SizedBox(
+              height: 200,
+              child: BarChart(BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: (allMax + 2).toDouble().clamp(3, double.infinity),
+                barGroups: List.generate(7, (i) {
+                  return BarChartGroupData(x: i, barRods: [
+                    BarChartRodData(toY: peeData[i].toDouble(), color: const Color(0xFF4A90D9), width: 8, borderRadius: const BorderRadius.vertical(top: Radius.circular(4)), fromY: 0),
+                    BarChartRodData(toY: poopData[i].toDouble(), color: const Color(0xFF8B5E3C), width: 8, borderRadius: const BorderRadius.vertical(top: Radius.circular(4)), fromY: 0),
+                    BarChartRodData(toY: medData[i].toDouble(), color: const Color(0xFFE74C3C), width: 8, borderRadius: const BorderRadius.vertical(top: Radius.circular(4)), fromY: 0),
+                  ]);
+                }),
+                titlesData: FlTitlesData(
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 24, getTitlesWidget: (v, _) => Text('${v.toInt()}', style: const TextStyle(fontSize: 10)))),
+                  bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text(weekdays[v.toInt()], style: const TextStyle(fontSize: 9)))),
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _statCard('日均尿布', '${freqStats['avgDiaperPerDay']}次', Icons.baby_changing_station, Colors.orange),
-                    _statCard('本周尿布', '${freqStats['totalDiaper']}次', Icons.calendar_today, Colors.amber),
-                  ],
-                ),
-              ],
+                borderData: FlBorderData(show: false),
+                gridData: const FlGridData(show: true, drawVerticalLine: false),
+                barTouchData: BarTouchData(touchTooltipData: BarTouchTooltipData(
+                  getTooltipItem: (g, gi, rod, ri) {
+                    final labels = ['尿急', '粑粑', '用药'];
+                    return BarTooltipItem('${weekdays[g.x]}\n${labels[ri]}: ${rod.toY.toInt()}次', const TextStyle(color: Colors.white, fontWeight: FontWeight.bold));
+                  },
+                )),
+              )),
             ),
           ),
         ),
+        const SizedBox(height: 8),
+        // 图例
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _legend('尿急', const Color(0xFF4A90D9)),
+            const SizedBox(width: 16),
+            _legend('粑粑', const Color(0xFF8B5E3C)),
+            const SizedBox(width: 16),
+            _legend('用药', const Color(0xFFE74C3C)),
+          ],
+        ),
       ],
     );
+  }
+
+  Widget _legend(String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(width: 10, height: 10, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
+        const SizedBox(width: 4),
+        Text(label, style: const TextStyle(fontSize: 12)),
+      ],
+    );
+  }
+
+  Widget _buildIntervalSection({required String title, required List<Map<String, dynamic>> intervals, required Color color}) {
+    if (intervals.isEmpty) return const SizedBox.shrink();
+    final avg = intervals.map((e) => e['minutes'] as int).reduce((a, b) => a + b) ~/ intervals.length;
+    final minVal = intervals.map((e) => e['minutes'] as int).reduce((a, b) => a < b ? a : b);
+    final maxVal = intervals.map((e) => e['minutes'] as int).reduce((a, b) => a > b ? a : b);
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+      const SizedBox(height: 12),
+      Card(child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
+        _statCard('平均', _formatInterval(avg), Icons.timelapse, color),
+        _statCard('最短', _formatInterval(minVal), Icons.speed, Colors.green),
+        _statCard('最长', _formatInterval(maxVal), Icons.slow_motion_video, Colors.red),
+      ]))),
+    ]);
+  }
+
+  Widget _buildWeekSummary(DataService ds, BuildContext context) {
+    final now = DateTime.now();
+    int totalFeeding = 0, totalDiaper = 0, totalPee = 0, totalPoop = 0, totalMed = 0, totalSleepH = 0;
+    for (int i = 6; i >= 0; i--) {
+      final d = now.subtract(Duration(days: i));
+      totalFeeding += ds.feedingRecords.where((r) => _isSameDay(r.time, d)).length;
+      totalDiaper += ds.diaperRecords.where((r) => _isSameDay(r.time, d)).length;
+      totalPee += ds.simpleRecordsByCategory('pee').where((r) => _isSameDay(r.time, d)).length;
+      totalPoop += ds.simpleRecordsByCategory('poop').where((r) => _isSameDay(r.time, d)).length;
+      totalMed += ds.simpleRecordsByCategory('medication').where((r) => _isSameDay(r.time, d)).length;
+      for (final s in ds.sleepRecords.where((r) => _isSameDay(r.startTime, d))) {
+        if (s.duration != null) totalSleepH += s.duration!.inHours;
+      }
+    }
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('本周汇总', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+      const SizedBox(height: 12),
+      Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
+        Row(children: [
+          _statCard('喂奶', '${totalFeeding}次', Icons.local_drink, const Color(0xFF6C63FF)),
+          _statCard('尿布', '${totalDiaper}次', Icons.baby_changing_station, const Color(0xFFFF8A80)),
+          _statCard('睡眠', '${totalSleepH}小时', Icons.bedtime, const Color(0xFFD4A5FF)),
+        ]),
+        const SizedBox(height: 8),
+        Row(children: [
+          _statCard('尿急', '${totalPee}次', Icons.water_drop, const Color(0xFF4A90D9)),
+          _statCard('粑粑', '${totalPoop}次', Icons.report, const Color(0xFF8B5E3C)),
+          _statCard('用药', '${totalMed}次', Icons.medication, const Color(0xFFE74C3C)),
+        ]),
+      ]))),
+    ]);
   }
 }

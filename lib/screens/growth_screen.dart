@@ -55,9 +55,6 @@ class _GrowthScreenState extends State<GrowthScreen> {
       appBar: AppBar(
         title: const Text('身高体重记录'),
         centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -92,14 +89,22 @@ class _GrowthScreenState extends State<GrowthScreen> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: _noteController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: '备注（可选）',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          borderSide: BorderSide(color: Color(0xFFD4C5B5)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          borderSide: BorderSide(color: Color(0xFFD4C5B5)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          borderSide: BorderSide(color: Color(0xFF6C63FF), width: 2),
                         ),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: Color(0xFFF5F0EB),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -198,10 +203,18 @@ class _GrowthScreenState extends State<GrowthScreen> {
         labelText: label,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderSide: const BorderSide(color: Color(0xFFD4C5B5), width: 1),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFD4C5B5), width: 1),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
         ),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: const Color(0xFFF5F0EB),
       ),
     );
   }
