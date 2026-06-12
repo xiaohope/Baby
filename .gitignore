@@ -1,0 +1,51 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+
+# IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .android folder itself is generated from templates.
+# We only need to ignore its build/ output.
+android/.gradle/
+android/build/
+android/app/build/
+
+# Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+**/Pods/
+*.xcworkspace
+!ios/Podfile
+!ios/Podfile.lock
+
+# iOS / Android
+*.lock
+*.lock.lock
+*.lock.yaml
+pubspec.lock
