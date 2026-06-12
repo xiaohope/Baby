@@ -9,9 +9,9 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _HistoryScreenState extends State<HistoryScreen> {
   DateTime _selectedDate = DateTime.now();
+  int _selectedIndex = 0;
 
   static const _tabs = [
     _TabInfo('喂奶', Icons.local_drink, Color(0xFF6C63FF)),
@@ -21,65 +21,37 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
     _TabInfo('补充', Icons.medication, Color(0xFF81C9D6)),
     _TabInfo('里程碑', Icons.star, Color(0xFFFFB347)),
     _TabInfo('动态', Icons.photo_library, Color(0xFFFF6B6B)),
-    _TabInfo('尿急', Icons.water_drop, Color(0xFF4A90D9)),
+    _TabInfo('尿尿', Icons.water_drop, Color(0xFF4A90D9)),
     _TabInfo('粑粑', Icons.report, Color(0xFF8B5E3C)),
     _TabInfo('用药', Icons.medication, Color(0xFFE74C3C)),
+    _TabInfo('喝水', Icons.local_drink, Color(0xFF3498DB)),
+    _TabInfo('辅食', Icons.restaurant, Color(0xFFFF8A80)),
+    _TabInfo('体温', Icons.thermostat, Color(0xFFE74C3C)),
+    _TabInfo('洗澡', Icons.bathroom, Color(0xFF81C9D6)),
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
 
   String _fmtDate(DateTime d) => '${d.year}/${d.month.toString().padLeft(2,'0')}/${d.day.toString().padLeft(2,'0')}';
   String _fmtTime(DateTime t) => '${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}';
 
+  bool _isSameDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final ds = context.watch<DataService>();
+    final tab = _tabs[_selectedIndex];
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('历史记录'),
         centerTitle: true,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            indicatorColor: theme.colorScheme.primary,
-            labelColor: theme.colorScheme.primary,
-            unselectedLabelColor: Colors.grey,
-            dividerColor: Colors.transparent,
-            tabAlignment: TabAlignment.start,
-            tabs: _tabs.map((t) => Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(t.icon, size: 16),
-                  const SizedBox(width: 4),
-                  Text(t.label),
-                ],
-              ),
-            )).toList(),
-          ),
-        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_month, color: Color(0xFF6C63FF)),
             onPressed: () async {
               final d = await showDatePicker(
-                context: context,
-                initialDate: _selectedDate,
-                firstDate: DateTime(2020),
-                lastDate: DateTime.now(),
+                context: context, initialDate: _selectedDate,
+                firstDate: DateTime(2020), lastDate: DateTime.now(),
               );
               if (d != null) setState(() => _selectedDate = d);
             },
@@ -90,33 +62,63 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            begin: Alignment.topCenter, end: Alignment.bottomCenter,
           ),
         ),
         child: Column(
           children: [
+            // 日期显示
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                _fmtDate(_selectedDate),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+              child: Text(_fmtDate(_selectedDate), style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
+            // 左侧导航 + 右侧内容
             Expanded(
-              child: TabBarView(
-                controller: _tabController,
+              child: Row(
                 children: [
-                  _buildFeedingHistory(),
-                  _buildDiaperHistory(),
-                  _buildSleepHistory(),
-                  _buildGrowthHistory(),
-                  _buildSupplementHistory(),
-                  _buildMilestoneHistory(),
-                  _buildMomentHistory(),
-                  _buildSimpleHistory('pee', '尿急', Icons.water_drop, const Color(0xFF4A90D9), '💦'),
-                  _buildSimpleHistory('poop', '粑粑', Icons.report, const Color(0xFF8B5E3C), '💩'),
-                  _buildSimpleHistory('medication', '用药', Icons.medication, const Color(0xFFE74C3C), '💊'),
+                  // 左侧导航
+                  SizedBox(
+                    width: 76,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.only(left: 4, top: 4, bottom: 4),
+                      itemCount: _tabs.length,
+                      itemBuilder: (ctx, i) {
+                        final t = _tabs[i];
+                        final isSelected = i == _selectedIndex;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 2),
+                          child: Material(
+                            color: isSelected ? t.color.withValues(alpha: 0.15) : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () => setState(() => _selectedIndex = i),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                child: Column(
+                                  children: [
+                                    Icon(t.icon, color: isSelected ? t.color : Colors.grey, size: 22),
+                                    const SizedBox(height: 3),
+                                    Text(t.label, style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                      color: isSelected ? t.color : Colors.grey,
+                                    )),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  // 分割线
+                  Container(width: 1, color: Colors.grey.withValues(alpha: 0.15)),
+                  // 右侧内容
+                  Expanded(
+                    child: _buildContent(ds, tab),
+                  ),
                 ],
               ),
             ),
@@ -126,183 +128,100 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
     );
   }
 
-  bool _isSameDay(DateTime a, DateTime b) =>
-    a.year == b.year && a.month == b.month && a.day == b.day;
-
-  // ---- 喂奶 ----
-  Widget _buildFeedingHistory() {
-    final ds = context.watch<DataService>();
-    final records = ds.feedingRecords.where((r) => _isSameDay(r.time, _selectedDate)).toList();
-    if (records.isEmpty) return _emptyHint(Icons.local_drink, '当日无喂奶记录');
-    return _buildList(records.length, (ctx, i) {
-      final r = records[i];
-      return _card(
-        icon: Icons.local_drink, color: Colors.blue,
-        title: r.typeName,
-        subtitle: '${_fmtTime(r.time)}  ${r.displayAmount}',
-        onDelete: () => ds.deleteFeeding(r.id),
-      );
-    });
-  }
-
-  // ---- 尿布 ----
-  Widget _buildDiaperHistory() {
-    final ds = context.watch<DataService>();
-    final records = ds.diaperRecords.where((r) => _isSameDay(r.time, _selectedDate)).toList();
-    if (records.isEmpty) return _emptyHint(Icons.baby_changing_station, '当日无尿布记录');
-    return _buildList(records.length, (ctx, i) {
-      final r = records[i];
-      return _card(
-        icon: Icons.baby_changing_station, color: Colors.orange,
-        title: r.typeName,
-        subtitle: '${_fmtTime(r.time)}${r.poopColor != null ? '  ${r.poopColor}' : ''}',
-        onDelete: () => ds.deleteDiaper(r.id),
-      );
-    });
-  }
-
-  // ---- 睡眠 ----
-  Widget _buildSleepHistory() {
-    final ds = context.watch<DataService>();
-    final records = ds.sleepRecords.where((r) => _isSameDay(r.startTime, _selectedDate)).toList();
-    if (records.isEmpty) return _emptyHint(Icons.bedtime, '当日无睡眠记录');
-    return _buildList(records.length, (ctx, i) {
-      final r = records[i];
-      return _card(
-        icon: Icons.bedtime, color: Colors.purple,
-        title: r.isOngoing ? '睡眠中' : '睡眠',
-        subtitle: '${_fmtTime(r.startTime)}${r.endTime != null ? ' - ${_fmtTime(r.endTime!)}' : ''}  ${r.durationStr}',
-        onDelete: () => ds.deleteSleep(r.id),
-      );
-    });
-  }
-
-  // ---- 成长 ----
-  Widget _buildGrowthHistory() {
-    final ds = context.watch<DataService>();
-    final records = ds.growthRecords.where((r) => _isSameDay(r.date, _selectedDate)).toList();
-    if (records.isEmpty) return _emptyHint(Icons.straighten, '当日无成长记录');
-    return _buildList(records.length, (ctx, i) {
-      final r = records[i];
-      return _card(
-        icon: Icons.straighten, color: Colors.teal,
-        title: '${r.date.month}/${r.date.day}',
-        subtitle: [
+  Widget _buildContent(DataService ds, _TabInfo tab) {
+    final idx = _tabs.indexOf(tab);
+    switch (idx) {
+      case 0: return _buildList(ds, ds.feedingRecords.where((r) => _isSameDay(r.time, _selectedDate)).toList(),
+        (r) => _card(icon: Icons.local_drink, color: Colors.blue, title: r.typeName, subtitle: '${_fmtTime(r.time)}  ${r.displayAmount}', onDelete: () => ds.deleteFeeding(r.id)));
+      case 1: return _buildList(ds, ds.diaperRecords.where((r) => _isSameDay(r.time, _selectedDate)).toList(),
+        (r) => _card(icon: Icons.baby_changing_station, color: Colors.orange, title: r.typeName, subtitle: '${_fmtTime(r.time)}${r.poopColor != null ? '  ${r.poopColor}' : ''}', onDelete: () => ds.deleteDiaper(r.id)));
+      case 2: return _buildList(ds, ds.sleepRecords.where((r) => _isSameDay(r.startTime, _selectedDate)).toList(),
+        (r) => _card(icon: Icons.bedtime, color: Colors.purple, title: r.isOngoing ? '睡眠中' : '睡眠', subtitle: '${_fmtTime(r.startTime)}${r.endTime != null ? ' - ${_fmtTime(r.endTime!)}' : ''}  ${r.durationStr}', onDelete: () => ds.deleteSleep(r.id)));
+      case 3: return _buildList(ds, ds.growthRecords.where((r) => _isSameDay(r.date, _selectedDate)).toList(),
+        (r) => _card(icon: Icons.straighten, color: Colors.teal, title: '${r.date.month}/${r.date.day}', subtitle: [
           if (r.weightKg != null) '体重: ${r.weightKg}kg',
           if (r.heightCm != null) '身长: ${r.heightCm}cm',
           if (r.headCircumferenceCm != null) '头围: ${r.headCircumferenceCm}cm',
-        ].join('  '),
-        onDelete: () => ds.deleteGrowth(r.id),
-      );
-    });
+        ].join('  '), onDelete: () => ds.deleteGrowth(r.id)));
+      case 4: return _buildList(ds, ds.allSupplementRecords().where((r) => _isSameDay(r.date, _selectedDate)).toList(),
+        (r) => _card(icon: Icons.medication, color: Colors.green, title: '${r.date.month}月${r.date.day}日', subtitle: r.items.join('、'), onDelete: () => ds.deleteSupplement(r.id)));
+      case 5: return _buildList(ds, ds.milestoneRecords.where((r) => _isSameDay(r.date, _selectedDate)).toList(),
+        (r) {
+          final emoji = r.category == 'hospital' ? '🏥' : (r.category == 'vaccine' ? '💉' : '🌟');
+          return _card(icon: Icons.star, color: Colors.amber, title: '$emoji ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id));
+        });
+      case 6: return _buildList(ds, ds.momentRecords.where((r) => _isSameDay(r.date, _selectedDate)).toList(),
+        (r) => _card(icon: Icons.photo_library, color: const Color(0xFFFF6B6B), title: r.text.isNotEmpty ? r.text : '[图片]', subtitle: '${_fmtTime(r.date)}${r.imagePaths.isNotEmpty ? '  📸${r.imagePaths.length}张' : ''}', onDelete: () => ds.deleteMoment(r.id)));
+      case 7: return _buildSimpleList(ds, 'pee', '尿尿', Icons.water_drop, const Color(0xFF4A90D9), '💦');
+      case 8: return _buildSimpleList(ds, 'poop', '粑粑', Icons.report, const Color(0xFF8B5E3C), '💩');
+      case 9: return _buildSimpleList(ds, 'medication', '用药', Icons.medication, const Color(0xFFE74C3C), '💊');
+      case 10: return _buildSimpleList(ds, 'water', '喝水', Icons.local_drink, const Color(0xFF3498DB), '🥤');
+      case 11: return _buildFoodList(ds);
+      case 12: return _buildTempList(ds);
+      case 13: return _buildSimpleList(ds, 'bath', '洗澡', Icons.bathroom, const Color(0xFF81C9D6), '🛁');
+      default: return const SizedBox();
+    }
   }
 
-  // ---- 营养补充 ----
-  Widget _buildSupplementHistory() {
-    final ds = context.watch<DataService>();
-    final records = ds.allSupplementRecords().where((r) => _isSameDay(r.date, _selectedDate)).toList();
-    if (records.isEmpty) return _emptyHint(Icons.medication, '当日无补充记录');
-    return _buildList(records.length, (ctx, i) {
-      final r = records[i];
-      return _card(
-        icon: Icons.medication, color: Colors.green,
-        title: '${r.date.month}月${r.date.day}日',
-        subtitle: r.items.join('、'),
-        onDelete: () => ds.deleteSupplement(r.id),
-      );
-    });
-  }
-
-  // ---- 里程碑 ----
-  Widget _buildMilestoneHistory() {
-    final ds = context.watch<DataService>();
-    final records = ds.milestoneRecords.where((r) => _isSameDay(r.date, _selectedDate)).toList();
-    if (records.isEmpty) return _emptyHint(Icons.star, '当日无里程碑记录');
-    return _buildList(records.length, (ctx, i) {
-      final r = records[i];
-      final emoji = r.category == 'hospital' ? '🏥' : (r.category == 'vaccine' ? '💉' : '🌟');
-      return _card(
-        icon: Icons.star, color: Colors.amber,
-        title: '$emoji ${r.title}',
-        subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}',
-        onDelete: () => ds.deleteMilestone(r.id),
-      );
-    });
-  }
-
-  // ---- 动态 ----
-  Widget _buildMomentHistory() {
-    final ds = context.watch<DataService>();
-    final records = ds.momentRecords.where((r) => _isSameDay(r.date, _selectedDate)).toList();
-    if (records.isEmpty) return _emptyHint(Icons.photo_library, '当日无动态');
-    return _buildList(records.length, (ctx, i) {
-      final r = records[i];
-      return _card(
-        icon: Icons.photo_library, color: const Color(0xFFFF6B6B),
-        title: r.text.isNotEmpty ? r.text : '[图片]',
-        subtitle: '${_fmtTime(r.date)}${r.imagePaths.isNotEmpty ? '  📸${r.imagePaths.length}张' : ''}',
-        onDelete: () => ds.deleteMoment(r.id),
-      );
-    });
-  }
-
-  // ---- 通用记录（尿急/粑粑/用药） ----
-  Widget _buildSimpleHistory(String category, String label, IconData icon, Color color, String emoji) {
-    final ds = context.watch<DataService>();
+  Widget _buildSimpleList(DataService ds, String category, String label, IconData icon, Color color, String emoji) {
     final records = ds.simpleRecordsByCategory(category).where((r) => _isSameDay(r.time, _selectedDate)).toList();
-    if (records.isEmpty) return _emptyHint(icon, '当日无${label}记录');
-    return _buildList(records.length, (ctx, i) {
-      final r = records[i];
-      return _card(
-        icon: icon, color: color,
-        title: '$emoji $label',
-        subtitle: '${_fmtTime(r.time)}${r.note.isNotEmpty ? '  ${r.note}' : ''}',
-        onDelete: () => ds.deleteSimpleRecord(r.id),
-      );
+    return _buildList(ds, records, (r) => _card(icon: icon, color: color, title: '$emoji $label', subtitle: '${_fmtTime(r.time)}${r.note.isNotEmpty ? '  ${r.note}' : ''}', onDelete: () => ds.deleteSimpleRecord(r.id)));
+  }
+
+  Widget _buildFoodList(DataService ds) {
+    final records = ds.foodRecords.where((r) => _isSameDay(r.time, _selectedDate)).toList();
+    return _buildList(ds, records, (r) => _card(icon: Icons.restaurant, color: const Color(0xFFFF8A80), title: r.name, subtitle: '${_fmtTime(r.time)}${r.portion != null ? '  ${r.portion}' : ''}${r.feeling != null ? '  ${r.feeling}' : ''}${r.note != null ? '  📝${r.note}' : ''}', onDelete: () => ds.deleteFood(r.id)));
+  }
+
+  Widget _buildTempList(DataService ds) {
+    final records = ds.tempRecords.where((r) => _isSameDay(r.time, _selectedDate)).toList();
+    return _buildList(ds, records, (r) {
+      final isHot = r.temperature > 37.5;
+      return _card(icon: Icons.thermostat, color: isHot ? Colors.red : Colors.green, title: '${r.temperature.toStringAsFixed(1)}℃', subtitle: '${_fmtTime(r.time)}${r.note != null ? '  📝${r.note}' : ''}', onDelete: () => ds.deleteTemperature(r.id));
     });
   }
 
-  // ====== 通用组件 ======
-  Widget _emptyHint(IconData icon, String text) {
-    return Center(
-      child: Column(
+  Widget _buildList(DataService ds, List records, Widget Function(dynamic) builder) {
+    if (records.isEmpty) {
+      return Center(child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 48, color: Colors.grey.shade300),
+          Icon(_tabs[_selectedIndex].icon, size: 48, color: Colors.grey.shade300),
           const SizedBox(height: 8),
-          Text(text, style: TextStyle(color: Colors.grey.shade400)),
+          Text('当日无记录', style: TextStyle(color: Colors.grey.shade400)),
         ],
+      ));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(8),
+      itemCount: records.length,
+      itemBuilder: (ctx, i) => Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: builder(records[i]),
       ),
     );
   }
 
-  Widget _buildList(int itemCount, Widget Function(BuildContext, int) builder) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(12),
-      itemCount: itemCount,
-      itemBuilder: builder,
-    );
-  }
-
   Widget _card({
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String subtitle,
-    required VoidCallback onDelete,
+    required IconData icon, required Color color, required String title,
+    required String subtitle, required VoidCallback onDelete,
   }) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.zero,
       child: ListTile(
+        dense: true,
         leading: CircleAvatar(
+          radius: 18,
           backgroundColor: color.withValues(alpha: 0.1),
-          child: Icon(icon, color: color, size: 20),
+          child: Icon(icon, color: color, size: 18),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        subtitle: subtitle.isNotEmpty ? Text(subtitle, style: const TextStyle(fontSize: 12)) : null,
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        subtitle: subtitle.isNotEmpty ? Text(subtitle, style: const TextStyle(fontSize: 11)) : null,
         trailing: IconButton(
-          icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+          icon: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
           onPressed: onDelete,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
         ),
       ),
     );

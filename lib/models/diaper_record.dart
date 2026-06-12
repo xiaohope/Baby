@@ -40,4 +40,6 @@ class DiaperRecord {
       case DiaperType.both: return '大小便';
     }
   }
+
+  String get displayAmount => typeName;
 }

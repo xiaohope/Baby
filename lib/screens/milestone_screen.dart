@@ -48,7 +48,11 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
     ));
     _titleController.clear();
     _noteController.clear();
-    if (mounted) Navigator.pop(context);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✅ 已保存'), duration: Duration(seconds: 1)),
+      );
+    }
   }
 
   IconData _categoryIcon(String cat) {
@@ -120,6 +124,7 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
               ],
               selected: {_category},
               onSelectionChanged: (s) => setState(() => _category = s.first),
+              showSelectedIcon: false,
               style: ButtonStyle(
                 shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 foregroundColor: WidgetStateProperty.resolveWith((states) {

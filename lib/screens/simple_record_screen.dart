@@ -44,7 +44,10 @@ class _SimpleRecordScreenState extends State<SimpleRecordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('✅ 已记录'), duration: Duration(seconds: 1)),
       );
-      Navigator.pop(context);
+      setState(() {
+        _noteController.clear();
+        _recordTime = DateTime.now();
+      });
     }
   }
 

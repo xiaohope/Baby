@@ -134,6 +134,7 @@ class BabyTrackerApp extends StatelessWidget {
         scrolledUnderElevation: 0.5,
         backgroundColor: Colors.transparent,
         foregroundColor: Color(0xFF2D3436),
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
       navigationBarTheme: NavigationBarThemeData(
         indicatorColor: const Color(0xFF6C63FF).withValues(alpha: 0.12),
@@ -157,6 +158,10 @@ class BabyTrackerApp extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         labelStyle: const TextStyle(fontSize: 13),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: Color(0xFFE0E0E0),
+        thickness: 0.5,
       ),
       bottomSheetTheme: const BottomSheetThemeData(
         shape: RoundedRectangleBorder(
@@ -236,11 +241,16 @@ class BabyTrackerApp extends StatelessWidget {
           return const IconThemeData(color: Color(0xFF9E9E9E), size: 22);
         }),
       ),
+      dividerTheme: const DividerThemeData(
+        color: Color(0xFF3A3A4A),
+        thickness: 0.5,
+      ),
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
       bottomSheetTheme: const BottomSheetThemeData(
         shape: RoundedRectangleBorder(

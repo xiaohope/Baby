@@ -148,14 +148,24 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
     );
     await ds.addFeeding(record);
     setState(() {
+      _selectedType = FeedingType.breastDirect;
       _breastSeconds = 0;
       _isTimerRunning = false;
       _left15minAlerted = false;
       _right15minAlerted = false;
       _timerStartTime = null;
+      _useManualInput = false;
+      _minutesController.clear();
+      _mlController.clear();
+      _noteController.clear();
+      _recordTime = DateTime.now();
     });
     await _clearTimerState();
-    if (mounted) Navigator.pop(context);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✅ 已保存'), duration: Duration(seconds: 1)),
+      );
+    }
   }
 
   void _startTimer() {
@@ -282,6 +292,7 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
               ],
               selected: {_selectedType},
               onSelectionChanged: (s) => setState(() => _selectedType = s.first),
+              showSelectedIcon: false,
               style: ButtonStyle(
                 shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 foregroundColor: WidgetStateProperty.resolveWith((states) {

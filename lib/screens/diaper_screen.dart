@@ -40,7 +40,12 @@ class _DiaperScreenState extends State<DiaperScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('✅ 已保存'), duration: Duration(seconds: 1)),
         );
-        Navigator.pop(context);
+        setState(() {
+          _selectedType = DiaperType.pee;
+          _poopColor = null;
+          _noteController.clear();
+          _recordTime = DateTime.now();
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -142,6 +147,7 @@ class _DiaperScreenState extends State<DiaperScreen> {
               ],
               selected: {_selectedType},
               onSelectionChanged: (s) => setState(() => _selectedType = s.first),
+              showSelectedIcon: false,
               style: ButtonStyle(
                 shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 foregroundColor: WidgetStateProperty.resolveWith((states) {

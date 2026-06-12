@@ -14,6 +14,8 @@ import 'history_screen.dart';
 import 'stats_screen.dart';
 import 'moments_screen.dart';
 import 'simple_record_screen.dart';
+import 'food_screen.dart';
+import 'temperature_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -205,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
         gradient: const LinearGradient(colors: [Color(0xFFD4A5FF), Color(0xFF6C63FF)]),
       ),
       _StatItem(
-        label: '尿急',
+        label: '尿尿',
         value: '${stats['peeSimpleCount'] ?? 0}次',
         icon: Icons.water_drop,
         gradient: const LinearGradient(colors: [Color(0xFF4A90D9), Color(0xFF74B9FF)]),
@@ -221,6 +223,30 @@ class _HomeScreenState extends State<HomeScreen> {
         value: '${stats['medCount'] ?? 0}次',
         icon: Icons.medication,
         gradient: const LinearGradient(colors: [Color(0xFFE74C3C), Color(0xFFFF6B6B)]),
+      ),
+      _StatItem(
+        label: '喝水',
+        value: '${stats['waterCount'] ?? 0}次',
+        icon: Icons.local_drink,
+        gradient: const LinearGradient(colors: [Color(0xFF3498DB), Color(0xFF74B9FF)]),
+      ),
+      _StatItem(
+        label: '辅食',
+        value: '${stats['foodCount'] ?? 0}次',
+        icon: Icons.restaurant,
+        gradient: const LinearGradient(colors: [Color(0xFFFF8A80), Color(0xFFFFB3A7)]),
+      ),
+      _StatItem(
+        label: '体温',
+        value: '${stats['tempCount'] ?? 0}次',
+        icon: Icons.thermostat,
+        gradient: const LinearGradient(colors: [Color(0xFFE74C3C), Color(0xFFFF6B6B)]),
+      ),
+      _StatItem(
+        label: '洗澡',
+        value: '${stats['bathCount'] ?? 0}次',
+        icon: Icons.bathroom,
+        gradient: const LinearGradient(colors: [Color(0xFF81C9D6), Color(0xFFA8E6CF)]),
       ),
     ];
 
@@ -521,9 +547,13 @@ class _HomeScreenState extends State<HomeScreen> {
       _QuickAction(emoji: '🏥', label: '就医', icon: Icons.local_hospital, color: const Color(0xFFE74C3C), screen: const MilestoneScreen(initialCategory: 'hospital')),
       _QuickAction(emoji: '💉', label: '疫苗', icon: Icons.vaccines, color: const Color(0xFF27AE60), screen: const MilestoneScreen(initialCategory: 'vaccine')),
       _QuickAction(emoji: '📸', label: '动态', icon: Icons.photo_library, color: const Color(0xFFFF6B6B), screen: const MomentsScreen()),
-      _QuickAction(emoji: '💦', label: '尿急', icon: Icons.water_drop, color: const Color(0xFF4A90D9), screen: const SimpleRecordScreen(category: 'pee', title: '尿急', icon: Icons.water_drop, color: Color(0xFF4A90D9), emoji: '💦')),
+      _QuickAction(emoji: '💦', label: '尿尿', icon: Icons.water_drop, color: const Color(0xFF4A90D9), screen: const SimpleRecordScreen(category: 'pee', title: '尿尿', icon: Icons.water_drop, color: Color(0xFF4A90D9), emoji: '💦')),
       _QuickAction(emoji: '💩', label: '粑粑', icon: Icons.report, color: const Color(0xFF8B5E3C), screen: const SimpleRecordScreen(category: 'poop', title: '粑粑', icon: Icons.report, color: Color(0xFF8B5E3C), emoji: '💩')),
       _QuickAction(emoji: '💊', label: '用药', icon: Icons.medication, color: const Color(0xFFE74C3C), screen: const SimpleRecordScreen(category: 'medication', title: '用药', icon: Icons.medication, color: Color(0xFFE74C3C), emoji: '💊')),
+      _QuickAction(emoji: '🥤', label: '喝水', icon: Icons.local_drink, color: const Color(0xFF3498DB), screen: const SimpleRecordScreen(category: 'water', title: '喝水', icon: Icons.local_drink, color: Color(0xFF3498DB), emoji: '🥤')),
+      _QuickAction(emoji: '🥣', label: '辅食', icon: Icons.restaurant, color: const Color(0xFFFF8A80), screen: const FoodScreen()),
+      _QuickAction(emoji: '🌡', label: '体温', icon: Icons.thermostat, color: const Color(0xFFE74C3C), screen: const TemperatureScreen()),
+      _QuickAction(emoji: '🛁', label: '洗澡', icon: Icons.bathroom, color: const Color(0xFF81C9D6), screen: const SimpleRecordScreen(category: 'bath', title: '洗澡', icon: Icons.bathroom, color: Color(0xFF81C9D6), emoji: '🛁')),
     ];
 
     return Column(

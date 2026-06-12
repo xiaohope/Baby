@@ -7,6 +7,8 @@ import '../models/growth_record.dart';
 import '../models/milestone_record.dart';
 import '../models/moment_record.dart';
 import '../models/simple_record.dart';
+import '../models/food_record.dart';
+import '../models/temperature_record.dart';
 import '../adapters/feeding_record_adapter.dart';
 import '../adapters/diaper_record_adapter.dart';
 import '../adapters/sleep_record_adapter.dart';
@@ -15,6 +17,8 @@ import '../adapters/milestone_record_adapter.dart';
 import '../adapters/supplement_record_adapter.dart';
 import '../adapters/moment_record_adapter.dart';
 import '../adapters/simple_record_adapter.dart';
+import '../adapters/food_record_adapter.dart';
+import '../adapters/temperature_record_adapter.dart';
 import 'hive_helper.dart';
 
 class DataService extends ChangeNotifier {
@@ -26,6 +30,8 @@ class DataService extends ChangeNotifier {
   List<MilestoneRecord> _milestoneRecords = [];
   List<MomentRecord> _momentRecords = [];
   List<SimpleRecord> _simpleRecords = [];
+  List<FoodRecord> _foodRecords = [];
+  List<TemperatureRecord> _tempRecords = [];
   String _babyName = '宝宝';
   DateTime? _babyBirthday;
   ThemeMode _themeMode = ThemeMode.system;
@@ -38,6 +44,8 @@ class DataService extends ChangeNotifier {
   List<MilestoneRecord> get milestoneRecords => _milestoneRecords;
   List<MomentRecord> get momentRecords => _momentRecords;
   List<SimpleRecord> get simpleRecords => _simpleRecords;
+  List<FoodRecord> get foodRecords => _foodRecords;
+  List<TemperatureRecord> get tempRecords => _tempRecords;
   String get babyName => _babyName;
   DateTime? get babyBirthday => _babyBirthday;
   ThemeMode get themeMode => _themeMode;
@@ -98,6 +106,16 @@ class DataService extends ChangeNotifier {
     // 加载通用记录
     final simpleBox = HiveHelper.simpleBox;
     _simpleRecords = simpleBox.values.map((box) => box.toModel()).toList()
+      ..sort((a, b) => b.time.compareTo(a.time));
+
+    // 加载辅食记录
+    final foodBox = HiveHelper.foodBox;
+    _foodRecords = foodBox.values.map((box) => box.toModel()).toList()
+      ..sort((a, b) => b.time.compareTo(a.time));
+
+    // 加载体温记录
+    final tempBox = HiveHelper.tempBox;
+    _tempRecords = tempBox.values.map((box) => box.toModel()).toList()
       ..sort((a, b) => b.time.compareTo(a.time));
   }
 
@@ -295,6 +313,34 @@ class DataService extends ChangeNotifier {
     return _simpleRecords.where((r) => r.category == category).toList();
   }
 
+  // ---- 辅食 ----
+  Future<void> addFood(FoodRecord record) async {
+    final box = FoodRecordBox.fromModel(record);
+    await HiveHelper.foodBox.put(record.id, box);
+    _foodRecords.insert(0, record);
+    notifyListeners();
+  }
+
+  Future<void> deleteFood(String id) async {
+    await HiveHelper.foodBox.delete(id);
+    _foodRecords.removeWhere((r) => r.id == id);
+    notifyListeners();
+  }
+
+  // ---- 体温 ----
+  Future<void> addTemperature(TemperatureRecord record) async {
+    final box = TemperatureRecordBox.fromModel(record);
+    await HiveHelper.tempBox.put(record.id, box);
+    _tempRecords.insert(0, record);
+    notifyListeners();
+  }
+
+  Future<void> deleteTemperature(String id) async {
+    await HiveHelper.tempBox.delete(id);
+    _tempRecords.removeWhere((r) => r.id == id);
+    notifyListeners();
+  }
+
   // ---- 今日统计 ----
   Map<String, dynamic> todayStats() {
     final now = DateTime.now();
@@ -328,6 +374,18 @@ class DataService extends ChangeNotifier {
     int medCount = _simpleRecords.where((r) =>
       r.category == 'medication' && r.time.toIso8601String().substring(0, 10) == nowStr
     ).length;
+    int waterCount = _simpleRecords.where((r) =>
+      r.category == 'water' && r.time.toIso8601String().substring(0, 10) == nowStr
+    ).length;
+    int foodCount = _foodRecords.where((r) =>
+      r.time.toIso8601String().substring(0, 10) == nowStr
+    ).length;
+    int tempCount = _tempRecords.where((r) =>
+      r.time.toIso8601String().substring(0, 10) == nowStr
+    ).length;
+    int bathCount = _simpleRecords.where((r) =>
+      r.category == 'bath' && r.time.toIso8601String().substring(0, 10) == nowStr
+    ).length;
 
     int totalSleepMinutes = 0;
     for (final s in sleeps) {
@@ -346,6 +404,10 @@ class DataService extends ChangeNotifier {
       'peeSimpleCount': peeSimpleCount,
       'poopSimpleCount': poopSimpleCount,
       'medCount': medCount,
+      'waterCount': waterCount,
+      'foodCount': foodCount,
+      'tempCount': tempCount,
+      'bathCount': bathCount,
       'totalSleepMinutes': totalSleepMinutes,
     };
   }

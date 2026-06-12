@@ -207,6 +207,7 @@ class _SleepScreenState extends State<SleepScreen> {
                         ],
                         selected: {_quality},
                         onSelectionChanged: (s) => setState(() => _quality = s.first),
+                        showSelectedIcon: false,
                         style: ButtonStyle(
                           shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                           foregroundColor: WidgetStateProperty.resolveWith((states) {

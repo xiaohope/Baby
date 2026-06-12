@@ -7,6 +7,8 @@ import '../adapters/milestone_record_adapter.dart';
 import '../adapters/supplement_record_adapter.dart';
 import '../adapters/moment_record_adapter.dart';
 import '../adapters/simple_record_adapter.dart';
+import '../adapters/food_record_adapter.dart';
+import '../adapters/temperature_record_adapter.dart';
 
 class HiveHelper {
   static const String _feedingBox = 'feeding_records';
@@ -17,6 +19,8 @@ class HiveHelper {
   static const String _supplementBox = 'supplement_records';
   static const String _momentsBox = 'moments';
   static const String _simpleBox = 'simple_records';
+  static const String _foodBox = 'food_records';
+  static const String _tempBox = 'temperature_records';
   static const String _settingsBox = 'settings';
 
   static Future<void> init() async {
@@ -31,6 +35,8 @@ class HiveHelper {
     Hive.registerAdapter(SupplementRecordBoxAdapter());
     Hive.registerAdapter(MomentRecordBoxAdapter());
     Hive.registerAdapter(SimpleRecordBoxAdapter());
+    Hive.registerAdapter(FoodRecordBoxAdapter());
+    Hive.registerAdapter(TemperatureRecordBoxAdapter());
 
     // 打开所有 box
     await Hive.openBox<FeedingRecordBox>(_feedingBox);
@@ -41,6 +47,8 @@ class HiveHelper {
     await Hive.openBox<SupplementRecordBox>(_supplementBox);
     await Hive.openBox<MomentRecordBox>(_momentsBox);
     await Hive.openBox<SimpleRecordBox>(_simpleBox);
+    await Hive.openBox<FoodRecordBox>(_foodBox);
+    await Hive.openBox<TemperatureRecordBox>(_tempBox);
     await Hive.openBox(_settingsBox);
   }
 
@@ -53,6 +61,8 @@ class HiveHelper {
   static Box<SupplementRecordBox> get supplementBox => Hive.box<SupplementRecordBox>(_supplementBox);
   static Box<MomentRecordBox> get momentsBox => Hive.box<MomentRecordBox>(_momentsBox);
   static Box<SimpleRecordBox> get simpleBox => Hive.box<SimpleRecordBox>(_simpleBox);
+  static Box<FoodRecordBox> get foodBox => Hive.box<FoodRecordBox>(_foodBox);
+  static Box<TemperatureRecordBox> get tempBox => Hive.box<TemperatureRecordBox>(_tempBox);
   static Box get settingsBox => Hive.box(_settingsBox);
 
   // 关闭所有 box

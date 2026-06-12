@@ -34,6 +34,10 @@ class StatsScreen extends StatelessWidget {
     final peeSimpleCount = stats['peeSimpleCount'] ?? 0;
     final poopSimpleCount = stats['poopSimpleCount'] ?? 0;
     final medCount = stats['medCount'] ?? 0;
+    final waterCount = stats['waterCount'] ?? 0;
+    final foodCount = stats['foodCount'] ?? 0;
+    final tempCount = stats['tempCount'] ?? 0;
+    final bathCount = stats['bathCount'] ?? 0;
     final totalSleepMinutes = stats['totalSleepMinutes'] ?? 0;
     final totalBreastMinutes = stats['totalBreastMinutes'] ?? 0;
 
@@ -62,7 +66,11 @@ class StatsScreen extends StatelessWidget {
                   Row(children: [
                     _statCard('睡眠', _formatSleep(totalSleepMinutes), Icons.bedtime, const Color(0xFFD4A5FF)),
                     _statCard('母乳', '$totalBreastMinutes分', Icons.child_care, const Color(0xFFFF6B6B)),
-                    _statCard('尿急', '$peeSimpleCount次', Icons.water_drop, const Color(0xFF4A90D9)),
+                    _statCard('尿尿', '$peeSimpleCount次', Icons.water_drop, const Color(0xFF4A90D9)),
+                    _statCard('喝水', '$waterCount次', Icons.local_drink, const Color(0xFF3498DB)),
+                    _statCard('辅食', '$foodCount次', Icons.restaurant, const Color(0xFFFF8A80)),
+                    _statCard('体温', '$tempCount次', Icons.thermostat, const Color(0xFFE74C3C)),
+                    _statCard('洗澡', '$bathCount次', Icons.bathroom, const Color(0xFF81C9D6)),
                   ]),
                   const SizedBox(height: 8),
                   Row(children: [
@@ -228,13 +236,17 @@ class StatsScreen extends StatelessWidget {
       final d = now.subtract(Duration(days: 6 - i));
       return ds.simpleRecordsByCategory('medication').where((r) => _isSameDay(r.time, d)).length;
     });
+    final waterData = List.generate(7, (i) {
+      final d = now.subtract(Duration(days: 6 - i));
+      return ds.simpleRecordsByCategory('water').where((r) => _isSameDay(r.time, d)).length;
+    });
 
-    final allMax = [...peeData, ...poopData, ...medData].fold(0, (a, b) => a > b ? a : b);
+    final allMax = [...peeData, ...poopData, ...medData, ...waterData].fold(0, (a, b) => a > b ? a : b);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('近7天尿急/粑粑/用药趋势', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const Text('近7天尿尿/粑粑/用药/喝水趋势', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         const SizedBox(height: 12),
         Card(
           child: Padding(
@@ -248,7 +260,8 @@ class StatsScreen extends StatelessWidget {
                   return BarChartGroupData(x: i, barRods: [
                     BarChartRodData(toY: peeData[i].toDouble(), color: const Color(0xFF4A90D9), width: 8, borderRadius: const BorderRadius.vertical(top: Radius.circular(4)), fromY: 0),
                     BarChartRodData(toY: poopData[i].toDouble(), color: const Color(0xFF8B5E3C), width: 8, borderRadius: const BorderRadius.vertical(top: Radius.circular(4)), fromY: 0),
-                    BarChartRodData(toY: medData[i].toDouble(), color: const Color(0xFFE74C3C), width: 8, borderRadius: const BorderRadius.vertical(top: Radius.circular(4)), fromY: 0),
+                    BarChartRodData(toY: medData[i].toDouble(), color: const Color(0xFFE74C3C), width: 6, borderRadius: const BorderRadius.vertical(top: Radius.circular(4)), fromY: 0),
+                    BarChartRodData(toY: waterData[i].toDouble(), color: const Color(0xFF3498DB), width: 6, borderRadius: const BorderRadius.vertical(top: Radius.circular(4)), fromY: 0),
                   ]);
                 }),
                 titlesData: FlTitlesData(
@@ -261,7 +274,7 @@ class StatsScreen extends StatelessWidget {
                 gridData: const FlGridData(show: true, drawVerticalLine: false),
                 barTouchData: BarTouchData(touchTooltipData: BarTouchTooltipData(
                   getTooltipItem: (g, gi, rod, ri) {
-                    final labels = ['尿急', '粑粑', '用药'];
+                    final labels = ['尿尿', '粑粑', '用药', '喝水'];
                     return BarTooltipItem('${weekdays[g.x]}\n${labels[ri]}: ${rod.toY.toInt()}次', const TextStyle(color: Colors.white, fontWeight: FontWeight.bold));
                   },
                 )),
@@ -274,11 +287,13 @@ class StatsScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _legend('尿急', const Color(0xFF4A90D9)),
+            _legend('尿尿', const Color(0xFF4A90D9)),
             const SizedBox(width: 16),
             _legend('粑粑', const Color(0xFF8B5E3C)),
             const SizedBox(width: 16),
             _legend('用药', const Color(0xFFE74C3C)),
+            const SizedBox(width: 16),
+            _legend('喝水', const Color(0xFF3498DB)),
           ],
         ),
       ],
@@ -314,7 +329,7 @@ class StatsScreen extends StatelessWidget {
 
   Widget _buildWeekSummary(DataService ds, BuildContext context) {
     final now = DateTime.now();
-    int totalFeeding = 0, totalDiaper = 0, totalPee = 0, totalPoop = 0, totalMed = 0, totalSleepH = 0;
+    int totalFeeding = 0, totalDiaper = 0, totalPee = 0, totalPoop = 0, totalMed = 0, totalWater = 0, totalFood = 0, totalTemp = 0, totalBath = 0, totalSleepH = 0;
     for (int i = 6; i >= 0; i--) {
       final d = now.subtract(Duration(days: i));
       totalFeeding += ds.feedingRecords.where((r) => _isSameDay(r.time, d)).length;
@@ -322,6 +337,10 @@ class StatsScreen extends StatelessWidget {
       totalPee += ds.simpleRecordsByCategory('pee').where((r) => _isSameDay(r.time, d)).length;
       totalPoop += ds.simpleRecordsByCategory('poop').where((r) => _isSameDay(r.time, d)).length;
       totalMed += ds.simpleRecordsByCategory('medication').where((r) => _isSameDay(r.time, d)).length;
+      totalWater += ds.simpleRecordsByCategory('water').where((r) => _isSameDay(r.time, d)).length;
+      totalFood += ds.foodRecords.where((r) => _isSameDay(r.time, d)).length;
+      totalTemp += ds.tempRecords.where((r) => _isSameDay(r.time, d)).length;
+      totalBath += ds.simpleRecordsByCategory('bath').where((r) => _isSameDay(r.time, d)).length;
       for (final s in ds.sleepRecords.where((r) => _isSameDay(r.startTime, d))) {
         if (s.duration != null) totalSleepH += s.duration!.inHours;
       }
@@ -338,9 +357,13 @@ class StatsScreen extends StatelessWidget {
         ]),
         const SizedBox(height: 8),
         Row(children: [
-          _statCard('尿急', '${totalPee}次', Icons.water_drop, const Color(0xFF4A90D9)),
+          _statCard('尿尿', '${totalPee}次', Icons.water_drop, const Color(0xFF4A90D9)),
           _statCard('粑粑', '${totalPoop}次', Icons.report, const Color(0xFF8B5E3C)),
           _statCard('用药', '${totalMed}次', Icons.medication, const Color(0xFFE74C3C)),
+          _statCard('喝水', '${totalWater}次', Icons.local_drink, const Color(0xFF3498DB)),
+          _statCard('辅食', '${totalFood}次', Icons.restaurant, const Color(0xFFFF8A80)),
+          _statCard('体温', '${totalTemp}次', Icons.thermostat, const Color(0xFFE74C3C)),
+          _statCard('洗澡', '${totalBath}次', Icons.bathroom, const Color(0xFF81C9D6)),
         ]),
       ]))),
     ]);

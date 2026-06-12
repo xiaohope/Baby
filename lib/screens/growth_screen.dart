@@ -40,7 +40,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
     _noteController.clear();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已保存！'), duration: Duration(seconds: 1)),
+        const SnackBar(content: Text('✅ 已保存'), duration: Duration(seconds: 1)),
       );
     }
   }

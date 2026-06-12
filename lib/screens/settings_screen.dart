@@ -12,6 +12,9 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final _nameController = TextEditingController();
   DateTime? _birthday;
+  bool _isEditing = false;
+  String _savedName = '';
+  DateTime? _savedBirthday;
 
   @override
   void initState() {
@@ -19,12 +22,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final ds = context.read<DataService>();
     _nameController.text = ds.babyName;
     _birthday = ds.babyBirthday;
+    _savedName = ds.babyName;
+    _savedBirthday = ds.babyBirthday;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
+  }
+
+  void _startEditing() {
+    setState(() => _isEditing = true);
+  }
+
+  void _cancelEditing() {
+    setState(() {
+      _nameController.text = _savedName;
+      _birthday = _savedBirthday;
+      _isEditing = false;
+    });
   }
 
   Future<void> _saveBabyInfo() async {
@@ -36,9 +53,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     final ds = context.read<DataService>();
     await ds.setBabyInfo(_nameController.text, _birthday!);
+    _savedName = _nameController.text;
+    _savedBirthday = _birthday;
     if (mounted) {
+      setState(() => _isEditing = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已保存！'), duration: Duration(seconds: 1)),
+        const SnackBar(content: Text('✅ 已保存'), duration: Duration(seconds: 1)),
       );
     }
   }
@@ -56,8 +76,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            begin: Alignment.topCenter, end: Alignment.bottomCenter,
           ),
         ),
         child: ListView(
@@ -98,29 +117,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const Icon(Icons.child_care, color: Color(0xFF6C63FF)),
                       const SizedBox(width: 8),
                       Text('宝宝信息', style: Theme.of(context).textTheme.titleMedium),
+                      const Spacer(),
+                      // 编辑/取消按钮
+                      if (!_isEditing)
+                        InkWell(
+                          onTap: _startEditing,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.edit_outlined, color: Color(0xFF6C63FF), size: 18),
+                          ),
+                        )
+                      else
+                        InkWell(
+                          onTap: _cancelEditing,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text('取消', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                          ),
+                        ),
                     ]),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _nameController,
-                      decoration: const InputDecoration(
+                      readOnly: !_isEditing,
+                      decoration: InputDecoration(
                         labelText: '宝宝姓名',
+                        filled: !_isEditing,
+                        fillColor: !_isEditing ? Colors.grey.withValues(alpha: 0.05) : null,
                       ),
                     ),
                     const SizedBox(height: 12),
                     InkWell(
-                      onTap: () async {
+                      onTap: _isEditing ? () async {
                         final d = await showDatePicker(
-                          context: context,
-                          initialDate: _birthday ?? DateTime.now().subtract(const Duration(days: 30)),
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime.now(),
+                          context: context, initialDate: _birthday ?? DateTime.now().subtract(const Duration(days: 30)),
+                          firstDate: DateTime(2020), lastDate: DateTime.now(),
                         );
                         if (d != null) setState(() => _birthday = d);
-                      },
+                      } : null,
                       child: InputDecorator(
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: '出生日期',
-                          suffixIcon: Icon(Icons.calendar_today, color: Color(0xFF6C63FF)),
+                          suffixIcon: Icon(Icons.calendar_today, color: _isEditing ? const Color(0xFF6C63FF) : Colors.grey),
+                          filled: !_isEditing,
+                          fillColor: !_isEditing ? Colors.grey.withValues(alpha: 0.05) : null,
                         ),
                         child: Text(
                           _birthday != null
@@ -130,15 +180,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        onPressed: _saveBabyInfo,
-                        icon: const Icon(Icons.check),
-                        label: const Text('保存'),
+                    // 保存按钮（仅编辑模式显示）
+                    if (_isEditing) ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: FilledButton.icon(
+                              onPressed: _saveBabyInfo,
+                              icon: const Icon(Icons.check),
+                              label: const Text('保存'),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -152,13 +208,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: Color(0xFF6C63FF)),
                     title: const Text('版本'),
-                    trailing: const Text('3.0.0'),
+                    trailing: const Text('4.0.0'),
                   ),
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.favorite_outline, color: Color(0xFF6C63FF)),
                     title: const Text('关于'),
-                    subtitle: const Text('宝宝喂养记录 App — 用心陪伴每一步'),
+                    subtitle: const Text('记录宝宝成长的每一个瞬间 — 喂奶、换尿布、睡眠、辅食、体温……'),
                     onTap: () => _showAbout(context),
                   ),
                 ],
@@ -224,12 +280,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showAbout(BuildContext context) {
     showAboutDialog(
       context: context,
-      applicationName: '宝宝记录',
-      applicationVersion: '3.0.0',
+      applicationName: 'Baby',
+      applicationVersion: '4.0.0',
       children: const [
-        Text('记录宝宝成长每一步'),
+        Text('记录宝宝成长的每一个瞬间 📝'),
         SizedBox(height: 8),
-        Text('功能: 喂奶 | 换尿布 | 睡眠 | 营养补充 | 生长发育 | 里程碑', style: TextStyle(fontSize: 12)),
+        Text('功能: 喂奶 | 尿布 | 睡眠 | 成长 | 辅食 | 体温 | 洗澡 | 用药 | 动态 | 更多……', style: TextStyle(fontSize: 12)),
       ],
     );
   }
