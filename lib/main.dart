@@ -28,7 +28,7 @@ class BabyTrackerApp extends StatelessWidget {
     return Consumer<DataService>(
       builder: (context, ds, _) {
         return MaterialApp(
-          title: '宝宝记录',
+          title: 'baby',
           debugShowCheckedModeBanner: false,
           themeMode: ds.themeMode,
           darkTheme: _buildDarkTheme(),

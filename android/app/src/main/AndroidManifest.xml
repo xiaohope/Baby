@@ -7,9 +7,9 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
-        android:label="宝宝记录"
+        android:label="baby"
         android:name="${applicationName}"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
         tools:replace="android:label">
 
         <activity
