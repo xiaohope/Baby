@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/data_service.dart';
+import '../services/sync_service.dart';
 import 'feeding_screen.dart';
 import 'diaper_screen.dart';
 import 'sleep_screen.dart';
@@ -79,7 +80,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ? null : const LinearGradient(colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
           color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF121212) : null,
         ),
-        child: Column(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            final ds = context.read<DataService>();
+            final c = await SyncService.downloadAll(ds);
+            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(c > 0 ? '已同步 $c 条数据' : '已是最新'), duration: Duration(seconds: 1)));
+          },
+          child: Column(
           children: [
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8),

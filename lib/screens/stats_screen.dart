@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../services/data_service.dart';
+import '../services/sync_service.dart';
 
 class StatsScreen extends StatelessWidget {
   const StatsScreen({super.key});
@@ -47,7 +48,13 @@ class StatsScreen extends StatelessWidget {
         title: const Text('数据统计'),
         centerTitle: true,
       ),
-      body: ListView(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          final ds = context.read<DataService>();
+          final c = await SyncService.downloadAll(ds);
+          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(c > 0 ? '已同步 $c 条数据' : '已是最新'), duration: Duration(seconds: 1)));
+        },
+        child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // ====== 今日概况 ======
@@ -138,6 +145,7 @@ class StatsScreen extends StatelessWidget {
           _buildWeekSummary(ds, context),
           const SizedBox(height: 32),
         ],
+      ),
       ),
     );
   }

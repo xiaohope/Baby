@@ -5,6 +5,7 @@ import '../services/data_service.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../services/sync_service.dart';
+import '../services/data_service.dart';
 import 'about_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -83,7 +84,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ? null : const LinearGradient(colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
           color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF121212) : null,
         ),
-        child: ListView(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            final d = context.read<DataService>();
+            final c = await SyncService.downloadAll(d);
+            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(c > 0 ? '已同步 $c 条数据' : '已是最新'), duration: Duration(seconds: 1)));
+          },
+          child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             // ====== 用户卡片 ======
@@ -338,6 +345,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
           ],
+        ),
         ),
       ),
     );
