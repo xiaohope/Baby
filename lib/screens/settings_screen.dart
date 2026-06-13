@@ -99,11 +99,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           gradient: const LinearGradient(colors: [Color(0xFF6C63FF), Color(0xFFFF8A80)]),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: Center(
-                          child: Text(
-                            (AuthService.phone ?? '?')[0].toUpperCase(),
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
+                        child: const Center(
+                          child: Text('👶', style: TextStyle(fontSize: 28)),
                         ),
                       ),
                       const SizedBox(width: 16),
