@@ -13,6 +13,7 @@ class SupplementScreen extends StatefulWidget {
 class _SupplementScreenState extends State<SupplementScreen> {
   final _newItemController = TextEditingController();
   List<String> _items = [];
+  final Set<int> _checked = {};
 
   @override
   void initState() {
@@ -32,11 +33,13 @@ class _SupplementScreenState extends State<SupplementScreen> {
 
   Future<void> _save() async {
     final ds = context.read<DataService>();
+    final checkedItems = _items.where((_, i) => _checked.contains(i)).toList();
     await ds.setSupplement(SupplementRecord(
       date: DateTime.now(),
-      items: _items,
+      items: checkedItems,
     ));
     if (mounted) {
+      setState(() => _checked.clear());
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('✅ 已保存'), duration: Duration(seconds: 1)),
       );
@@ -172,15 +175,18 @@ class _SupplementScreenState extends State<SupplementScreen> {
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Row(
                             children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF6C63FF),
-                                  shape: BoxShape.circle,
-                                ),
+                              Checkbox(
+                                value: _checked.contains(i),
+                                onChanged: (v) {
+                                  setState(() {
+                                    if (v == true) { _checked.add(i); }
+                                    else { _checked.remove(i); }
+                                  });
+                                },
+                                activeColor: const Color(0xFF6C63FF),
+                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                visualDensity: VisualDensity.compact,
                               ),
-                              const SizedBox(width: 10),
                               Expanded(
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -193,7 +199,7 @@ class _SupplementScreenState extends State<SupplementScreen> {
                                       Expanded(
                                         child: Text(
                                           _items[i],
-                                          style: const TextStyle(fontSize: 15),
+                                          style: TextStyle(fontSize: 15, decoration: _checked.contains(i) ? TextDecoration.none : null),
                                         ),
                                       ),
                                       InkWell(

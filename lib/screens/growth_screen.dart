@@ -148,40 +148,6 @@ class _GrowthScreenState extends State<GrowthScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            const Text('历史记录', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 8),
-            ...records.map((r) => Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              color: Colors.white,
-              child: ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Colors.teal,
-                  child: Icon(Icons.straighten, color: Colors.white),
-                ),
-                title: Text('${r.date.month}/${r.date.day}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text([
-                  if (r.weightKg != null) '体重: ${r.weightKg}kg',
-                  if (r.heightCm != null) '身长: ${r.heightCm}cm',
-                  if (r.headCircumferenceCm != null) '头围: ${r.headCircumferenceCm}cm',
-                ].join('  ')),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  onPressed: () => showDialog(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      title: const Text('确认删除'),
-                      content: const Text('确定要删除这条成长记录吗？'),
-                      actions: [
-                        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-                        FilledButton(onPressed: () { Navigator.pop(ctx); ds.deleteGrowth(r.id); }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('删除')),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            )),
           ],
         ),
       ),

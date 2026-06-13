@@ -213,50 +213,6 @@ class _FoodScreenState extends State<FoodScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            Text('历史记录', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            if (records.isEmpty)
-              Card(child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Center(child: Column(children: [
-                  Icon(Icons.restaurant, size: 36, color: Colors.grey.shade300),
-                  const SizedBox(height: 8),
-                  Text('暂无记录', style: TextStyle(color: Colors.grey.shade400)),
-                ])),
-              ))
-            else
-              ...records.map((r) => Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: const Color(0xFFFF8A80).withValues(alpha: 0.1),
-                    child: const Icon(Icons.restaurant, color: Color(0xFFFF8A80)),
-                  ),
-                  title: Text(r.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text([
-                    _fmt(r.time),
-                    if (r.portion != null) ' ${r.portion}',
-                    if (r.feeling != null) ' ${r.feeling}',
-                    if (r.note != null) ' 📝${r.note}',
-                  ].join('')),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                    onPressed: () => showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        title: const Text('确认删除'),
-                        content: const Text('确定要删除这条辅食记录吗？'),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-                          FilledButton(onPressed: () { Navigator.pop(ctx); ds.deleteFood(r.id); }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('删除')),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              )),
           ],
         ),
       ),
