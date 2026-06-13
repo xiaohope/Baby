@@ -24,7 +24,7 @@ class ApiService {
         'phone': phone, 'password': password, 'role': role,
         'nickname': nickname, 'inviteCode': inviteCode,
       }),
-    );
+    ).timeout(const Duration(seconds: 15));
     return jsonDecode(res.body);
   }
 
@@ -34,7 +34,7 @@ class ApiService {
       Uri.parse('$baseUrl/auth/login'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'phone': phone, 'password': password}),
-    );
+    ).timeout(const Duration(seconds: 15));
     final data = jsonDecode(res.body);
     if (res.statusCode == 200) {
       _token = data['token'];
@@ -66,7 +66,7 @@ class ApiService {
       Uri.parse('$baseUrl/records/upload'),
       headers: _headers,
       body: jsonEncode({'records': records}),
-    );
+    ).timeout(const Duration(seconds: 30));
     return jsonDecode(res.body);
   }
 
