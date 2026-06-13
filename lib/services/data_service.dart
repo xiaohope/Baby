@@ -66,17 +66,17 @@ class DataService extends ChangeNotifier {
 
   Map<String, dynamic> _recordToMap(dynamic record) {
     if (record is FeedingRecord) return {
-      'id': record.id, 'time': record.time.toIso8601String(), 'type': record.type.index,
+      'id': record.id, 'time': _localDt(record.time), 'type': record.type.index,
       'breast_minutes': record.breastMinutes, 'bottle_ml': record.bottleMl,
       'note': record.note, 'breast_side': record.breastSide?.index,
     };
     if (record is DiaperRecord) return {
-      'id': record.id, 'time': record.time.toIso8601String(), 'type': record.type.index,
+      'id': record.id, 'time': _localDt(record.time), 'type': record.type.index,
       'poop_color': record.poopColor, 'note': record.note,
     };
     if (record is SleepRecord) return {
-      'id': record.id, 'start_time': record.startTime.toIso8601String(),
-      'end_time': record.endTime?.toIso8601String(), 'quality': record.quality?.index,
+      'id': record.id, 'start_time': _localDt(record.startTime),
+      'end_time': record.endTime != null ? _localDt(record.endTime!) : null, 'quality': record.quality?.index,
       'note': record.note,
     };
     if (record is GrowthRecord) return {
@@ -98,16 +98,16 @@ class DataService extends ChangeNotifier {
     };
     if (record is SimpleRecord) return {
       'id': record.id, 'category': record.category,
-      'time': record.time.toIso8601String(), 'note': record.note,
+      'time': _localDt(record.time), 'note': record.note,
     };
     if (record is FoodRecord) return {
       'id': record.id, 'name': record.name, 'portion': record.portion,
-      'feeling': record.feeling, 'time': record.time.toIso8601String(),
+      'feeling': record.feeling, 'time': _localDt(record.time),
       'note': record.note,
     };
     if (record is TemperatureRecord) return {
       'id': record.id, 'temperature': record.temperature,
-      'time': record.time.toIso8601String(), 'note': record.note,
+      'time': _localDt(record.time), 'note': record.note,
     };
     return {};
   }
@@ -115,17 +115,17 @@ class DataService extends ChangeNotifier {
   dynamic _mapToRecord(String table, Map r) {
     switch (table) {
       case 'feeding_records': return FeedingRecord(
-        id: r['id'], time: DateTime.parse(r['time']), type: FeedingType.values[r['type']],
+        id: r['id'], time: _parseDt(r['time'].toString()), type: FeedingType.values[r['type']],
         breastMinutes: r['breast_minutes'], bottleMl: r['bottle_ml'],
         note: r['note'], breastSide: r['breast_side'] != null ? BreastSide.values[r['breast_side']] : null,
       );
       case 'diaper_records': return DiaperRecord(
-        id: r['id'], time: DateTime.parse(r['time']), type: DiaperType.values[r['type']],
+        id: r['id'], time: _parseDt(r['time'].toString()), type: DiaperType.values[r['type']],
         poopColor: r['poop_color'], note: r['note'],
       );
       case 'sleep_records': return SleepRecord(
-        id: r['id'], startTime: DateTime.parse(r['start_time']),
-        endTime: r['end_time'] != null ? DateTime.parse(r['end_time']) : null,
+        id: r['id'], startTime: _parseDt(r['start_time'].toString()),
+        endTime: r['end_time'] != null ? _parseDt(r['end_time'].toString()) : null,
         quality: r['quality'] != null ? SleepQuality.values[r['quality']] : null,
         note: r['note'],
       );
@@ -151,15 +151,15 @@ class DataService extends ChangeNotifier {
       );
       case 'simple_records': return SimpleRecord(
         id: r['id'], category: r['category'],
-        time: DateTime.parse(r['time']), note: r['note'] ?? '',
+        time: _parseDt(r['time'].toString()), note: r['note'] ?? '',
       );
       case 'food_records': return FoodRecord(
         id: r['id'], name: r['name'], portion: r['portion'],
-        feeling: r['feeling'], time: DateTime.parse(r['time']), note: r['note'],
+        feeling: r['feeling'], time: _parseDt(r['time'].toString()), note: r['note'],
       );
       case 'temperature_records': return TemperatureRecord(
         id: r['id'], temperature: (r['temperature'] as num).toDouble(),
-        time: DateTime.parse(r['time']), note: r['note'],
+        time: _parseDt(r['time'].toString()), note: r['note'],
       );
       default: return null;
     }
@@ -194,6 +194,19 @@ class DataService extends ChangeNotifier {
     }
   }
 
+  /// 把DateTime转成不带时区的字符串（存服务器用本地时间，避免时区转换）
+  String _localDt(DateTime dt) => '${dt.year}-${dt.month.toString().padLeft(2,'0')}-${dt.day.toString().padLeft(2,'0')} '
+      '${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}:${dt.second.toString().padLeft(2,'0')}';
+
+  /// 从服务器返回的字符串解析DateTime（去除时区后缀，当作本地时间处理）
+  DateTime _parseDt(String s) {
+    try {
+      return DateTime.parse(s.replaceAll(RegExp(r'[\.\d]*[Z\+-].*$'), ''));
+    } catch (_) {
+      return DateTime.parse(s.replaceAll('T', ' ').split('.').first.replaceAll('Z', ''));
+    }
+  }
+
   String _tableDbName(dynamic record) {
     switch (_tableName(record)) {
       case 'feeding': return 'feeding_records';
@@ -211,13 +224,23 @@ class DataService extends ChangeNotifier {
   }
 
   // ---- 手动重新加载（下拉刷新用） ----
-  Future<void> reloadFromServer() async {
-    if (!AuthService.isLoggedIn) return;
+  Future<int> reloadFromServer() async {
+    if (!AuthService.isLoggedIn) return 0;
     try {
       final data = await ApiService.syncRecords();
       _parseServerData(data);
-    } catch (_) {}
-    notifyListeners();
+      notifyListeners();
+      final today = DateTime.now();
+      final todayCount = _feedingRecords.where((r) =>
+        r.time.year == today.year && r.time.month == today.month && r.time.day == today.day
+      ).length;
+      print('reloadFromServer: ${_feedingRecords.length} total, $todayCount today');
+      return _feedingRecords.length;
+    } catch (e) {
+      print('reloadFromServer error: $e');
+      notifyListeners();
+      return -1;
+    }
   }
 
   // ---- 初始化 ----
