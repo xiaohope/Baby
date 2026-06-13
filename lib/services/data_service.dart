@@ -9,6 +9,8 @@ import '../models/moment_record.dart';
 import '../models/simple_record.dart';
 import '../models/food_record.dart';
 import '../models/temperature_record.dart';
+import 'auth_service.dart';
+import 'sync_service.dart';
 import '../adapters/feeding_record_adapter.dart';
 import '../adapters/diaper_record_adapter.dart';
 import '../adapters/sleep_record_adapter.dart';
@@ -117,6 +119,8 @@ class DataService extends ChangeNotifier {
     final tempBox = HiveHelper.tempBox;
     _tempRecords = tempBox.values.map((box) => box.toModel()).toList()
       ..sort((a, b) => b.time.compareTo(a.time));
+
+    _initialized = true;
   }
 
   // ---- 宝宝信息 ----
@@ -137,6 +141,22 @@ class DataService extends ChangeNotifier {
     final settingsBox = HiveHelper.settingsBox;
     await settingsBox.put('theme_mode', mode.index);
     notifyListeners();
+  }
+
+  // ---- 自动同步 ----
+  Future<void> _autoSync() async {
+    if (!AuthService.isLoggedIn) return;
+    try {
+      await SyncService.uploadAll(this);
+    } catch (_) {}
+  }
+
+  bool _initialized = false;
+
+  @override
+  void notifyListeners() {
+    super.notifyListeners();
+    if (_initialized) _autoSync();
   }
 
   // ---- 喂奶 ----
