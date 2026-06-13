@@ -6,6 +6,7 @@ import 'services/data_service.dart';
 import 'services/hive_helper.dart';
 import 'services/auth_service.dart';
 import 'services/api_service.dart';
+import 'services/sync_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 
@@ -18,6 +19,10 @@ void main() async {
   }
   final ds = DataService();
   await ds.init();
+  // 登录后自动从云端下载数据
+  if (AuthService.isLoggedIn) {
+    SyncService.downloadAll(ds);
+  }
   runApp(
     MultiProvider(
       providers: [

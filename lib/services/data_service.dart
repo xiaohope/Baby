@@ -143,6 +143,12 @@ class DataService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 从 Hive 重新加载所有数据（云端同步后调用）
+  Future<void> reload() async {
+    _loadAllData();
+    notifyListeners();
+  }
+
   // ---- 自动同步 ----
   Future<void> _autoSync() async {
     if (!AuthService.isLoggedIn) return;

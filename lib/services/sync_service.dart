@@ -11,6 +11,17 @@ import '../models/moment_record.dart';
 import '../models/simple_record.dart';
 import '../models/food_record.dart';
 import '../models/temperature_record.dart';
+import 'hive_helper.dart';
+import '../adapters/feeding_record_adapter.dart';
+import '../adapters/diaper_record_adapter.dart';
+import '../adapters/sleep_record_adapter.dart';
+import '../adapters/growth_record_adapter.dart';
+import '../adapters/milestone_record_adapter.dart';
+import '../adapters/moment_record_adapter.dart';
+import '../adapters/simple_record_adapter.dart';
+import '../adapters/food_record_adapter.dart';
+import '../adapters/temperature_record_adapter.dart';
+import '../adapters/supplement_record_adapter.dart';
 
 class SyncService {
   /// 上传所有本地记录到服务器
@@ -127,5 +138,142 @@ class SyncService {
     if (records.isEmpty) return {'uploaded': 0, 'errors': 0};
 
     return await ApiService.uploadRecords(records);
+  }
+
+  /// 从云端下载所有数据到本地
+  static Future<int> downloadAll(DataService ds) async {
+    if (!AuthService.isLoggedIn) return 0;
+    try {
+      final data = await ApiService.syncRecords();
+      int count = 0;
+
+      // 喂奶
+      if (data['feeding_records'] != null) {
+        for (final r in data['feeding_records'] as List) {
+          final box = FeedingRecordBox.fromModel(FeedingRecord(
+            id: r['id'], time: DateTime.parse(r['time']),
+            type: FeedingType.values[r['type']],
+            breastMinutes: r['breast_minutes'], bottleMl: r['bottle_ml'],
+            note: r['note'], breastSide: r['breast_side'] != null ? BreastSide.values[r['breast_side']] : null,
+          ));
+          await HiveHelper.feedingBox.put(r['id'], box);
+          count++;
+        }
+      }
+      // 尿布
+      if (data['diaper_records'] != null) {
+        for (final r in data['diaper_records'] as List) {
+          final box = DiaperRecordBox.fromModel(DiaperRecord(
+            id: r['id'], time: DateTime.parse(r['time']),
+            type: DiaperType.values[r['type']],
+            poopColor: r['poop_color'], note: r['note'],
+          ));
+          await HiveHelper.diaperBox.put(r['id'], box);
+          count++;
+        }
+      }
+      // 睡眠
+      if (data['sleep_records'] != null) {
+        for (final r in data['sleep_records'] as List) {
+          final box = SleepRecordBox.fromModel(SleepRecord(
+            id: r['id'], startTime: DateTime.parse(r['start_time']),
+            endTime: r['end_time'] != null ? DateTime.parse(r['end_time']) : null,
+            quality: r['quality'] != null ? SleepQuality.values[r['quality']] : null,
+            note: r['note'],
+          ));
+          await HiveHelper.sleepBox.put(r['id'], box);
+          count++;
+        }
+      }
+      // 成长
+      if (data['growth_records'] != null) {
+        for (final r in data['growth_records'] as List) {
+          final box = GrowthRecordBox.fromModel(GrowthRecord(
+            id: r['id'], date: DateTime.parse(r['date']),
+            weightKg: (r['weight_kg'] as num?)?.toDouble(),
+            heightCm: (r['height_cm'] as num?)?.toDouble(),
+            headCircumferenceCm: (r['head_circumference_cm'] as num?)?.toDouble(),
+            note: r['note'],
+          ));
+          await HiveHelper.growthBox.put(r['id'], box);
+          count++;
+        }
+      }
+      // 里程碑
+      if (data['milestone_records'] != null) {
+        for (final r in data['milestone_records'] as List) {
+          final box = MilestoneRecordBox.fromModel(MilestoneRecord(
+            id: r['id'], date: DateTime.parse(r['date']),
+            title: r['title'], note: r['note'], category: r['category'] ?? 'milestone',
+          ));
+          await HiveHelper.milestoneBox.put(r['id'], box);
+          count++;
+        }
+      }
+      // 动态
+      if (data['moment_records'] != null) {
+        for (final r in data['moment_records'] as List) {
+          final box = MomentRecordBox.fromModel(MomentRecord(
+            id: r['id'], date: DateTime.parse(r['date']),
+            text: r['text_content'] ?? '',
+            imagePaths: r['images'] != null ? List<String>.from(r['images']) : [],
+          ));
+          await HiveHelper.momentsBox.put(r['id'], box);
+          count++;
+        }
+      }
+      // 简单记录
+      if (data['simple_records'] != null) {
+        for (final r in data['simple_records'] as List) {
+          final box = SimpleRecordBox.fromModel(SimpleRecord(
+            id: r['id'], category: r['category'],
+            time: DateTime.parse(r['time']), note: r['note'] ?? '',
+          ));
+          await HiveHelper.simpleBox.put(r['id'], box);
+          count++;
+        }
+      }
+      // 辅食
+      if (data['food_records'] != null) {
+        for (final r in data['food_records'] as List) {
+          final box = FoodRecordBox.fromModel(FoodRecord(
+            id: r['id'], name: r['name'],
+            portion: r['portion'], feeling: r['feeling'],
+            time: DateTime.parse(r['time']), note: r['note'],
+          ));
+          await HiveHelper.foodBox.put(r['id'], box);
+          count++;
+        }
+      }
+      // 体温
+      if (data['temperature_records'] != null) {
+        for (final r in data['temperature_records'] as List) {
+          final box = TemperatureRecordBox.fromModel(TemperatureRecord(
+            id: r['id'], temperature: (r['temperature'] as num).toDouble(),
+            time: DateTime.parse(r['time']), note: r['note'],
+          ));
+          await HiveHelper.tempBox.put(r['id'], box);
+          count++;
+        }
+      }
+
+      // 补充
+      if (data['supplement_records'] != null) {
+        for (final r in data['supplement_records'] as List) {
+          final box = SupplementRecordBox.fromModel(SupplementRecord(
+            id: r['id'], date: DateTime.parse(r['date']),
+            items: r['items'] != null ? List<String>.from(r['items']) : [],
+          ));
+          await HiveHelper.supplementBox.put(r['id'], box);
+          count++;
+        }
+      }
+
+      // 重新加载数据
+      await ds.reload();
+      return count;
+    } catch (_) {
+      return 0;
+    }
   }
 }
