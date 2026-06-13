@@ -82,8 +82,6 @@ router.post('/upload', auth, async (req, res) => {
 // 获取家庭所有记录（全量同步）
 router.get('/sync', auth, async (req, res) => {
   try {
-    const since = req.query.since || '2000-01-01';
-
     const tables = [
       'feeding_records', 'diaper_records', 'sleep_records',
       'growth_records', 'milestone_records', 'supplement_records',
@@ -95,11 +93,10 @@ router.get('/sync', auth, async (req, res) => {
     for (const table of tables) {
       try {
         const [rows] = await pool.query(
-          `SELECT * FROM ${table} WHERE family_id = ? AND created_at >= ?`,
-          [req.familyId, since]);
+          `SELECT * FROM ${table} WHERE family_id = ?`,
+          [req.familyId]);
         result[table] = rows;
       } catch (e) {
-        // 表不存在时跳过
         console.log('同步跳过表', table, e.message);
         result[table] = [];
       }

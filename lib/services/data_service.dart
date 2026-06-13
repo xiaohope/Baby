@@ -170,8 +170,9 @@ class DataService extends ChangeNotifier {
     final table = _tableName(record);
     if (table.isEmpty) return true;
     try {
-      await ApiService.uploadRecords([{'table': table, 'data': _recordToMap(record)}]);
-      return true;
+      final res = await ApiService.uploadRecords([{'table': table, 'data': _recordToMap(record)}]);
+      final errors = res['errors'] ?? 0;
+      return errors == 0;
     } catch (e) {
       return false;
     }
