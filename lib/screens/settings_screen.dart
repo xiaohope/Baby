@@ -85,6 +85,77 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            // ====== 用户卡片 ======
+            if (AuthService.isLoggedIn)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      // 头像
+                      Container(
+                        width: 56, height: 56,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(colors: [Color(0xFF6C63FF), Color(0xFFFF8A80)]),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Center(
+                          child: Text(
+                            (AuthService.phone ?? '?')[0].toUpperCase(),
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AuthService.nickname ?? '未设置昵称',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(AuthService.role ?? '', style: const TextStyle(fontSize: 12, color: Color(0xFF6C63FF))),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(AuthService._phone ?? '', style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+                            ]),
+                          ],
+                        ),
+                      ),
+                      // 邀请码
+                      Column(
+                        children: [
+                          Text('邀请码', style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
+                          const SizedBox(height: 2),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                            ),
+                            child: Text(
+                              AuthService.inviteCode ?? '',
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 2, color: Color(0xFFB8860B)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            const SizedBox(height: 12),
+
             // ====== 主题设置 ======
             Card(
               child: Padding(

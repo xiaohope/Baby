@@ -19,6 +19,9 @@ class AuthService {
   static String? get token => _token;
   static String? get familyId => _familyId;
   static String? get inviteCode => _inviteCode;
+  static String? get phone => _phone;
+  static String? get role => _role;
+  static String? get nickname => _nickname;
 
   static Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
