@@ -4,6 +4,7 @@ import '../services/data_service.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../services/sync_service.dart';
+import 'about_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -288,8 +289,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ListTile(
                     leading: const Icon(Icons.favorite_outline, color: Color(0xFF6C63FF)),
                     title: const Text('关于'),
-                    subtitle: const Text('记录宝宝成长的每一个瞬间 — 喂奶、换尿布、睡眠、辅食、体温……'),
-                    onTap: () => _showAbout(context),
+                    subtitle: const Text('功能介绍和使用说明'),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())),
                   ),
                 ],
               ),
@@ -412,16 +413,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showAbout(BuildContext context) {
-    showAboutDialog(
-      context: context,
-      applicationName: 'Baby',
-      applicationVersion: '4.0.0',
-      children: const [
-        Text('记录宝宝成长的每一个瞬间 📝'),
-        SizedBox(height: 8),
-        Text('功能: 喂奶 | 尿布 | 睡眠 | 成长 | 辅食 | 体温 | 洗澡 | 用药 | 动态 | 更多……', style: TextStyle(fontSize: 12)),
-      ],
-    );
-  }
 }
