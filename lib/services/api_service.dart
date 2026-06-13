@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // 改成你的服务器地址
-  static String baseUrl = 'http://8.138.224.195:3000/api';
+  static String baseUrl = 'http://8.138.224.195/api';
 
   static String? _token;
 
