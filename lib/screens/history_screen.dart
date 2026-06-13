@@ -10,6 +10,7 @@ import 'supplement_screen.dart';
 import 'food_screen.dart';
 import 'temperature_screen.dart';
 import 'simple_record_screen.dart';
+import 'moment_detail_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -168,7 +169,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       case 7: return _buildList(ds, ds.milestoneRecords.where((r) => dateMatch(r.date) && r.category == 'hospital').toList(),
         (r) => _card(Icons.local_hospital, const Color(0xFFE74C3C), '🏥 ${r.title}', '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', () => ds.deleteMilestone(r.id), '这条就医记录', () => Navigator.push(context, MaterialPageRoute(builder: (_) => MilestoneScreen(initialCategory: 'hospital', initialRecord: r)))));
       case 8: return _buildList(ds, ds.momentRecords.where((r) => dateMatch(r.date)).toList(),
-        (r) => _card(Icons.photo_library, const Color(0xFFFF6B6B), r.text.isNotEmpty ? r.text : '[图片]', '${timeStr(r.date)}${r.imagePaths.isNotEmpty ? '  📸${r.imagePaths.length}张' : ''}', () => ds.deleteMoment(r.id), '这条动态'));
+        (r) => _card(Icons.photo_library, const Color(0xFFFF6B6B), r.text.isNotEmpty ? r.text : '[图片]', '${timeStr(r.date)}${r.imagePaths.isNotEmpty ? '  📸${r.imagePaths.length}张' : ''}', () => ds.deleteMoment(r.id), '这条动态', () => Navigator.push(context, MaterialPageRoute(builder: (_) => MomentDetailScreen(text: r.text, imagePaths: r.imagePaths, timeStr: timeStr(r.date))))));
       case 9: return _buildSimpleList(ds, 'pee', '尿尿', Icons.water_drop, const Color(0xFF4A90D9), '💦');
       case 10: return _buildSimpleList(ds, 'poop', '粑粑', Icons.report, const Color(0xFF8B5E3C), '💩');
       case 11: return _buildSimpleList(ds, 'medication', '用药', Icons.medication, const Color(0xFFE74C3C), '💊');
