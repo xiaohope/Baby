@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/feeding_record.dart';
 import '../models/diaper_record.dart';
 import '../models/supplement_record.dart';
@@ -10,20 +12,12 @@ import '../models/simple_record.dart';
 import '../models/food_record.dart';
 import '../models/temperature_record.dart';
 import 'auth_service.dart';
-import 'sync_service.dart';
-import '../adapters/feeding_record_adapter.dart';
-import '../adapters/diaper_record_adapter.dart';
-import '../adapters/sleep_record_adapter.dart';
-import '../adapters/growth_record_adapter.dart';
-import '../adapters/milestone_record_adapter.dart';
-import '../adapters/supplement_record_adapter.dart';
-import '../adapters/moment_record_adapter.dart';
-import '../adapters/simple_record_adapter.dart';
-import '../adapters/food_record_adapter.dart';
-import '../adapters/temperature_record_adapter.dart';
-import 'hive_helper.dart';
+import 'api_service.dart';
 
 class DataService extends ChangeNotifier {
+  bool _isLoading = true;
+  String? _loadError;
+
   List<FeedingRecord> _feedingRecords = [];
   List<DiaperRecord> _diaperRecords = [];
   List<SupplementRecord> _supplementRecords = [];
@@ -37,6 +31,9 @@ class DataService extends ChangeNotifier {
   String _babyName = '宝宝';
   DateTime? _babyBirthday;
   ThemeMode _themeMode = ThemeMode.system;
+
+  bool get isLoading => _isLoading;
+  String? get loadError => _loadError;
 
   List<FeedingRecord> get feedingRecords => _feedingRecords;
   List<DiaperRecord> get diaperRecords => _diaperRecords;
@@ -52,167 +49,266 @@ class DataService extends ChangeNotifier {
   DateTime? get babyBirthday => _babyBirthday;
   ThemeMode get themeMode => _themeMode;
 
-  Future<void> init() async {
-    // 从 Hive 加载数据
-    _loadAllData();
-    
-    // 加载宝宝信息
-    final settingsBox = HiveHelper.settingsBox;
-    _babyName = settingsBox.get('baby_name', defaultValue: '宝宝');
-    final birthdayStr = settingsBox.get('baby_birthday');
-    if (birthdayStr != null) {
-      _babyBirthday = DateTime.parse(birthdayStr);
+  // ---- 工具方法 ----
+  String _tableName(dynamic record) {
+    if (record is FeedingRecord) return 'feeding';
+    if (record is DiaperRecord) return 'diaper';
+    if (record is SleepRecord) return 'sleep';
+    if (record is GrowthRecord) return 'growth';
+    if (record is MilestoneRecord) return 'milestone';
+    if (record is SupplementRecord) return 'supplement';
+    if (record is MomentRecord) return 'moment';
+    if (record is SimpleRecord) return 'simple';
+    if (record is FoodRecord) return 'food';
+    if (record is TemperatureRecord) return 'temperature';
+    return '';
+  }
+
+  Map<String, dynamic> _recordToMap(dynamic record) {
+    if (record is FeedingRecord) return {
+      'id': record.id, 'time': record.time.toIso8601String(), 'type': record.type.index,
+      'breast_minutes': record.breastMinutes, 'bottle_ml': record.bottleMl,
+      'note': record.note, 'breast_side': record.breastSide?.index,
+    };
+    if (record is DiaperRecord) return {
+      'id': record.id, 'time': record.time.toIso8601String(), 'type': record.type.index,
+      'poop_color': record.poopColor, 'note': record.note,
+    };
+    if (record is SleepRecord) return {
+      'id': record.id, 'start_time': record.startTime.toIso8601String(),
+      'end_time': record.endTime?.toIso8601String(), 'quality': record.quality?.index,
+      'note': record.note,
+    };
+    if (record is GrowthRecord) return {
+      'id': record.id, 'date': record.date.toIso8601String().substring(0, 10),
+      'weight_kg': record.weightKg, 'height_cm': record.heightCm,
+      'head_circumference_cm': record.headCircumferenceCm, 'note': record.note,
+    };
+    if (record is MilestoneRecord) return {
+      'id': record.id, 'date': record.date.toIso8601String().substring(0, 10),
+      'title': record.title, 'note': record.note, 'category': record.category,
+    };
+    if (record is SupplementRecord) return {
+      'id': record.id, 'date': record.date.toIso8601String().substring(0, 10),
+      'items': record.items,
+    };
+    if (record is MomentRecord) return {
+      'id': record.id, 'date': record.date.toIso8601String(),
+      'text_content': record.text, 'images': record.imagePaths,
+    };
+    if (record is SimpleRecord) return {
+      'id': record.id, 'category': record.category,
+      'time': record.time.toIso8601String(), 'note': record.note,
+    };
+    if (record is FoodRecord) return {
+      'id': record.id, 'name': record.name, 'portion': record.portion,
+      'feeling': record.feeling, 'time': record.time.toIso8601String(),
+      'note': record.note,
+    };
+    if (record is TemperatureRecord) return {
+      'id': record.id, 'temperature': record.temperature,
+      'time': record.time.toIso8601String(), 'note': record.note,
+    };
+    return {};
+  }
+
+  dynamic _mapToRecord(String table, Map r) {
+    switch (table) {
+      case 'feeding_records': return FeedingRecord(
+        id: r['id'], time: DateTime.parse(r['time']), type: FeedingType.values[r['type']],
+        breastMinutes: r['breast_minutes'], bottleMl: r['bottle_ml'],
+        note: r['note'], breastSide: r['breast_side'] != null ? BreastSide.values[r['breast_side']] : null,
+      );
+      case 'diaper_records': return DiaperRecord(
+        id: r['id'], time: DateTime.parse(r['time']), type: DiaperType.values[r['type']],
+        poopColor: r['poop_color'], note: r['note'],
+      );
+      case 'sleep_records': return SleepRecord(
+        id: r['id'], startTime: DateTime.parse(r['start_time']),
+        endTime: r['end_time'] != null ? DateTime.parse(r['end_time']) : null,
+        quality: r['quality'] != null ? SleepQuality.values[r['quality']] : null,
+        note: r['note'],
+      );
+      case 'growth_records': return GrowthRecord(
+        id: r['id'], date: DateTime.parse(r['date']),
+        weightKg: (r['weight_kg'] as num?)?.toDouble(),
+        heightCm: (r['height_cm'] as num?)?.toDouble(),
+        headCircumferenceCm: (r['head_circumference_cm'] as num?)?.toDouble(),
+        note: r['note'],
+      );
+      case 'milestone_records': return MilestoneRecord(
+        id: r['id'], date: DateTime.parse(r['date']),
+        title: r['title'], note: r['note'], category: r['category'] ?? 'milestone',
+      );
+      case 'supplement_records': return SupplementRecord(
+        id: r['id'], date: DateTime.parse(r['date']),
+        items: r['items'] != null ? List<String>.from(r['items']) : [],
+      );
+      case 'moment_records': return MomentRecord(
+        id: r['id'], date: DateTime.parse(r['date']),
+        text: r['text_content'] ?? '',
+        imagePaths: r['images'] != null ? List<String>.from(r['images']) : [],
+      );
+      case 'simple_records': return SimpleRecord(
+        id: r['id'], category: r['category'],
+        time: DateTime.parse(r['time']), note: r['note'] ?? '',
+      );
+      case 'food_records': return FoodRecord(
+        id: r['id'], name: r['name'], portion: r['portion'],
+        feeling: r['feeling'], time: DateTime.parse(r['time']), note: r['note'],
+      );
+      case 'temperature_records': return TemperatureRecord(
+        id: r['id'], temperature: (r['temperature'] as num).toDouble(),
+        time: DateTime.parse(r['time']), note: r['note'],
+      );
+      default: return null;
     }
-    final themeIndex = settingsBox.get('theme_mode', defaultValue: 0);
-    _themeMode = ThemeMode.values[themeIndex];
-    
+  }
+
+  Future<void> _saveToServer(dynamic record) async {
+    if (!AuthService.isLoggedIn) return;
+    final table = _tableName(record);
+    if (table.isEmpty) return;
+    try {
+      await ApiService.uploadRecords([{'table': table, 'data': _recordToMap(record)}]);
+    } catch (_) {}
+  }
+
+  Future<void> _deleteFromServer(String tableName, String id) async {
+    if (!AuthService.isLoggedIn) return;
+    try {
+      await ApiService.deleteRecord(tableName, id);
+    } catch (_) {}
+  }
+
+  String _tableDbName(dynamic record) {
+    switch (_tableName(record)) {
+      case 'feeding': return 'feeding_records';
+      case 'diaper': return 'diaper_records';
+      case 'sleep': return 'sleep_records';
+      case 'growth': return 'growth_records';
+      case 'milestone': return 'milestone_records';
+      case 'supplement': return 'supplement_records';
+      case 'moment': return 'moment_records';
+      case 'simple': return 'simple_records';
+      case 'food': return 'food_records';
+      case 'temperature': return 'temperature_records';
+      default: return '';
+    }
+  }
+
+  // ---- 手动重新加载（下拉刷新用） ----
+  Future<void> reloadFromServer() async {
+    if (!AuthService.isLoggedIn) return;
+    try {
+      final data = await ApiService.syncRecords();
+      _parseServerData(data);
+    } catch (_) {}
     notifyListeners();
   }
 
-  void _loadAllData() {
-    // 加载喂奶记录
-    final feedingBox = HiveHelper.feedingBox;
-    _feedingRecords = feedingBox.values.map((box) => box.toModel()).toList()
-      ..sort((a, b) => b.time.compareTo(a.time));
+  // ---- 初始化 ----
+  Future<void> init() async {
+    _isLoading = true;
+    notifyListeners();
 
-    // 加载尿布记录
-    final diaperBox = HiveHelper.diaperBox;
-    _diaperRecords = diaperBox.values.map((box) => box.toModel()).toList()
-      ..sort((a, b) => b.time.compareTo(a.time));
+    // 从 SharedPreferences 加载设置
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _babyName = prefs.getString('baby_name') ?? '宝宝';
+      final birthdayStr = prefs.getString('baby_birthday');
+      if (birthdayStr != null) _babyBirthday = DateTime.tryParse(birthdayStr);
+      final themeIndex = prefs.getInt('theme_mode') ?? 0;
+      _themeMode = ThemeMode.values[themeIndex];
+    } catch (_) {}
 
-    // 加载睡眠记录
-    final sleepBox = HiveHelper.sleepBox;
-    _sleepRecords = sleepBox.values.map((box) => box.toModel()).toList()
-      ..sort((a, b) => b.startTime.compareTo(a.startTime));
+    // 从服务器拉取所有数据
+    if (AuthService.isLoggedIn) {
+      try {
+        final data = await ApiService.syncRecords();
+        _parseServerData(data);
+        _loadError = null;
+      } catch (e) {
+        _loadError = '加载失败: 网络错误';
+      }
+    }
 
-    // 加载成长记录
-    final growthBox = HiveHelper.growthBox;
-    _growthRecords = growthBox.values.map((box) => box.toModel()).toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+    _isLoading = false;
+    notifyListeners();
+  }
 
-    // 加载里程碑记录
-    final milestoneBox = HiveHelper.milestoneBox;
-    _milestoneRecords = milestoneBox.values.map((box) => box.toModel()).toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+  void _parseServerData(Map data) {
+    final tables = {
+      'feeding_records': (List list) => _feedingRecords = list.cast<FeedingRecord>()..sort((a,b) => b.time.compareTo(a.time)),
+      'diaper_records': (List list) => _diaperRecords = list.cast<DiaperRecord>()..sort((a,b) => b.time.compareTo(a.time)),
+      'sleep_records': (List list) => _sleepRecords = list.cast<SleepRecord>()..sort((a,b) => b.startTime.compareTo(a.startTime)),
+      'growth_records': (List list) => _growthRecords = list.cast<GrowthRecord>()..sort((a,b) => b.date.compareTo(a.date)),
+      'milestone_records': (List list) => _milestoneRecords = list.cast<MilestoneRecord>()..sort((a,b) => b.date.compareTo(a.date)),
+      'supplement_records': (List list) => _supplementRecords = list.cast<SupplementRecord>()..sort((a,b) => b.date.compareTo(a.date)),
+      'moment_records': (List list) => _momentRecords = list.cast<MomentRecord>()..sort((a,b) => b.date.compareTo(a.date)),
+      'simple_records': (List list) => _simpleRecords = list.cast<SimpleRecord>()..sort((a,b) => b.time.compareTo(a.time)),
+      'food_records': (List list) => _foodRecords = list.cast<FoodRecord>()..sort((a,b) => b.time.compareTo(a.time)),
+      'temperature_records': (List list) => _tempRecords = list.cast<TemperatureRecord>()..sort((a,b) => b.time.compareTo(a.time)),
+    };
 
-    // 加载营养补充记录
-    final supplementBox = HiveHelper.supplementBox;
-    _supplementRecords = supplementBox.values.map((box) => box.toModel()).toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
-
-    // 加载动态记录
-    final momentsBox = HiveHelper.momentsBox;
-    _momentRecords = momentsBox.values.map((box) => box.toModel()).toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
-
-    // 加载通用记录
-    final simpleBox = HiveHelper.simpleBox;
-    _simpleRecords = simpleBox.values.map((box) => box.toModel()).toList()
-      ..sort((a, b) => b.time.compareTo(a.time));
-
-    // 加载辅食记录
-    final foodBox = HiveHelper.foodBox;
-    _foodRecords = foodBox.values.map((box) => box.toModel()).toList()
-      ..sort((a, b) => b.time.compareTo(a.time));
-
-    // 加载体温记录
-    final tempBox = HiveHelper.tempBox;
-    _tempRecords = tempBox.values.map((box) => box.toModel()).toList()
-      ..sort((a, b) => b.time.compareTo(a.time));
-
-    _initialized = true;
+    for (final entry in tables.entries) {
+      final rawList = data[entry.key] as List? ?? [];
+      final parsed = rawList.map((r) => _mapToRecord(entry.key, r)).whereType<dynamic>().toList();
+      entry.value(parsed);
+    }
   }
 
   // ---- 宝宝信息 ----
   Future<void> setBabyInfo(String name, DateTime birthday) async {
     _babyName = name;
     _babyBirthday = birthday;
-    
-    final settingsBox = HiveHelper.settingsBox;
-    await settingsBox.put('baby_name', name);
-    await settingsBox.put('baby_birthday', birthday.toIso8601String());
-    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('baby_name', name);
+    await prefs.setString('baby_birthday', birthday.toIso8601String());
     notifyListeners();
   }
 
   // ---- 主题切换 ----
   Future<void> setThemeMode(ThemeMode mode) async {
     _themeMode = mode;
-    final settingsBox = HiveHelper.settingsBox;
-    await settingsBox.put('theme_mode', mode.index);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('theme_mode', mode.index);
     notifyListeners();
-  }
-
-  /// 从 Hive 重新加载所有数据（云端同步后调用）
-  Future<void> reload() async {
-    _loadAllData();
-    // 重新加载宝宝信息
-    final settingsBox = HiveHelper.settingsBox;
-    _babyName = settingsBox.get('baby_name', defaultValue: '宝宝');
-    final birthdayStr = settingsBox.get('baby_birthday');
-    if (birthdayStr != null) {
-      _babyBirthday = DateTime.parse(birthdayStr);
-    }
-    notifyListeners();
-  }
-
-  // ---- 自动同步 ----
-  Future<void> _autoSync() async {
-    if (!AuthService.isLoggedIn) return;
-    try {
-      await SyncService.uploadAll(this);
-    } catch (_) {}
-  }
-
-  bool _initialized = false;
-
-  @override
-  void notifyListeners() {
-    super.notifyListeners();
-    if (_initialized) _autoSync();
   }
 
   // ---- 喂奶 ----
   Future<void> addFeeding(FeedingRecord record) async {
-    final box = FeedingRecordBox.fromModel(record);
-    await HiveHelper.feedingBox.put(record.id, box);
     _feedingRecords.insert(0, record);
     notifyListeners();
+    _saveToServer(record);
   }
 
   Future<void> deleteFeeding(String id) async {
-    await HiveHelper.feedingBox.delete(id);
     _feedingRecords.removeWhere((r) => r.id == id);
     notifyListeners();
+    _deleteFromServer('feeding_records', id);
   }
 
-  List<FeedingRecord> todayFeedings() {
-    final now = DateTime.now();
-    return _feedingRecords.where((r) =>
-      r.time.year == now.year && r.time.month == now.month && r.time.day == now.day
-    ).toList();
-  }
+  List<FeedingRecord> todayFeedings() => _feedingRecords.where((r) =>
+    r.time.year == DateTime.now().year && r.time.month == DateTime.now().month && r.time.day == DateTime.now().day
+  ).toList();
 
   // ---- 尿布 ----
   Future<void> addDiaper(DiaperRecord record) async {
-    final box = DiaperRecordBox.fromModel(record);
-    await HiveHelper.diaperBox.put(record.id, box);
     _diaperRecords.insert(0, record);
     notifyListeners();
+    _saveToServer(record);
   }
 
   Future<void> deleteDiaper(String id) async {
-    await HiveHelper.diaperBox.delete(id);
     _diaperRecords.removeWhere((r) => r.id == id);
     notifyListeners();
+    _deleteFromServer('diaper_records', id);
   }
 
-  List<DiaperRecord> todayDiapers() {
-    final now = DateTime.now();
-    return _diaperRecords.where((r) =>
-      r.time.year == now.year && r.time.month == now.month && r.time.day == now.day
-    ).toList();
-  }
+  List<DiaperRecord> todayDiapers() => _diaperRecords.where((r) =>
+    r.time.year == DateTime.now().year && r.time.month == DateTime.now().month && r.time.day == DateTime.now().day
+  ).toList();
 
   // ---- 营养补充 ----
   Future<void> setSupplement(SupplementRecord record) async {
@@ -220,158 +316,132 @@ class DataService extends ChangeNotifier {
     final existingIdx = _supplementRecords.indexWhere(
       (r) => r.date.toIso8601String().substring(0, 10) == todayKey
     );
-    
     if (existingIdx >= 0) {
-      final oldId = _supplementRecords[existingIdx].id;
       _supplementRecords[existingIdx] = record;
-      final box = SupplementRecordBox.fromModel(record);
-      await HiveHelper.supplementBox.put(oldId, box);
     } else {
       _supplementRecords.insert(0, record);
-      final box = SupplementRecordBox.fromModel(record);
-      await HiveHelper.supplementBox.put(record.id, box);
     }
     notifyListeners();
+    _saveToServer(record);
   }
 
   Future<void> deleteSupplement(String id) async {
-    await HiveHelper.supplementBox.delete(id);
     _supplementRecords.removeWhere((r) => r.id == id);
     notifyListeners();
+    _deleteFromServer('supplement_records', id);
   }
 
   SupplementRecord? todaySupplement() {
     final today = DateTime.now().toIso8601String().substring(0, 10);
     try {
-      return _supplementRecords.firstWhere(
-        (r) => r.date.toIso8601String().substring(0, 10) == today
-      );
-    } catch (e) {
-      return null;
-    }
+      return _supplementRecords.firstWhere((r) => r.date.toIso8601String().substring(0, 10) == today);
+    } catch (_) { return null; }
   }
 
   List<SupplementRecord> allSupplementRecords() => List.unmodifiable(_supplementRecords);
 
   // ---- 睡眠 ----
   Future<void> addSleep(SleepRecord record) async {
-    final box = SleepRecordBox.fromModel(record);
-    await HiveHelper.sleepBox.put(record.id, box);
     _sleepRecords.insert(0, record);
     notifyListeners();
+    _saveToServer(record);
   }
 
   Future<void> updateSleep(SleepRecord record) async {
-    final box = SleepRecordBox.fromModel(record);
-    await HiveHelper.sleepBox.put(record.id, box);
-    
     final idx = _sleepRecords.indexWhere((r) => r.id == record.id);
-    if (idx >= 0) {
-      _sleepRecords[idx] = record;
-      notifyListeners();
-    }
+    if (idx >= 0) _sleepRecords[idx] = record;
+    notifyListeners();
+    _saveToServer(record);
   }
 
   Future<void> deleteSleep(String id) async {
-    await HiveHelper.sleepBox.delete(id);
     _sleepRecords.removeWhere((r) => r.id == id);
     notifyListeners();
+    _deleteFromServer('sleep_records', id);
   }
 
   SleepRecord? get ongoingSleep {
-    try {
-      return _sleepRecords.firstWhere((r) => r.isOngoing);
-    } catch (e) {
-      return null;
-    }
+    try { return _sleepRecords.firstWhere((r) => r.isOngoing); } catch (_) { return null; }
   }
 
   // ---- 生长发育 ----
   Future<void> addGrowth(GrowthRecord record) async {
-    final box = GrowthRecordBox.fromModel(record);
-    await HiveHelper.growthBox.put(record.id, box);
     _growthRecords.insert(0, record);
     notifyListeners();
+    _saveToServer(record);
   }
 
   Future<void> deleteGrowth(String id) async {
-    await HiveHelper.growthBox.delete(id);
     _growthRecords.removeWhere((r) => r.id == id);
     notifyListeners();
+    _deleteFromServer('growth_records', id);
   }
 
   // ---- 里程碑 ----
   Future<void> addMilestone(MilestoneRecord record) async {
-    final box = MilestoneRecordBox.fromModel(record);
-    await HiveHelper.milestoneBox.put(record.id, box);
     _milestoneRecords.insert(0, record);
     notifyListeners();
+    _saveToServer(record);
   }
 
   Future<void> deleteMilestone(String id) async {
-    await HiveHelper.milestoneBox.delete(id);
     _milestoneRecords.removeWhere((r) => r.id == id);
     notifyListeners();
+    _deleteFromServer('milestone_records', id);
   }
 
   // ---- 动态 ----
   Future<void> addMoment(MomentRecord record) async {
-    final box = MomentRecordBox.fromModel(record);
-    await HiveHelper.momentsBox.put(record.id, box);
     _momentRecords.insert(0, record);
     notifyListeners();
+    _saveToServer(record);
   }
 
   Future<void> deleteMoment(String id) async {
-    await HiveHelper.momentsBox.delete(id);
     _momentRecords.removeWhere((r) => r.id == id);
     notifyListeners();
+    _deleteFromServer('moment_records', id);
   }
 
-  // ---- 通用记录(尿急/粑粑/用药) ----
+  // ---- 通用记录 ----
   Future<void> addSimpleRecord(SimpleRecord record) async {
-    final box = SimpleRecordBox.fromModel(record);
-    await HiveHelper.simpleBox.put(record.id, box);
     _simpleRecords.insert(0, record);
     notifyListeners();
+    _saveToServer(record);
   }
 
   Future<void> deleteSimpleRecord(String id) async {
-    await HiveHelper.simpleBox.delete(id);
     _simpleRecords.removeWhere((r) => r.id == id);
     notifyListeners();
+    _deleteFromServer('simple_records', id);
   }
 
-  List<SimpleRecord> simpleRecordsByCategory(String category) {
-    return _simpleRecords.where((r) => r.category == category).toList();
-  }
+  List<SimpleRecord> simpleRecordsByCategory(String category) => _simpleRecords.where((r) => r.category == category).toList();
 
   // ---- 辅食 ----
   Future<void> addFood(FoodRecord record) async {
-    final box = FoodRecordBox.fromModel(record);
-    await HiveHelper.foodBox.put(record.id, box);
     _foodRecords.insert(0, record);
     notifyListeners();
+    _saveToServer(record);
   }
 
   Future<void> deleteFood(String id) async {
-    await HiveHelper.foodBox.delete(id);
     _foodRecords.removeWhere((r) => r.id == id);
     notifyListeners();
+    _deleteFromServer('food_records', id);
   }
 
   // ---- 体温 ----
   Future<void> addTemperature(TemperatureRecord record) async {
-    final box = TemperatureRecordBox.fromModel(record);
-    await HiveHelper.tempBox.put(record.id, box);
     _tempRecords.insert(0, record);
     notifyListeners();
+    _saveToServer(record);
   }
 
   Future<void> deleteTemperature(String id) async {
-    await HiveHelper.tempBox.delete(id);
     _tempRecords.removeWhere((r) => r.id == id);
     notifyListeners();
+    _deleteFromServer('temperature_records', id);
   }
 
   // ---- 今日统计 ----

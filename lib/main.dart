@@ -3,26 +3,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'services/data_service.dart';
-import 'services/hive_helper.dart';
 import 'services/auth_service.dart';
 import 'services/api_service.dart';
-import 'services/sync_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await HiveHelper.init();
   await AuthService.init();
   if (AuthService.token != null) {
     ApiService.setToken(AuthService.token!);
   }
   final ds = DataService();
   await ds.init();
-  // 登录后自动从云端下载数据
-  if (AuthService.isLoggedIn) {
-    SyncService.downloadAll(ds);
-  }
   runApp(
     MultiProvider(
       providers: [

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../services/data_service.dart';
-import '../services/sync_service.dart';
+
 
 class StatsScreen extends StatelessWidget {
   const StatsScreen({super.key});
@@ -50,9 +50,8 @@ class StatsScreen extends StatelessWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          final ds = context.read<DataService>();
-          final c = await SyncService.downloadAll(ds);
-          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(c > 0 ? '已同步 $c 条数据' : '已是最新'), duration: Duration(seconds: 1)));
+          await context.read<DataService>().reloadFromServer();
+          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已刷新'), duration: Duration(seconds: 1)));
         },
         child: ListView(
         padding: const EdgeInsets.all(16),

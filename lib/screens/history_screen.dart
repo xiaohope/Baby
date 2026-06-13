@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/data_service.dart';
-import '../services/sync_service.dart';
 import 'feeding_screen.dart';
 import 'diaper_screen.dart';
 import 'sleep_screen.dart';
@@ -82,9 +81,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
         child: RefreshIndicator(
           onRefresh: () async {
-            final ds = context.read<DataService>();
-            final c = await SyncService.downloadAll(ds);
-            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(c > 0 ? '已同步 $c 条数据' : '已是最新'), duration: Duration(seconds: 1)));
+            await context.read<DataService>().reloadFromServer();
+            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已刷新'), duration: Duration(seconds: 1)));
           },
           child: Column(
           children: [

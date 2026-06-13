@@ -382,10 +382,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     } else {
-      final count = await SyncService.downloadAll(ds);
+      await ds.reloadFromServer();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(count > 0 ? '已下载 $count 条新数据' : '服务器无新数据或同步失败')),
+          const SnackBar(content: Text('已从服务器加载最新数据')),
         );
       }
     }
