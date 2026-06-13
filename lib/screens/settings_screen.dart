@@ -325,12 +325,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // ====== 数据同步 ======
             Card(
-              child: ListTile(
-                leading: const Icon(Icons.cloud_upload, color: Color(0xFF6C63FF)),
-                title: const Text('同步到云端'),
-                subtitle: const Text('将本地数据备份到服务器'),
-                onTap: () => _syncData(),
-                trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.cloud_upload, color: Color(0xFF6C63FF)),
+                    title: const Text('上传到云端'),
+                    subtitle: const Text('将本地数据备份到服务器'),
+                    onTap: () => _syncData('upload'),
+                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.cloud_download, color: Color(0xFF6C63FF)),
+                    title: const Text('从云端下载'),
+                    subtitle: const Text('拉取家庭其他成员的数据'),
+                    onTap: () => _syncData('download'),
+                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 12),
@@ -351,7 +363,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _syncData() async {
+  Future<void> _syncData(String action) async {
     final ds = context.read<DataService>();
     if (!AuthService.isLoggedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -360,13 +372,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('正在同步...')),
+      const SnackBar(content: Text('正在处理...')),
     );
-    final result = await SyncService.uploadAll(ds);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('同步完成：上传 ${result['uploaded']} 条')),
-      );
+    if (action == 'upload') {
+      final result = await SyncService.uploadAll(ds);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['error'] != null ? '上传失败: ${result['error']}' : '已上传 ${result['uploaded']} 条')),
+        );
+      }
+    } else {
+      final count = await SyncService.downloadAll(ds);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(count > 0 ? '已下载 $count 条新数据' : '服务器无新数据或同步失败')),
+        );
+      }
     }
   }
 
