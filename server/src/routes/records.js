@@ -93,10 +93,16 @@ router.get('/sync', auth, async (req, res) => {
     const result = {};
 
     for (const table of tables) {
-      const [rows] = await pool.query(
-        `SELECT * FROM ${table} WHERE family_id = ? AND created_at >= ?`,
-        [req.familyId, since]);
-      result[table] = rows;
+      try {
+        const [rows] = await pool.query(
+          `SELECT * FROM ${table} WHERE family_id = ? AND created_at >= ?`,
+          [req.familyId, since]);
+        result[table] = rows;
+      } catch (e) {
+        // 表不存在时跳过
+        console.log('同步跳过表', table, e.message);
+        result[table] = [];
+      }
     }
 
     res.json(result);
