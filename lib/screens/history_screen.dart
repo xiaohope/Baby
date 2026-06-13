@@ -143,6 +143,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 
