@@ -135,9 +135,19 @@ class SyncService {
       });
     }
 
-    if (records.isEmpty) return {'uploaded': 0, 'errors': 0};
+    if (records.isNotEmpty) {
+      await ApiService.uploadRecords(records);
+    }
 
-    return await ApiService.uploadRecords(records);
+    // 同步宝宝信息
+    try {
+      await ApiService.uploadSettings({
+        'babyName': ds.babyName,
+        'babyBirthday': ds.babyBirthday?.toIso8601String() ?? '',
+      });
+    } catch (_) {}
+
+    return {'uploaded': records.length, 'errors': 0};
   }
 
   /// 从云端下载所有数据到本地
@@ -268,6 +278,15 @@ class SyncService {
           count++;
         }
       }
+
+      // 同步宝宝信息
+      try {
+        final settings = await ApiService.downloadSettings();
+        if (settings['babyName'] != null) {
+          final settingsBox = HiveHelper.settingsBox;
+          await settingsBox.put('baby_name', settings['babyName']);
+        }
+      } catch (_) {}
 
       // 重新加载数据
       await ds.reload();

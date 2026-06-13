@@ -54,6 +54,25 @@ class ApiService {
     return jsonDecode(res.body);
   }
 
+  // 上传家庭设置
+  static Future<Map> uploadSettings(Map settings) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/family/settings'),
+      headers: _headers,
+      body: jsonEncode(settings),
+    ).timeout(const Duration(seconds: 15));
+    return jsonDecode(res.body);
+  }
+
+  // 下载家庭设置
+  static Future<Map> downloadSettings() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/family/settings'),
+      headers: _headers,
+    ).timeout(const Duration(seconds: 15));
+    return jsonDecode(res.body);
+  }
+
   // 重新生成邀请码
   static Future<Map> refreshInviteCode() async {
     final res = await http.post(Uri.parse('$baseUrl/family/invite-code'), headers: _headers);

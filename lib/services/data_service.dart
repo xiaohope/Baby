@@ -146,6 +146,13 @@ class DataService extends ChangeNotifier {
   /// 从 Hive 重新加载所有数据（云端同步后调用）
   Future<void> reload() async {
     _loadAllData();
+    // 重新加载宝宝信息
+    final settingsBox = HiveHelper.settingsBox;
+    _babyName = settingsBox.get('baby_name', defaultValue: '宝宝');
+    final birthdayStr = settingsBox.get('baby_birthday');
+    if (birthdayStr != null) {
+      _babyBirthday = DateTime.parse(birthdayStr);
+    }
     notifyListeners();
   }
 
