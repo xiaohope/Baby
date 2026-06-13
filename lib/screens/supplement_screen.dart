@@ -4,7 +4,8 @@ import '../models/supplement_record.dart';
 import '../services/data_service.dart';
 
 class SupplementScreen extends StatefulWidget {
-  const SupplementScreen({super.key});
+  final SupplementRecord? initialRecord;
+  const SupplementScreen({super.key, this.initialRecord});
 
   @override
   State<SupplementScreen> createState() => _SupplementScreenState();

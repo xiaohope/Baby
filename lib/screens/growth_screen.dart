@@ -4,7 +4,8 @@ import '../models/growth_record.dart';
 import '../services/data_service.dart';
 
 class GrowthScreen extends StatefulWidget {
-  const GrowthScreen({super.key});
+  final GrowthRecord? initialRecord;
+  const GrowthScreen({super.key, this.initialRecord});
 
   @override
   State<GrowthScreen> createState() => _GrowthScreenState();

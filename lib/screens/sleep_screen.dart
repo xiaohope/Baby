@@ -4,7 +4,8 @@ import '../models/sleep_record.dart';
 import '../services/data_service.dart';
 
 class SleepScreen extends StatefulWidget {
-  const SleepScreen({super.key});
+  final SleepRecord? initialRecord;
+  const SleepScreen({super.key, this.initialRecord});
 
   @override
   State<SleepScreen> createState() => _SleepScreenState();

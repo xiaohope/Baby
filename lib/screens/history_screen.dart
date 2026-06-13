@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+ï»¿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/data_service.dart';
 import 'feeding_screen.dart';
@@ -23,22 +23,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
   int _selectedIndex = 0;
 
   static const _tabs = [
-    _TabInfo('Î¹ÄÌ', Icons.local_drink, Color(0xFF6C63FF)),
-    _TabInfo('Äò²¼', Icons.baby_changing_station, Color(0xFFFF8A80)),
-    _TabInfo('Ë¯Ãß', Icons.bedtime, Color(0xFFD4A5FF)),
-    _TabInfo('³É³¤', Icons.straighten, Color(0xFFA8E6CF)),
-    _TabInfo('²¹³ä', Icons.medication, Color(0xFF81C9D6)),
-    _TabInfo('Àï³Ì±®', Icons.star, Color(0xFFFFB347)),
-    _TabInfo('ÒßÃç', Icons.vaccines, Color(0xFF27AE60)),
-    _TabInfo('¾ÍÒ½', Icons.local_hospital, Color(0xFFE74C3C)),
-    _TabInfo('¶¯Ì¬', Icons.photo_library, Color(0xFFFF6B6B)),
-    _TabInfo('ÄòÄò', Icons.water_drop, Color(0xFF4A90D9)),
-    _TabInfo('ôÎôÎ', Icons.report, Color(0xFF8B5E3C)),
-    _TabInfo('ÓÃÒ©', Icons.medication, Color(0xFFE74C3C)),
-    _TabInfo('ºÈË®', Icons.local_drink, Color(0xFF3498DB)),
-    _TabInfo('¸¨Ê³', Icons.restaurant, Color(0xFFFF8A80)),
-    _TabInfo('ÌåÎÂ', Icons.thermostat, Color(0xFFE74C3C)),
-    _TabInfo('Ï´Ôè', Icons.bathroom, Color(0xFF81C9D6)),
+    _TabInfo('Î¹ï¿½ï¿½', Icons.local_drink, Color(0xFF6C63FF)),
+    _TabInfo('ï¿½ï¿½', Icons.baby_changing_station, Color(0xFFFF8A80)),
+    _TabInfo('Ë¯ï¿½ï¿½', Icons.bedtime, Color(0xFFD4A5FF)),
+    _TabInfo('ï¿½É³ï¿½', Icons.straighten, Color(0xFFA8E6CF)),
+    _TabInfo('ï¿½ï¿½ï¿½ï¿½', Icons.medication, Color(0xFF81C9D6)),
+    _TabInfo('ï¿½ï¿½Ì±ï¿½', Icons.star, Color(0xFFFFB347)),
+    _TabInfo('ï¿½ï¿½ï¿½ï¿½', Icons.vaccines, Color(0xFF27AE60)),
+    _TabInfo('ï¿½ï¿½Ò½', Icons.local_hospital, Color(0xFFE74C3C)),
+    _TabInfo('ï¿½ï¿½Ì¬', Icons.photo_library, Color(0xFFFF6B6B)),
+    _TabInfo('ï¿½ï¿½ï¿½ï¿½', Icons.water_drop, Color(0xFF4A90D9)),
+    _TabInfo('ï¿½ï¿½ï¿½ï¿½', Icons.report, Color(0xFF8B5E3C)),
+    _TabInfo('ï¿½ï¿½Ò©', Icons.medication, Color(0xFFE74C3C)),
+    _TabInfo('ï¿½ï¿½Ë®', Icons.local_drink, Color(0xFF3498DB)),
+    _TabInfo('ï¿½ï¿½Ê³', Icons.restaurant, Color(0xFFFF8A80)),
+    _TabInfo('ï¿½ï¿½ï¿½ï¿½', Icons.thermostat, Color(0xFFE74C3C)),
+    _TabInfo('Ï´ï¿½ï¿½', Icons.bathroom, Color(0xFF81C9D6)),
   ];
 
   String _fmtDate(DateTime d) => '${d.year}/${d.month.toString().padLeft(2,'0')}/${d.day.toString().padLeft(2,'0')}';
@@ -56,7 +56,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ÀúÊ·¼ÇÂ¼'),
+        title: const Text('ï¿½ï¿½Ê·ï¿½ï¿½Â¼'),
         centerTitle: true,
         actions: [
           IconButton(
@@ -84,7 +84,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           children: [
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(_selectedDate != null ? _fmtDate(_selectedDate!) : 'È«²¿¼ÇÂ¼', style: const TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(_selectedDate != null ? _fmtDate(_selectedDate!) : 'È«ï¿½ï¿½ï¿½ï¿½Â¼', style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
             Expanded(
               child: Row(
@@ -142,55 +142,55 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final idx = _tabs.indexOf(tab);
     switch (idx) {
       case 0: return _buildList(ds, ds.feedingRecords.where((r) => _dateMatch(r.time)).toList(),
-        (r) => _card(icon: Icons.local_drink, color: Colors.blue, title: r.typeName, subtitle: '${_fmtTime(r.time)}  ${r.displayAmount}', onDelete: () => ds.deleteFeeding(r.id), deleteLabel: 'ÕâÌõÎ¹ÄÌ¼ÇÂ¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FeedingScreen(initialRecord: r)))));
+        (r) => _card(icon: Icons.local_drink, color: Colors.blue, title: r.typeName, subtitle: '${_fmtTime(r.time)}  ${r.displayAmount}', onDelete: () => ds.deleteFeeding(r.id), deleteLabel: 'ï¿½ï¿½ï¿½ï¿½Î¹ï¿½Ì¼ï¿½Â¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FeedingScreen(initialRecord: r)))));
       case 1: return _buildList(ds, ds.diaperRecords.where((r) => _dateMatch(r.time)).toList(),
-        (r) => _card(icon: Icons.baby_changing_station, color: Colors.orange, title: r.typeName, subtitle: '${_fmtTime(r.time)}${r.poopColor != null ? '  ${r.poopColor}' : ''}', onDelete: () => ds.deleteDiaper(r.id), deleteLabel: 'ÕâÌõÄò²¼¼ÇÂ¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DiaperScreen(initialRecord: r)))));
+        (r) => _card(icon: Icons.baby_changing_station, color: Colors.orange, title: r.typeName, subtitle: '${_fmtTime(r.time)}${r.poopColor != null ? '  ${r.poopColor}' : ''}', onDelete: () => ds.deleteDiaper(r.id), deleteLabel: 'ï¿½ï¿½ï¿½ï¿½ï¿½ò²¼¼ï¿½Â¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DiaperScreen(initialRecord: r)))));
       case 2: return _buildList(ds, ds.sleepRecords.where((r) => _dateMatch(r.startTime)).toList(),
-        (r) => _card(icon: Icons.bedtime, color: Colors.purple, title: r.isOngoing ? 'Ë¯ÃßÖÐ' : 'Ë¯Ãß', subtitle: '${_fmtTime(r.startTime)}${r.endTime != null ? ' - ${_fmtTime(r.endTime!)}' : ''}  ${r.durationStr}', onDelete: () => ds.deleteSleep(r.id), deleteLabel: 'ÕâÌõË¯Ãß¼ÇÂ¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SleepScreen(initialRecord: r)))));
+        (r) => _card(icon: Icons.bedtime, color: Colors.purple, title: r.isOngoing ? 'Ë¯ï¿½ï¿½ï¿½ï¿½' : 'Ë¯ï¿½ï¿½', subtitle: '${_fmtTime(r.startTime)}${r.endTime != null ? ' - ${_fmtTime(r.endTime!)}' : ''}  ${r.durationStr}', onDelete: () => ds.deleteSleep(r.id), deleteLabel: 'ï¿½ï¿½ï¿½ï¿½Ë¯ï¿½ß¼ï¿½Â¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SleepScreen(initialRecord: r)))));
       case 3: return _buildList(ds, ds.growthRecords.where((r) => _dateMatch(r.date)).toList(),
         (r) => _card(icon: Icons.straighten, color: Colors.teal, title: '${r.date.month}/${r.date.day}', subtitle: [
-          if (r.weightKg != null) 'ÌåÖØ: ${r.weightKg}kg',
-          if (r.heightCm != null) 'Éí³¤: ${r.heightCm}cm',
+          if (r.weightKg != null) 'ï¿½ï¿½ï¿½ï¿½: ${r.weightKg}kg',
+          if (r.heightCm != null) 'ï¿½ï¿½ï¿½: ${r.heightCm}cm',
           if (r.headCircumferenceCm != null) 'Í·Î§: ${r.headCircumferenceCm}cm',
-        ].join('  '), onDelete: () => ds.deleteGrowth(r.id), deleteLabel: 'ÕâÌõ³É³¤¼ÇÂ¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => GrowthScreen(initialRecord: r)))));
+        ].join('  '), onDelete: () => ds.deleteGrowth(r.id), deleteLabel: 'ï¿½ï¿½ï¿½ï¿½ï¿½É³ï¿½ï¿½ï¿½Â¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => GrowthScreen(initialRecord: r)))));
       case 4: return _buildList(ds, ds.allSupplementRecords().where((r) => _dateMatch(r.date)).toList(),
-        (r) => _card(icon: Icons.medication, color: Colors.green, title: '${r.date.month}ÔÂ${r.date.day}ÈÕ', subtitle: r.items.join('¡¢'), onDelete: () => ds.deleteSupplement(r.id), deleteLabel: 'ÕâÌõ²¹³ä¼ÇÂ¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SupplementScreen(initialRecord: r)))));
+        (r) => _card(icon: Icons.medication, color: Colors.green, title: '${r.date.month}ï¿½ï¿½${r.date.day}ï¿½ï¿½', subtitle: r.items.join('ï¿½ï¿½'), onDelete: () => ds.deleteSupplement(r.id), deleteLabel: 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SupplementScreen(initialRecord: r)))));
       case 5: return _buildList(ds, ds.milestoneRecords.where((r) => _dateMatch(r.date) && r.category == 'milestone').toList(),
-        (r) => _card(icon: Icons.star, color: Colors.amber, title: '”9²9 ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: 'ÕâÌõÀï³Ì±®¼ÇÂ¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MilestoneScreen(initialCategory: 'milestone', initialRecord: r)))));
+        (r) => _card(icon: Icons.star, color: Colors.amber, title: 'ï¿½9ï¿½9 ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì±ï¿½ï¿½ï¿½Â¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MilestoneScreen(initialCategory: 'milestone', initialRecord: r)))));
       case 6: return _buildList(ds, ds.milestoneRecords.where((r) => _dateMatch(r.date) && r.category == 'vaccine').toList(),
-        (r) => _card(icon: Icons.vaccines, color: const Color(0xFF27AE60), title: '”9×1 ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: 'ÕâÌõÒßÃç¼ÇÂ¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MilestoneScreen(initialCategory: 'vaccine', initialRecord: r)))));
+        (r) => _card(icon: Icons.vaccines, color: const Color(0xFF27AE60), title: 'ï¿½9ï¿½1 ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MilestoneScreen(initialCategory: 'vaccine', initialRecord: r)))));
       case 7: return _buildList(ds, ds.milestoneRecords.where((r) => _dateMatch(r.date) && r.category == 'hospital').toList(),
-        (r) => _card(icon: Icons.local_hospital, color: const Color(0xFFE74C3C), title: '”9Æ7 ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: 'ÕâÌõ¾ÍÒ½¼ÇÂ¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MilestoneScreen(initialCategory: 'hospital', initialRecord: r)))));
+        (r) => _card(icon: Icons.local_hospital, color: const Color(0xFFE74C3C), title: 'ï¿½9ï¿½7 ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò½ï¿½ï¿½Â¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MilestoneScreen(initialCategory: 'hospital', initialRecord: r)))));
       case 8: return _buildList(ds, ds.momentRecords.where((r) => _dateMatch(r.date)).toList(),
-        (r) => _card(icon: Icons.photo_library, color: const Color(0xFFFF6B6B), title: r.text.isNotEmpty ? r.text : '[Í¼Æ¬]', subtitle: '${_fmtTime(r.date)}${r.imagePaths.isNotEmpty ? '  ”9â2${r.imagePaths.length}ÕÅ' : ''}', onDelete: () => ds.deleteMoment(r.id), deleteLabel: 'ÕâÌõ¶¯Ì¬'));
-      case 9: return _buildSimpleList(ds, 'pee', 'ÄòÄò', Icons.water_drop, const Color(0xFF4A90D9), '”9Ú0', 'pee');
-      case 10: return _buildSimpleList(ds, 'poop', 'ôÎôÎ', Icons.report, const Color(0xFF8B5E3C), '”9Ú3', 'poop');
-      case 11: return _buildSimpleList(ds, 'medication', 'ÓÃÒ©', Icons.medication, const Color(0xFFE74C3C), '”9×2', 'medication');
-      case 12: return _buildSimpleList(ds, 'water', 'ºÈË®', Icons.local_drink, const Color(0xFF3498DB), '•0Õ4', 'water');
+        (r) => _card(icon: Icons.photo_library, color: const Color(0xFFFF6B6B), title: r.text.isNotEmpty ? r.text : '[Í¼Æ¬]', subtitle: '${_fmtTime(r.date)}${r.imagePaths.isNotEmpty ? '  ï¿½9ï¿½2${r.imagePaths.length}ï¿½ï¿½' : ''}', onDelete: () => ds.deleteMoment(r.id), deleteLabel: 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¬'));
+      case 9: return _buildSimpleList(ds, 'pee', 'ï¿½ï¿½ï¿½ï¿½', Icons.water_drop, const Color(0xFF4A90D9), 'ï¿½9ï¿½0', 'pee');
+      case 10: return _buildSimpleList(ds, 'poop', 'ï¿½ï¿½ï¿½ï¿½', Icons.report, const Color(0xFF8B5E3C), 'ï¿½9ï¿½3', 'poop');
+      case 11: return _buildSimpleList(ds, 'medication', 'ï¿½ï¿½Ò©', Icons.medication, const Color(0xFFE74C3C), 'ï¿½9ï¿½2', 'medication');
+      case 12: return _buildSimpleList(ds, 'water', 'ï¿½ï¿½Ë®', Icons.local_drink, const Color(0xFF3498DB), 'ï¿½0ï¿½4', 'water');
       case 13: return _buildFoodList(ds);
       case 14: return _buildTempList(ds);
-      case 15: return _buildSimpleList(ds, 'bath', 'Ï´Ôè', Icons.bathroom, const Color(0xFF81C9D6), '•0‘9', 'bath');
+      case 15: return _buildSimpleList(ds, 'bath', 'Ï´ï¿½ï¿½', Icons.bathroom, const Color(0xFF81C9D6), 'ï¿½0ï¿½9', 'bath');
       default: return const SizedBox();
     }
   }
 
-  Widget _buildSimpleList(DataService ds, String category, String label, IconData icon, Color color, String emoji, String simpleCategory = '') {
+  Widget _buildSimpleList(DataService ds, String category, String label, IconData icon, Color color, String emoji, [String simpleCategory = '']) {
     final records = ds.simpleRecordsByCategory(category).where((r) => _dateMatch(r.time)).toList();
-    return _buildList(ds, records, (r) => _card(icon: icon, color: color, title: '$emoji $label', subtitle: '${_fmtTime(r.time)}${r.note.isNotEmpty ? '  ${r.note}' : ''}', onDelete: () => ds.deleteSimpleRecord(r.id), deleteLabel: 'ÕâÌõ${label}¼ÇÂ¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SimpleRecordScreen(
+    return _buildList(ds, records, (r) => _card(icon: icon, color: color, title: '$emoji $label', subtitle: '${_fmtTime(r.time)}${r.note.isNotEmpty ? '  ${r.note}' : ''}', onDelete: () => ds.deleteSimpleRecord(r.id), deleteLabel: 'ï¿½ï¿½ï¿½ï¿½${label}ï¿½ï¿½Â¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SimpleRecordScreen(
       category: category, title: label, icon: icon, color: color, emoji: emoji, initialRecord: r,
     )))));
   }
 
   Widget _buildFoodList(DataService ds) {
     final records = ds.foodRecords.where((r) => _dateMatch(r.time)).toList();
-    return _buildList(ds, records, (r) => _card(icon: Icons.restaurant, color: const Color(0xFFFF8A80), title: r.name, subtitle: '${_fmtTime(r.time)}${r.portion != null ? '  ${r.portion}' : ''}${r.feeling != null ? '  ${r.feeling}' : ''}${r.note != null ? '  ”9ß5${r.note}' : ''}', onDelete: () => ds.deleteFood(r.id), deleteLabel: 'ÕâÌõ¸¨Ê³¼ÇÂ¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FoodScreen(initialRecord: r)))));
+    return _buildList(ds, records, (r) => _card(icon: Icons.restaurant, color: const Color(0xFFFF8A80), title: r.name, subtitle: '${_fmtTime(r.time)}${r.portion != null ? '  ${r.portion}' : ''}${r.feeling != null ? '  ${r.feeling}' : ''}${r.note != null ? '  ï¿½9ï¿½5${r.note}' : ''}', onDelete: () => ds.deleteFood(r.id), deleteLabel: 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê³ï¿½ï¿½Â¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FoodScreen(initialRecord: r)))));
   }
 
   Widget _buildTempList(DataService ds) {
     final records = ds.tempRecords.where((r) => _dateMatch(r.time)).toList();
     return _buildList(ds, records, (r) {
       final isHot = r.temperature > 37.5;
-      return _card(icon: Icons.thermostat, color: isHot ? Colors.red : Colors.green, title: '${r.temperature.toStringAsFixed(1)}¡æ', subtitle: '${_fmtTime(r.time)}${r.note != null ? '  ”9ß5${r.note}' : ''}', onDelete: () => ds.deleteTemperature(r.id), deleteLabel: 'ÕâÌõÌåÎÂ¼ÇÂ¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TemperatureScreen(initialRecord: r))));
+      return _card(icon: Icons.thermostat, color: isHot ? Colors.red : Colors.green, title: '${r.temperature.toStringAsFixed(1)}ï¿½ï¿½', subtitle: '${_fmtTime(r.time)}${r.note != null ? '  ï¿½9ï¿½5${r.note}' : ''}', onDelete: () => ds.deleteTemperature(r.id), deleteLabel: 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½Â¼', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TemperatureScreen(initialRecord: r))));
     });
   }
 
@@ -201,7 +201,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         children: [
           Icon(_tabs[_selectedIndex].icon, size: 48, color: Colors.grey.shade300),
           const SizedBox(height: 8),
-          Text('µ±ÈÕÎÞ¼ÇÂ¼', style: TextStyle(color: Colors.grey.shade400)),
+          Text('ï¿½ï¿½ï¿½ï¿½ï¿½Þ¼ï¿½Â¼', style: TextStyle(color: Colors.grey.shade400)),
         ],
       ));
     }
@@ -218,7 +218,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _card({
     required IconData icon, required Color color, required String title,
     required String subtitle, required VoidCallback onDelete,
-    String deleteLabel = 'ÕâÌõ¼ÇÂ¼',
+    String deleteLabel = 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼',
     VoidCallback? onTap,
   }) {
     return Card(
@@ -239,11 +239,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
             context: context,
             builder: (ctx) => AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: const Text('È·ÈÏÉ¾³ý'),
-              content: Text('È·¶¨ÒªÉ¾³ý$deleteLabelÂð£¿'),
+              title: const Text('È·ï¿½ï¿½É¾ï¿½ï¿½'),
+              content: Text('È·ï¿½ï¿½ÒªÉ¾ï¿½ï¿½$deleteLabelï¿½ï¿½'),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('È¡Ïû')),
-                FilledButton(onPressed: () { Navigator.pop(ctx); onDelete(); }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('É¾³ý')),
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('È¡ï¿½ï¿½')),
+                FilledButton(onPressed: () { Navigator.pop(ctx); onDelete(); }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('É¾ï¿½ï¿½')),
               ],
             ),
           ),
@@ -261,3 +261,4 @@ class _TabInfo {
   final Color color;
   const _TabInfo(this.label, this.icon, this.color);
 }
+

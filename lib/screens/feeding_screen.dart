@@ -6,7 +6,8 @@ import '../models/feeding_record.dart';
 import '../services/data_service.dart';
 
 class FeedingScreen extends StatefulWidget {
-  const FeedingScreen({super.key});
+  final FeedingRecord? initialRecord;
+  const FeedingScreen({super.key, this.initialRecord});
 
   @override
   State<FeedingScreen> createState() => _FeedingScreenState();

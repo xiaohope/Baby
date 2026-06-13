@@ -4,7 +4,8 @@ import '../models/food_record.dart';
 import '../services/data_service.dart';
 
 class FoodScreen extends StatefulWidget {
-  const FoodScreen({super.key});
+  final FoodRecord? initialRecord;
+  const FoodScreen({super.key, this.initialRecord});
 
   @override
   State<FoodScreen> createState() => _FoodScreenState();

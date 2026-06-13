@@ -4,7 +4,8 @@ import '../models/temperature_record.dart';
 import '../services/data_service.dart';
 
 class TemperatureScreen extends StatefulWidget {
-  const TemperatureScreen({super.key});
+  final TemperatureRecord? initialRecord;
+  const TemperatureScreen({super.key, this.initialRecord});
 
   @override
   State<TemperatureScreen> createState() => _TemperatureScreenState();
