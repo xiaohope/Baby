@@ -7,6 +7,7 @@ class AuthService {
   static const _roleKey = 'user_role';
   static const _familyIdKey = 'family_id';
   static const _inviteCodeKey = 'invite_code';
+  static const _nicknameKey = 'user_nickname';
 
   static String? _token;
   static String? _userId;
@@ -14,6 +15,7 @@ class AuthService {
   static String? _role;
   static String? _familyId;
   static String? _inviteCode;
+  static String? _nickname;
 
   static bool get isLoggedIn => _token != null;
   static String? get token => _token;
@@ -30,6 +32,7 @@ class AuthService {
     _phone = prefs.getString(_phoneKey);
     _role = prefs.getString(_roleKey);
     _familyId = prefs.getString(_familyIdKey);
+    _nickname = prefs.getString(_nicknameKey);
     _inviteCode = prefs.getString(_inviteCodeKey);
   }
 
@@ -39,6 +42,7 @@ class AuthService {
     _phone = data['user']['phone'];
     _role = data['user']['role'];
     _familyId = data['family']['id'];
+    _nickname = data['user']['nickname'];
     _inviteCode = data['family']['inviteCode'];
 
     final prefs = await SharedPreferences.getInstance();
@@ -47,6 +51,7 @@ class AuthService {
     await prefs.setString(_phoneKey, _phone!);
     await prefs.setString(_roleKey, _role!);
     await prefs.setString(_familyIdKey, _familyId!);
+    await prefs.setString(_nicknameKey, _nickname ?? '');
     await prefs.setString(_inviteCodeKey, _inviteCode ?? '');
   }
 
@@ -56,6 +61,7 @@ class AuthService {
     _phone = null;
     _role = null;
     _familyId = null;
+    _nickname = null;
     _inviteCode = null;
 
     final prefs = await SharedPreferences.getInstance();
@@ -64,6 +70,7 @@ class AuthService {
     await prefs.remove(_phoneKey);
     await prefs.remove(_roleKey);
     await prefs.remove(_familyIdKey);
+    await prefs.remove(_nicknameKey);
     await prefs.remove(_inviteCodeKey);
   }
 }

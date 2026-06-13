@@ -33,7 +33,7 @@ class _SupplementScreenState extends State<SupplementScreen> {
 
   Future<void> _save() async {
     final ds = context.read<DataService>();
-    final checkedItems = _items.where((_, i) => _checked.contains(i)).toList();
+    final checkedItems = _items.asMap().entries.where((e) => _checked.contains(e.key)).map((e) => e.value).toList();
     await ds.setSupplement(SupplementRecord(
       date: DateTime.now(),
       items: checkedItems,

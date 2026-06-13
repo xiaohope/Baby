@@ -127,7 +127,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 child: Text(AuthService.role ?? '', style: const TextStyle(fontSize: 12, color: Color(0xFF6C63FF))),
                               ),
                               const SizedBox(width: 8),
-                              Text(AuthService._phone ?? '', style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+                              Text(AuthService.phone ?? '', style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
                             ]),
                           ],
                         ),
