@@ -55,7 +55,8 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (e) {
-      _showMsg('网络错误，请检查服务器连接');
+      _showMsg('连接失败: ${e.toString().length > 60 ? e.toString().substring(0, 60) : e.toString()}');
+      debugPrint('Login error: $e');
     }
     if (mounted) setState(() => _loading = false);
   }
