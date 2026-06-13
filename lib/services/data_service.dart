@@ -165,20 +165,32 @@ class DataService extends ChangeNotifier {
     }
   }
 
-  Future<void> _saveToServer(dynamic record) async {
-    if (!AuthService.isLoggedIn) return;
+  Future<bool> _saveToServer(dynamic record) async {
+    if (!AuthService.isLoggedIn) return true;
     final table = _tableName(record);
-    if (table.isEmpty) return;
+    if (table.isEmpty) return true;
     try {
       await ApiService.uploadRecords([{'table': table, 'data': _recordToMap(record)}]);
-    } catch (_) {}
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
-  Future<void> _deleteFromServer(String tableName, String id) async {
-    if (!AuthService.isLoggedIn) return;
+  Future<bool> _deleteFromServer(String tableName, String id) async {
+    if (!AuthService.isLoggedIn) return true;
     try {
       await ApiService.deleteRecord(tableName, id);
-    } catch (_) {}
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _showError(BuildContext? context, String msg) async {
+    if (context != null && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red, duration: const Duration(seconds: 2)));
+    }
   }
 
   String _tableDbName(dynamic record) {
@@ -278,15 +290,17 @@ class DataService extends ChangeNotifier {
 
   // ---- 喂奶 ----
   Future<void> addFeeding(FeedingRecord record) async {
-    _feedingRecords.insert(0, record);
-    notifyListeners();
-    _saveToServer(record);
+    if (await _saveToServer(record)) {
+      _feedingRecords.insert(0, record);
+      notifyListeners();
+    }
   }
 
   Future<void> deleteFeeding(String id) async {
-    _feedingRecords.removeWhere((r) => r.id == id);
-    notifyListeners();
-    _deleteFromServer('feeding_records', id);
+    if (await _deleteFromServer('feeding_records', id)) {
+      _feedingRecords.removeWhere((r) => r.id == id);
+      notifyListeners();
+    }
   }
 
   List<FeedingRecord> todayFeedings() => _feedingRecords.where((r) =>
@@ -295,15 +309,17 @@ class DataService extends ChangeNotifier {
 
   // ---- 尿布 ----
   Future<void> addDiaper(DiaperRecord record) async {
-    _diaperRecords.insert(0, record);
-    notifyListeners();
-    _saveToServer(record);
+    if (await _saveToServer(record)) {
+      _diaperRecords.insert(0, record);
+      notifyListeners();
+    }
   }
 
   Future<void> deleteDiaper(String id) async {
-    _diaperRecords.removeWhere((r) => r.id == id);
-    notifyListeners();
-    _deleteFromServer('diaper_records', id);
+    if (await _deleteFromServer('diaper_records', id)) {
+      _diaperRecords.removeWhere((r) => r.id == id);
+      notifyListeners();
+    }
   }
 
   List<DiaperRecord> todayDiapers() => _diaperRecords.where((r) =>
@@ -312,23 +328,25 @@ class DataService extends ChangeNotifier {
 
   // ---- 营养补充 ----
   Future<void> setSupplement(SupplementRecord record) async {
-    final todayKey = record.date.toIso8601String().substring(0, 10);
-    final existingIdx = _supplementRecords.indexWhere(
-      (r) => r.date.toIso8601String().substring(0, 10) == todayKey
-    );
-    if (existingIdx >= 0) {
-      _supplementRecords[existingIdx] = record;
-    } else {
-      _supplementRecords.insert(0, record);
+    if (await _saveToServer(record)) {
+      final todayKey = record.date.toIso8601String().substring(0, 10);
+      final existingIdx = _supplementRecords.indexWhere(
+        (r) => r.date.toIso8601String().substring(0, 10) == todayKey
+      );
+      if (existingIdx >= 0) {
+        _supplementRecords[existingIdx] = record;
+      } else {
+        _supplementRecords.insert(0, record);
+      }
+      notifyListeners();
     }
-    notifyListeners();
-    _saveToServer(record);
   }
 
   Future<void> deleteSupplement(String id) async {
-    _supplementRecords.removeWhere((r) => r.id == id);
-    notifyListeners();
-    _deleteFromServer('supplement_records', id);
+    if (await _deleteFromServer('supplement_records', id)) {
+      _supplementRecords.removeWhere((r) => r.id == id);
+      notifyListeners();
+    }
   }
 
   SupplementRecord? todaySupplement() {
@@ -342,22 +360,25 @@ class DataService extends ChangeNotifier {
 
   // ---- 睡眠 ----
   Future<void> addSleep(SleepRecord record) async {
-    _sleepRecords.insert(0, record);
-    notifyListeners();
-    _saveToServer(record);
+    if (await _saveToServer(record)) {
+      _sleepRecords.insert(0, record);
+      notifyListeners();
+    }
   }
 
   Future<void> updateSleep(SleepRecord record) async {
-    final idx = _sleepRecords.indexWhere((r) => r.id == record.id);
-    if (idx >= 0) _sleepRecords[idx] = record;
-    notifyListeners();
-    _saveToServer(record);
+    if (await _saveToServer(record)) {
+      final idx = _sleepRecords.indexWhere((r) => r.id == record.id);
+      if (idx >= 0) _sleepRecords[idx] = record;
+      notifyListeners();
+    }
   }
 
   Future<void> deleteSleep(String id) async {
-    _sleepRecords.removeWhere((r) => r.id == id);
-    notifyListeners();
-    _deleteFromServer('sleep_records', id);
+    if (await _deleteFromServer('sleep_records', id)) {
+      _sleepRecords.removeWhere((r) => r.id == id);
+      notifyListeners();
+    }
   }
 
   SleepRecord? get ongoingSleep {
@@ -366,82 +387,94 @@ class DataService extends ChangeNotifier {
 
   // ---- 生长发育 ----
   Future<void> addGrowth(GrowthRecord record) async {
-    _growthRecords.insert(0, record);
-    notifyListeners();
-    _saveToServer(record);
+    if (await _saveToServer(record)) {
+      _growthRecords.insert(0, record);
+      notifyListeners();
+    }
   }
 
   Future<void> deleteGrowth(String id) async {
-    _growthRecords.removeWhere((r) => r.id == id);
-    notifyListeners();
-    _deleteFromServer('growth_records', id);
+    if (await _deleteFromServer('growth_records', id)) {
+      _growthRecords.removeWhere((r) => r.id == id);
+      notifyListeners();
+    }
   }
 
   // ---- 里程碑 ----
   Future<void> addMilestone(MilestoneRecord record) async {
-    _milestoneRecords.insert(0, record);
-    notifyListeners();
-    _saveToServer(record);
+    if (await _saveToServer(record)) {
+      _milestoneRecords.insert(0, record);
+      notifyListeners();
+    }
   }
 
   Future<void> deleteMilestone(String id) async {
-    _milestoneRecords.removeWhere((r) => r.id == id);
-    notifyListeners();
-    _deleteFromServer('milestone_records', id);
+    if (await _deleteFromServer('milestone_records', id)) {
+      _milestoneRecords.removeWhere((r) => r.id == id);
+      notifyListeners();
+    }
   }
 
   // ---- 动态 ----
   Future<void> addMoment(MomentRecord record) async {
-    _momentRecords.insert(0, record);
-    notifyListeners();
-    _saveToServer(record);
+    if (await _saveToServer(record)) {
+      _momentRecords.insert(0, record);
+      notifyListeners();
+    }
   }
 
   Future<void> deleteMoment(String id) async {
-    _momentRecords.removeWhere((r) => r.id == id);
-    notifyListeners();
-    _deleteFromServer('moment_records', id);
+    if (await _deleteFromServer('moment_records', id)) {
+      _momentRecords.removeWhere((r) => r.id == id);
+      notifyListeners();
+    }
   }
 
   // ---- 通用记录 ----
   Future<void> addSimpleRecord(SimpleRecord record) async {
-    _simpleRecords.insert(0, record);
-    notifyListeners();
-    _saveToServer(record);
+    if (await _saveToServer(record)) {
+      _simpleRecords.insert(0, record);
+      notifyListeners();
+    }
   }
 
   Future<void> deleteSimpleRecord(String id) async {
-    _simpleRecords.removeWhere((r) => r.id == id);
-    notifyListeners();
-    _deleteFromServer('simple_records', id);
+    if (await _deleteFromServer('simple_records', id)) {
+      _simpleRecords.removeWhere((r) => r.id == id);
+      notifyListeners();
+    }
   }
 
   List<SimpleRecord> simpleRecordsByCategory(String category) => _simpleRecords.where((r) => r.category == category).toList();
 
   // ---- 辅食 ----
   Future<void> addFood(FoodRecord record) async {
-    _foodRecords.insert(0, record);
-    notifyListeners();
-    _saveToServer(record);
+    if (await _saveToServer(record)) {
+      _foodRecords.insert(0, record);
+      notifyListeners();
+    }
   }
 
   Future<void> deleteFood(String id) async {
-    _foodRecords.removeWhere((r) => r.id == id);
-    notifyListeners();
-    _deleteFromServer('food_records', id);
+    if (await _deleteFromServer('food_records', id)) {
+      _foodRecords.removeWhere((r) => r.id == id);
+      notifyListeners();
+    }
   }
 
   // ---- 体温 ----
   Future<void> addTemperature(TemperatureRecord record) async {
-    _tempRecords.insert(0, record);
-    notifyListeners();
-    _saveToServer(record);
+    if (await _saveToServer(record)) {
+      _tempRecords.insert(0, record);
+      notifyListeners();
+    }
   }
 
   Future<void> deleteTemperature(String id) async {
-    _tempRecords.removeWhere((r) => r.id == id);
-    notifyListeners();
-    _deleteFromServer('temperature_records', id);
+    if (await _deleteFromServer('temperature_records', id)) {
+      _tempRecords.removeWhere((r) => r.id == id);
+      notifyListeners();
+    }
   }
 
   // ---- 今日统计 ----
