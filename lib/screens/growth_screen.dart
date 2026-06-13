@@ -38,6 +38,13 @@ class _GrowthScreenState extends State<GrowthScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    final r = widget.initialRecord;
+    if (r != null) _startEdit(r);
+  }
+
+  @override
   void dispose() {
     _weightController.dispose();
     _heightController.dispose();

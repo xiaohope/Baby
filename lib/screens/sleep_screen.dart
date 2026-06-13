@@ -19,6 +19,14 @@ class _SleepScreenState extends State<SleepScreen> {
   @override
   void initState() {
     super.initState();
+    final r = widget.initialRecord;
+    if (r != null) {
+      _isOngoing = r.isOngoing;
+      _startTime = r.startTime;
+      _recordStartTime = r.startTime;
+      if (r.quality != null) _quality = r.quality!;
+      return;
+    }
     final ds = context.read<DataService>();
     final ongoing = ds.ongoingSleep;
     if (ongoing != null) {
@@ -247,13 +255,11 @@ class _SleepScreenState extends State<SleepScreen> {
             if (records.isEmpty)
               Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                color: Colors.white,
                 child: const Padding(padding: EdgeInsets.all(16), child: Text('暂无历史记录', style: TextStyle(color: Colors.grey))),
               )
             else
               ...records.map((r) => Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                color: Colors.white,
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Colors.purple.withValues(alpha: 0.1),

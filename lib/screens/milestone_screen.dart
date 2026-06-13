@@ -5,8 +5,9 @@ import '../services/data_service.dart';
 
 class MilestoneScreen extends StatefulWidget {
   final String initialCategory;
+  final MilestoneRecord? initialRecord;
 
-  const MilestoneScreen({super.key, this.initialCategory = 'milestone'});
+  const MilestoneScreen({super.key, this.initialCategory = 'milestone', this.initialRecord});
 
   @override
   State<MilestoneScreen> createState() => _MilestoneScreenState();
@@ -28,6 +29,13 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
   void initState() {
     super.initState();
     _category = widget.initialCategory;
+    final r = widget.initialRecord;
+    if (r != null) {
+      _titleController.text = r.title;
+      _selectedDate = r.date;
+      _noteController.text = r.note ?? '';
+      _category = r.category;
+    }
   }
 
   @override
@@ -108,7 +116,6 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
   Widget _buildForm() {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -238,7 +245,6 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
     }
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.white,
       child: ListTile(
         leading: CircleAvatar(backgroundColor: color.withOpacity(0.15), child: Icon(icon, color: color)),
         title: Text('$emoji ${r.title}', style: const TextStyle(fontWeight: FontWeight.bold)),

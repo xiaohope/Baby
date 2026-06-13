@@ -4,7 +4,8 @@ import '../models/diaper_record.dart';
 import '../services/data_service.dart';
 
 class DiaperScreen extends StatefulWidget {
-  const DiaperScreen({super.key});
+  final DiaperRecord? initialRecord;
+  const DiaperScreen({super.key, this.initialRecord});
 
   @override
   State<DiaperScreen> createState() => _DiaperScreenState();
@@ -40,6 +41,13 @@ class _DiaperScreenState extends State<DiaperScreen> {
   final List<String> _poopColors = [
     '黄色', '棕色', '绿色', '黑色', '灰色', '奶瓣', '水便'
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    final r = widget.initialRecord;
+    if (r != null) _startEdit(r);
+  }
 
   @override
   void dispose() {

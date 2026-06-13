@@ -232,6 +232,12 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: Icons.bathroom,
         gradient: const LinearGradient(colors: [Color(0xFF81C9D6), Color(0xFFA8E6CF)]),
       ),
+      _StatItem(
+        label: '疫苗',
+        value: '${stats['vaccineCount'] ?? 0}次',
+        icon: Icons.vaccines,
+        gradient: const LinearGradient(colors: [Color(0xFF27AE60), Color(0xFF6FCF97)]),
+      ),
     ];
 
     return Column(
@@ -590,7 +596,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).cardTheme.color,
+            color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2A2A2A) : Theme.of(context).cardTheme.color,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -647,7 +653,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).cardTheme.color,
+          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2A2A2A) : Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -742,10 +748,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           r.typeName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: Color(0xFF2D3436),
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF2D3436),
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -783,13 +789,19 @@ class _HomeScreenState extends State<HomeScreen> {
   String _calcAge(DateTime birthday) {
     final now = DateTime.now();
     int months = (now.year - birthday.year) * 12 + now.month - birthday.month;
-    if (now.day < birthday.day) months--;
+    int days = now.day - birthday.day;
+    if (days < 0) {
+      months--;
+      final prevMonth = DateTime(now.year, now.month - 1, birthday.day);
+      days = now.difference(prevMonth).inDays;
+    }
     if (months < 0) return '';
     final years = months ~/ 12;
     final m = months % 12;
-    if (years == 0) return '$m个月';
-    if (m == 0) return '$years岁';
-    return '$years岁${m}个月';
+    if (months == 0) return '$days天';
+    if (years == 0) return '${m}个月$days天';
+    if (m == 0) return '$years岁$days天';
+    return '$years岁${m}个月$days天';
   }
 
   String _formatSleep(int minutes) {

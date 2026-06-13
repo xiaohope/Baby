@@ -38,6 +38,7 @@ class StatsScreen extends StatelessWidget {
     final foodCount = stats['foodCount'] ?? 0;
     final tempCount = stats['tempCount'] ?? 0;
     final bathCount = stats['bathCount'] ?? 0;
+    final vaccineCount = stats['vaccineCount'] ?? 0;
     final totalSleepMinutes = stats['totalSleepMinutes'] ?? 0;
     final totalBreastMinutes = stats['totalBreastMinutes'] ?? 0;
 
@@ -71,6 +72,7 @@ class StatsScreen extends StatelessWidget {
                     _statCard('辅食', '$foodCount次', Icons.restaurant, const Color(0xFFFF8A80)),
                     _statCard('体温', '$tempCount次', Icons.thermostat, const Color(0xFFE74C3C)),
                     _statCard('洗澡', '$bathCount次', Icons.bathroom, const Color(0xFF81C9D6)),
+                    _statCard('疫苗', '$vaccineCount次', Icons.vaccines, const Color(0xFF27AE60)),
                   ]),
                   const SizedBox(height: 8),
                   Row(children: [
@@ -329,7 +331,7 @@ class StatsScreen extends StatelessWidget {
 
   Widget _buildWeekSummary(DataService ds, BuildContext context) {
     final now = DateTime.now();
-    int totalFeeding = 0, totalDiaper = 0, totalPee = 0, totalPoop = 0, totalMed = 0, totalWater = 0, totalFood = 0, totalTemp = 0, totalBath = 0, totalSleepH = 0;
+    int totalFeeding = 0, totalDiaper = 0, totalPee = 0, totalPoop = 0, totalMed = 0, totalWater = 0, totalFood = 0, totalTemp = 0, totalBath = 0, totalVaccine = 0, totalSleepH = 0;
     for (int i = 6; i >= 0; i--) {
       final d = now.subtract(Duration(days: i));
       totalFeeding += ds.feedingRecords.where((r) => _isSameDay(r.time, d)).length;
@@ -341,6 +343,7 @@ class StatsScreen extends StatelessWidget {
       totalFood += ds.foodRecords.where((r) => _isSameDay(r.time, d)).length;
       totalTemp += ds.tempRecords.where((r) => _isSameDay(r.time, d)).length;
       totalBath += ds.simpleRecordsByCategory('bath').where((r) => _isSameDay(r.time, d)).length;
+      totalVaccine += ds.milestoneRecords.where((r) => _isSameDay(r.date, d) && r.category == 'vaccine').length;
       for (final s in ds.sleepRecords.where((r) => _isSameDay(r.startTime, d))) {
         if (s.duration != null) totalSleepH += s.duration!.inHours;
       }
@@ -364,6 +367,7 @@ class StatsScreen extends StatelessWidget {
           _statCard('辅食', '${totalFood}次', Icons.restaurant, const Color(0xFFFF8A80)),
           _statCard('体温', '${totalTemp}次', Icons.thermostat, const Color(0xFFE74C3C)),
           _statCard('洗澡', '${totalBath}次', Icons.bathroom, const Color(0xFF81C9D6)),
+          _statCard('疫苗', '${totalVaccine}次', Icons.vaccines, const Color(0xFF27AE60)),
         ]),
       ]))),
     ]);

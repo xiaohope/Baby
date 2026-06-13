@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/data_service.dart';
+import 'feeding_screen.dart';
+import 'diaper_screen.dart';
+import 'sleep_screen.dart';
+import 'growth_screen.dart';
+import 'milestone_screen.dart';
+import 'supplement_screen.dart';
+import 'food_screen.dart';
+import 'temperature_screen.dart';
+import 'simple_record_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -133,53 +142,55 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final idx = _tabs.indexOf(tab);
     switch (idx) {
       case 0: return _buildList(ds, ds.feedingRecords.where((r) => _dateMatch(r.time)).toList(),
-        (r) => _card(icon: Icons.local_drink, color: Colors.blue, title: r.typeName, subtitle: '${_fmtTime(r.time)}  ${r.displayAmount}', onDelete: () => ds.deleteFeeding(r.id), deleteLabel: '这条喂奶记录'));
+        (r) => _card(icon: Icons.local_drink, color: Colors.blue, title: r.typeName, subtitle: '${_fmtTime(r.time)}  ${r.displayAmount}', onDelete: () => ds.deleteFeeding(r.id), deleteLabel: '这条喂奶记录', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FeedingScreen(initialRecord: r)))));
       case 1: return _buildList(ds, ds.diaperRecords.where((r) => _dateMatch(r.time)).toList(),
-        (r) => _card(icon: Icons.baby_changing_station, color: Colors.orange, title: r.typeName, subtitle: '${_fmtTime(r.time)}${r.poopColor != null ? '  ${r.poopColor}' : ''}', onDelete: () => ds.deleteDiaper(r.id), deleteLabel: '这条尿布记录'));
+        (r) => _card(icon: Icons.baby_changing_station, color: Colors.orange, title: r.typeName, subtitle: '${_fmtTime(r.time)}${r.poopColor != null ? '  ${r.poopColor}' : ''}', onDelete: () => ds.deleteDiaper(r.id), deleteLabel: '这条尿布记录', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DiaperScreen(initialRecord: r)))));
       case 2: return _buildList(ds, ds.sleepRecords.where((r) => _dateMatch(r.startTime)).toList(),
-        (r) => _card(icon: Icons.bedtime, color: Colors.purple, title: r.isOngoing ? '睡眠中' : '睡眠', subtitle: '${_fmtTime(r.startTime)}${r.endTime != null ? ' - ${_fmtTime(r.endTime!)}' : ''}  ${r.durationStr}', onDelete: () => ds.deleteSleep(r.id), deleteLabel: '这条睡眠记录'));
+        (r) => _card(icon: Icons.bedtime, color: Colors.purple, title: r.isOngoing ? '睡眠中' : '睡眠', subtitle: '${_fmtTime(r.startTime)}${r.endTime != null ? ' - ${_fmtTime(r.endTime!)}' : ''}  ${r.durationStr}', onDelete: () => ds.deleteSleep(r.id), deleteLabel: '这条睡眠记录', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SleepScreen(initialRecord: r)))));
       case 3: return _buildList(ds, ds.growthRecords.where((r) => _dateMatch(r.date)).toList(),
         (r) => _card(icon: Icons.straighten, color: Colors.teal, title: '${r.date.month}/${r.date.day}', subtitle: [
           if (r.weightKg != null) '体重: ${r.weightKg}kg',
           if (r.heightCm != null) '身长: ${r.heightCm}cm',
           if (r.headCircumferenceCm != null) '头围: ${r.headCircumferenceCm}cm',
-        ].join('  '), onDelete: () => ds.deleteGrowth(r.id), deleteLabel: '这条成长记录'));
+        ].join('  '), onDelete: () => ds.deleteGrowth(r.id), deleteLabel: '这条成长记录', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => GrowthScreen(initialRecord: r)))));
       case 4: return _buildList(ds, ds.allSupplementRecords().where((r) => _dateMatch(r.date)).toList(),
-        (r) => _card(icon: Icons.medication, color: Colors.green, title: '${r.date.month}月${r.date.day}日', subtitle: r.items.join('、'), onDelete: () => ds.deleteSupplement(r.id), deleteLabel: '这条补充记录'));
+        (r) => _card(icon: Icons.medication, color: Colors.green, title: '${r.date.month}月${r.date.day}日', subtitle: r.items.join('、'), onDelete: () => ds.deleteSupplement(r.id), deleteLabel: '这条补充记录', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SupplementScreen(initialRecord: r)))));
       case 5: return _buildList(ds, ds.milestoneRecords.where((r) => _dateMatch(r.date) && r.category == 'milestone').toList(),
-        (r) => _card(icon: Icons.star, color: Colors.amber, title: '🌟 ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: '这条里程碑记录'));
+        (r) => _card(icon: Icons.star, color: Colors.amber, title: '🌟 ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: '这条里程碑记录', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MilestoneScreen(initialCategory: 'milestone', initialRecord: r)))));
       case 6: return _buildList(ds, ds.milestoneRecords.where((r) => _dateMatch(r.date) && r.category == 'vaccine').toList(),
-        (r) => _card(icon: Icons.vaccines, color: const Color(0xFF27AE60), title: '💉 ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: '这条疫苗记录'));
+        (r) => _card(icon: Icons.vaccines, color: const Color(0xFF27AE60), title: '💉 ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: '这条疫苗记录', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MilestoneScreen(initialCategory: 'vaccine', initialRecord: r)))));
       case 7: return _buildList(ds, ds.milestoneRecords.where((r) => _dateMatch(r.date) && r.category == 'hospital').toList(),
-        (r) => _card(icon: Icons.local_hospital, color: const Color(0xFFE74C3C), title: '🏥 ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: '这条就医记录'));
+        (r) => _card(icon: Icons.local_hospital, color: const Color(0xFFE74C3C), title: '🏥 ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: '这条就医记录', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MilestoneScreen(initialCategory: 'hospital', initialRecord: r)))));
       case 8: return _buildList(ds, ds.momentRecords.where((r) => _dateMatch(r.date)).toList(),
         (r) => _card(icon: Icons.photo_library, color: const Color(0xFFFF6B6B), title: r.text.isNotEmpty ? r.text : '[图片]', subtitle: '${_fmtTime(r.date)}${r.imagePaths.isNotEmpty ? '  📸${r.imagePaths.length}张' : ''}', onDelete: () => ds.deleteMoment(r.id), deleteLabel: '这条动态'));
-      case 9: return _buildSimpleList(ds, 'pee', '尿尿', Icons.water_drop, const Color(0xFF4A90D9), '💦');
-      case 10: return _buildSimpleList(ds, 'poop', '粑粑', Icons.report, const Color(0xFF8B5E3C), '💩');
-      case 11: return _buildSimpleList(ds, 'medication', '用药', Icons.medication, const Color(0xFFE74C3C), '💊');
-      case 12: return _buildSimpleList(ds, 'water', '喝水', Icons.local_drink, const Color(0xFF3498DB), '🥤');
+      case 9: return _buildSimpleList(ds, 'pee', '尿尿', Icons.water_drop, const Color(0xFF4A90D9), '💦', 'pee');
+      case 10: return _buildSimpleList(ds, 'poop', '粑粑', Icons.report, const Color(0xFF8B5E3C), '💩', 'poop');
+      case 11: return _buildSimpleList(ds, 'medication', '用药', Icons.medication, const Color(0xFFE74C3C), '💊', 'medication');
+      case 12: return _buildSimpleList(ds, 'water', '喝水', Icons.local_drink, const Color(0xFF3498DB), '🥤', 'water');
       case 13: return _buildFoodList(ds);
       case 14: return _buildTempList(ds);
-      case 15: return _buildSimpleList(ds, 'bath', '洗澡', Icons.bathroom, const Color(0xFF81C9D6), '🛁');
+      case 15: return _buildSimpleList(ds, 'bath', '洗澡', Icons.bathroom, const Color(0xFF81C9D6), '🛁', 'bath');
       default: return const SizedBox();
     }
   }
 
-  Widget _buildSimpleList(DataService ds, String category, String label, IconData icon, Color color, String emoji) {
+  Widget _buildSimpleList(DataService ds, String category, String label, IconData icon, Color color, String emoji, String simpleCategory = '') {
     final records = ds.simpleRecordsByCategory(category).where((r) => _dateMatch(r.time)).toList();
-    return _buildList(ds, records, (r) => _card(icon: icon, color: color, title: '$emoji $label', subtitle: '${_fmtTime(r.time)}${r.note.isNotEmpty ? '  ${r.note}' : ''}', onDelete: () => ds.deleteSimpleRecord(r.id), deleteLabel: '这条${label}记录'));
+    return _buildList(ds, records, (r) => _card(icon: icon, color: color, title: '$emoji $label', subtitle: '${_fmtTime(r.time)}${r.note.isNotEmpty ? '  ${r.note}' : ''}', onDelete: () => ds.deleteSimpleRecord(r.id), deleteLabel: '这条${label}记录', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SimpleRecordScreen(
+      category: category, title: label, icon: icon, color: color, emoji: emoji, initialRecord: r,
+    )))));
   }
 
   Widget _buildFoodList(DataService ds) {
     final records = ds.foodRecords.where((r) => _dateMatch(r.time)).toList();
-    return _buildList(ds, records, (r) => _card(icon: Icons.restaurant, color: const Color(0xFFFF8A80), title: r.name, subtitle: '${_fmtTime(r.time)}${r.portion != null ? '  ${r.portion}' : ''}${r.feeling != null ? '  ${r.feeling}' : ''}${r.note != null ? '  📝${r.note}' : ''}', onDelete: () => ds.deleteFood(r.id), deleteLabel: '这条辅食记录'));
+    return _buildList(ds, records, (r) => _card(icon: Icons.restaurant, color: const Color(0xFFFF8A80), title: r.name, subtitle: '${_fmtTime(r.time)}${r.portion != null ? '  ${r.portion}' : ''}${r.feeling != null ? '  ${r.feeling}' : ''}${r.note != null ? '  📝${r.note}' : ''}', onDelete: () => ds.deleteFood(r.id), deleteLabel: '这条辅食记录', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FoodScreen(initialRecord: r)))));
   }
 
   Widget _buildTempList(DataService ds) {
     final records = ds.tempRecords.where((r) => _dateMatch(r.time)).toList();
     return _buildList(ds, records, (r) {
       final isHot = r.temperature > 37.5;
-      return _card(icon: Icons.thermostat, color: isHot ? Colors.red : Colors.green, title: '${r.temperature.toStringAsFixed(1)}℃', subtitle: '${_fmtTime(r.time)}${r.note != null ? '  📝${r.note}' : ''}', onDelete: () => ds.deleteTemperature(r.id), deleteLabel: '这条体温记录');
+      return _card(icon: Icons.thermostat, color: isHot ? Colors.red : Colors.green, title: '${r.temperature.toStringAsFixed(1)}℃', subtitle: '${_fmtTime(r.time)}${r.note != null ? '  📝${r.note}' : ''}', onDelete: () => ds.deleteTemperature(r.id), deleteLabel: '这条体温记录', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TemperatureScreen(initialRecord: r))));
     });
   }
 
@@ -208,10 +219,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
     required IconData icon, required Color color, required String title,
     required String subtitle, required VoidCallback onDelete,
     String deleteLabel = '这条记录',
+    VoidCallback? onTap,
   }) {
     return Card(
       margin: EdgeInsets.zero,
       child: ListTile(
+        onTap: onTap,
         dense: true,
         leading: CircleAvatar(
           radius: 18,

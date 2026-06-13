@@ -406,6 +406,9 @@ class DataService extends ChangeNotifier {
     int bathCount = _simpleRecords.where((r) =>
       r.category == 'bath' && r.time.toIso8601String().substring(0, 10) == nowStr
     ).length;
+    int vaccineCount = _milestoneRecords.where((r) =>
+      r.category == 'vaccine' && r.date.toIso8601String().substring(0, 10) == nowStr
+    ).length;
 
     int totalSleepMinutes = 0;
     for (final s in sleeps) {
@@ -428,6 +431,7 @@ class DataService extends ChangeNotifier {
       'foodCount': foodCount,
       'tempCount': tempCount,
       'bathCount': bathCount,
+      'vaccineCount': vaccineCount,
       'totalSleepMinutes': totalSleepMinutes,
     };
   }

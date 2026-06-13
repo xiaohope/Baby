@@ -27,6 +27,19 @@ class _FoodScreenState extends State<FoodScreen> {
   static const _feelings = ['😊 喜欢', '😐 一般', '😣 不喜欢', '🤮 吐了', '😴 吃着睡着'];
 
   @override
+  void initState() {
+    super.initState();
+    final r = widget.initialRecord;
+    if (r != null) {
+      _nameController.text = r.name;
+      _portion = r.portion;
+      _feeling = r.feeling;
+      _recordTime = r.time;
+      _noteController.text = r.note ?? '';
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _noteController.dispose();

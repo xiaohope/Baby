@@ -32,11 +32,25 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
 
   @override
+  String? _editingId;
+
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initNotifications();
     _restoreTimerState();
+    // 编辑模式
+    final r = widget.initialRecord;
+    if (r != null) {
+      _editingId = r.id;
+      _selectedType = r.type;
+      _recordTime = r.time;
+      _currentSide = r.breastSide ?? BreastSide.left;
+      _useManualInput = r.type != FeedingType.breastDirect;
+      if (r.breastMinutes != null) _minutesController.text = r.breastMinutes.toString();
+      if (r.bottleMl != null) _mlController.text = r.bottleMl.toString();
+      if (r.note != null) _noteController.text = r.note!;
+    }
   }
 
   Future<void> _initNotifications() async {
@@ -132,7 +146,9 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
 
   Future<void> _save() async {
     final ds = context.read<DataService>();
+    if (_editingId != null) await ds.deleteFeeding(_editingId!);
     final record = FeedingRecord(
+      id: _editingId,
       time: _recordTime,
       type: _selectedType,
       breastMinutes: _selectedType == FeedingType.breastDirect

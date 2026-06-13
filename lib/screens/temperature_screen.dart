@@ -16,6 +16,17 @@ class _TemperatureScreenState extends State<TemperatureScreen> {
   DateTime _recordTime = DateTime.now();
 
   @override
+  void initState() {
+    super.initState();
+    final r = widget.initialRecord;
+    if (r != null) {
+      _tempController.text = r.temperature.toString();
+      _recordTime = r.time;
+      _noteController.text = r.note ?? '';
+    }
+  }
+
+  @override
   void dispose() {
     _tempController.dispose();
     _noteController.dispose();

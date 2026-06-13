@@ -9,6 +9,7 @@ class SimpleRecordScreen extends StatefulWidget {
   final IconData icon;
   final Color color;
   final String emoji;
+  final SimpleRecord? initialRecord;
 
   const SimpleRecordScreen({
     super.key,
@@ -17,6 +18,7 @@ class SimpleRecordScreen extends StatefulWidget {
     required this.icon,
     required this.color,
     required this.emoji,
+    this.initialRecord,
   });
 
   @override
@@ -27,6 +29,13 @@ class _SimpleRecordScreenState extends State<SimpleRecordScreen> {
   final _noteController = TextEditingController();
   DateTime _recordTime = DateTime.now();
   String? _editingId;
+
+  @override
+  void initState() {
+    super.initState();
+    final r = widget.initialRecord;
+    if (r != null) _startEdit(r);
+  }
 
   void _startEdit(SimpleRecord r) {
     setState(() {

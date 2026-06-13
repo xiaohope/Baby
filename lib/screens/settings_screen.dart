@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../services/data_service.dart';
 import '../services/auth_service.dart';
@@ -77,11 +78,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         centerTitle: true,
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)],
-            begin: Alignment.topCenter, end: Alignment.bottomCenter,
-          ),
+        decoration: BoxDecoration(
+          gradient: Theme.of(context).brightness == Brightness.dark
+              ? null : const LinearGradient(colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF121212) : null,
         ),
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -117,39 +117,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 4),
-                            Row(children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(AuthService.role ?? '', style: const TextStyle(fontSize: 12, color: Color(0xFF6C63FF))),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              const SizedBox(width: 8),
-                              Text(AuthService.phone ?? '', style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
-                            ]),
+                              child: Text(AuthService.role ?? '', style: const TextStyle(fontSize: 12, color: Color(0xFF6C63FF))),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(AuthService.phone ?? '', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
                           ],
                         ),
                       ),
                       // 邀请码
-                      Column(
-                        children: [
-                          Text('邀请码', style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
-                          const SizedBox(height: 2),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                      GestureDetector(
+                        onTap: () {
+                          if (AuthService.inviteCode != null) {
+                            Clipboard.setData(ClipboardData(text: AuthService.inviteCode!));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('邀请码已复制'), duration: Duration(seconds: 1)),
+                            );
+                          }
+                        },
+                        child: Column(
+                          children: [
+                            Text('邀请码', style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
+                            const SizedBox(height: 2),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: Colors.amber.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                              ),
+                              child: Text(
+                                AuthService.inviteCode ?? '',
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 2, color: Color(0xFFB8860B)),
+                              ),
                             ),
-                            child: Text(
-                              AuthService.inviteCode ?? '',
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 2, color: Color(0xFFB8860B)),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),
