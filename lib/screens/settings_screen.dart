@@ -86,9 +86,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         child: RefreshIndicator(
           onRefresh: () async {
-            final d = context.read<DataService>();
-            final c = await SyncService.downloadAll(d);
-            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(c > 0 ? '已同步 $c 条数据' : '已是最新'), duration: Duration(seconds: 1)));
+            await context.read<DataService>().reloadFromServer();
+            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已刷新'), duration: Duration(seconds: 1)));
           },
           child: ListView(
           padding: const EdgeInsets.all(16),
