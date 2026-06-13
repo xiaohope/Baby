@@ -99,8 +99,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           gradient: const LinearGradient(colors: [Color(0xFF6C63FF), Color(0xFFFF8A80)]),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Center(
-                          child: Text('👶', style: TextStyle(fontSize: 28)),
+                        child: Center(
+                          child: Text(
+                            AuthService.role == '妈妈' ? '👩' : '👨',
+                            style: const TextStyle(fontSize: 28),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -109,7 +112,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              AuthService.nickname ?? '未设置昵称',
+                              (AuthService.nickname != null && AuthService.nickname!.isNotEmpty) ? AuthService.nickname! : (AuthService.role ?? '用户'),
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 4),
