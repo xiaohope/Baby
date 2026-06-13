@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../models/moment_record.dart';
 import '../services/data_service.dart';
+import '../services/api_service.dart';
 import 'photo_preview_screen.dart';
 
 class MomentsScreen extends StatefulWidget {
@@ -22,11 +24,30 @@ class _MomentsScreenState extends State<MomentsScreen> {
     );
     if (result == null || (result.text.isEmpty && result.images.isEmpty)) return;
 
+    // 上传图片到服务器
+    List<String> serverImages = [];
+    if (result.images.isNotEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('正在上传图片...'), duration: Duration(seconds: 10)),
+        );
+      }
+      for (final path in result.images) {
+        try {
+          final bytes = await File(path).readAsBytes();
+          final b64 = base64Encode(bytes);
+          final ext = path.split('.').last;
+          final url = await ApiService.uploadImage('data:image/$ext;base64,$b64');
+          if (url != null) serverImages.add(url);
+        } catch (_) {}
+      }
+    }
+
     final ds = context.read<DataService>();
     await ds.addMoment(MomentRecord(
       date: DateTime.now(),
       text: result.text,
-      imagePaths: result.images,
+      imagePaths: serverImages.isNotEmpty ? serverImages : result.images,
     ));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -57,24 +78,42 @@ class _MomentsScreenState extends State<MomentsScreen> {
     );
   }
 
-  void _editMoment(MomentRecord record) {
-    showDialog(
+  Future<void> _editMoment(MomentRecord record) async {
+    final result = await showDialog<MomentResult>(
       context: context,
       builder: (ctx) => _AddMomentDialog(
         initialText: record.text,
         initialImages: record.imagePaths,
         isEdit: true,
       ),
-    ).then((result) {
-      if (result == null) return;
-      final ds = context.read<DataService>();
-      ds.deleteMoment(record.id);
-      ds.addMoment(MomentRecord(
-        date: DateTime.now(),
-        text: result.text,
-        imagePaths: result.images,
-      ));
-    });
+    );
+    if (result == null) return;
+
+    // 上传新图片到服务器
+    List<String> serverImages = [];
+    for (final path in result.images) {
+      if (path.startsWith('/uploads/') || path.startsWith('http')) {
+        serverImages.add(path); // 已经是服务器URL
+      } else {
+        try {
+          final bytes = await File(path).readAsBytes();
+          final b64 = base64Encode(bytes);
+          final ext = path.split('.').last;
+          final url = await ApiService.uploadImage('data:image/$ext;base64,$b64');
+          if (url != null) serverImages.add(url);
+        } catch (_) {
+          serverImages.add(path);
+        }
+      }
+    }
+
+    final ds = context.read<DataService>();
+    ds.deleteMoment(record.id);
+    ds.addMoment(MomentRecord(
+      date: DateTime.now(),
+      text: result.text,
+      imagePaths: serverImages,
+    ));
   }
 
   @override
@@ -216,16 +255,27 @@ class _MomentsScreenState extends State<MomentsScreen> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.file(
-              File(path),
-              fit: BoxFit.cover,
-              width: imageSize,
-              height: imageSize,
-              errorBuilder: (_, __, ___) => Container(
-                color: Colors.grey.shade200,
-                child: const Icon(Icons.broken_image, color: Colors.grey),
-              ),
-            ),
+            child: path.startsWith('/uploads/') || path.startsWith('http')
+              ? Image.network(
+                  path.startsWith('http') ? path : 'http://8.138.224.195$path',
+                  fit: BoxFit.cover,
+                  width: imageSize,
+                  height: imageSize,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: Colors.grey.shade200,
+                    child: const Icon(Icons.broken_image, color: Colors.grey),
+                  ),
+                )
+              : Image.file(
+                  File(path),
+                  fit: BoxFit.cover,
+                  width: imageSize,
+                  height: imageSize,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: Colors.grey.shade200,
+                    child: const Icon(Icons.broken_image, color: Colors.grey),
+                  ),
+                ),
           ),
         );
       }).toList(),
@@ -353,7 +403,9 @@ class _AddMomentDialogState extends State<_AddMomentDialog> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.file(File(_images[i]), width: 80, height: 80, fit: BoxFit.cover),
+                        child: _images[i].startsWith('/uploads/') || _images[i].startsWith('http')
+                          ? Image.network(_images[i].startsWith('http') ? _images[i] : 'http://8.138.224.195${_images[i]}', width: 80, height: 80, fit: BoxFit.cover)
+                          : Image.file(File(_images[i]), width: 80, height: 80, fit: BoxFit.cover),
                       ),
                       Positioned(
                         top: -4, right: -4,

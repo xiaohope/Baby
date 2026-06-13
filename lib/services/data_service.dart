@@ -278,6 +278,10 @@ class DataService extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('baby_name', name);
     await prefs.setString('baby_birthday', birthday.toIso8601String());
+    // 存服务器
+    try {
+      await ApiService.uploadSettings({'babyName': name, 'babyBirthday': birthday.toIso8601String()});
+    } catch (_) {}
     notifyListeners();
   }
 

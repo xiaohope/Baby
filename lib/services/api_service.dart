@@ -54,6 +54,24 @@ class ApiService {
     return jsonDecode(res.body);
   }
 
+  // 上传图片
+  static Future<String?> uploadImage(String base64Image) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/upload'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (_token != null) 'Authorization': 'Bearer $_token',
+        },
+        body: jsonEncode({'image': base64Image}),
+      ).timeout(const Duration(seconds: 30));
+      final data = jsonDecode(res.body);
+      return data['url'];
+    } catch (_) {
+      return null;
+    }
+  }
+
   // 上传家庭设置
   static Future<Map> uploadSettings(Map settings) async {
     final res = await http.post(
