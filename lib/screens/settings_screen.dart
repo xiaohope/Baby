@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/data_service.dart';
+import '../services/auth_service.dart';
+import '../services/api_service.dart';
+import '../services/sync_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -231,10 +234,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 trailing: const Icon(Icons.lock_outline, color: Colors.grey),
               ),
             ),
+            const SizedBox(height: 12),
+
+            // ====== 数据同步 ======
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.cloud_upload, color: Color(0xFF6C63FF)),
+                title: const Text('同步到云端'),
+                subtitle: const Text('将本地数据备份到服务器'),
+                onTap: () => _syncData(),
+                trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // ====== 退出登录 ======
+            if (AuthService.isLoggedIn)
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.red),
+                  title: const Text('退出登录', style: TextStyle(color: Colors.red)),
+                  onTap: () => _logout(),
+                ),
+              ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _syncData() async {
+    final ds = context.read<DataService>();
+    if (!AuthService.isLoggedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请先登录')),
+      );
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('正在同步...')),
+    );
+    final result = await SyncService.uploadAll(ds);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('同步完成：上传 ${result['uploaded']} 条')),
+      );
+    }
+  }
+
+  Future<void> _logout() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('确认退出'),
+        content: const Text('退出后需要重新登录'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('退出')),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      await AuthService.logout();
+      if (mounted) Navigator.pushReplacementNamed(context, '/login');
+    }
   }
 
   Widget _buildThemeOption(DataService ds, ThemeMode mode, String title, String subtitle) {

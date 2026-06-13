@@ -4,11 +4,18 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'services/data_service.dart';
 import 'services/hive_helper.dart';
+import 'services/auth_service.dart';
+import 'services/api_service.dart';
 import 'screens/home_screen.dart';
+import 'screens/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await HiveHelper.init();
+  await AuthService.init();
+  if (AuthService.token != null) {
+    ApiService.setToken(AuthService.token!);
+  }
   final ds = DataService();
   await ds.init();
   runApp(
@@ -44,7 +51,11 @@ class BabyTrackerApp extends StatelessWidget {
             Locale('en', 'US'),
           ],
           locale: const Locale('zh', 'CN'),
-          home: const HomeScreen(),
+          home: AuthService.isLoggedIn ? const HomeScreen() : const LoginScreen(),
+          routes: {
+            '/home': (context) => const HomeScreen(),
+            '/login': (context) => const LoginScreen(),
+          },
         );
       },
     );

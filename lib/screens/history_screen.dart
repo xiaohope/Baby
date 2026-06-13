@@ -20,6 +20,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     _TabInfo('成长', Icons.straighten, Color(0xFFA8E6CF)),
     _TabInfo('补充', Icons.medication, Color(0xFF81C9D6)),
     _TabInfo('里程碑', Icons.star, Color(0xFFFFB347)),
+    _TabInfo('疫苗', Icons.vaccines, Color(0xFF27AE60)),
+    _TabInfo('就医', Icons.local_hospital, Color(0xFFE74C3C)),
     _TabInfo('动态', Icons.photo_library, Color(0xFFFF6B6B)),
     _TabInfo('尿尿', Icons.water_drop, Color(0xFF4A90D9)),
     _TabInfo('粑粑', Icons.report, Color(0xFF8B5E3C)),
@@ -144,20 +146,27 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ].join('  '), onDelete: () => ds.deleteGrowth(r.id), deleteLabel: '这条成长记录'));
       case 4: return _buildList(ds, ds.allSupplementRecords().where((r) => _isSameDay(r.date, _selectedDate)).toList(),
         (r) => _card(icon: Icons.medication, color: Colors.green, title: '${r.date.month}月${r.date.day}日', subtitle: r.items.join('、'), onDelete: () => ds.deleteSupplement(r.id), deleteLabel: '这条补充记录'));
-      case 5: return _buildList(ds, ds.milestoneRecords.where((r) => _isSameDay(r.date, _selectedDate)).toList(),
+      case 5: return _buildList(ds, ds.milestoneRecords.where((r) => _isSameDay(r.date, _selectedDate) && r.category == 'milestone').toList(),
         (r) {
-          final emoji = r.category == 'hospital' ? '🏥' : (r.category == 'vaccine' ? '💉' : '🌟');
-          return _card(icon: Icons.star, color: Colors.amber, title: '$emoji ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: '这条里程碑记录');
+          return _card(icon: Icons.star, color: Colors.amber, title: '🌟 ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: '这条里程碑记录');
         });
-      case 6: return _buildList(ds, ds.momentRecords.where((r) => _isSameDay(r.date, _selectedDate)).toList(),
+      case 6: return _buildList(ds, ds.milestoneRecords.where((r) => _isSameDay(r.date, _selectedDate) && r.category == 'vaccine').toList(),
+        (r) {
+          return _card(icon: Icons.vaccines, color: const Color(0xFF27AE60), title: '💉 ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: '这条疫苗记录');
+        });
+      case 7: return _buildList(ds, ds.milestoneRecords.where((r) => _isSameDay(r.date, _selectedDate) && r.category == 'hospital').toList(),
+        (r) {
+          return _card(icon: Icons.local_hospital, color: const Color(0xFFE74C3C), title: '🏥 ${r.title}', subtitle: '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', onDelete: () => ds.deleteMilestone(r.id), deleteLabel: '这条就医记录');
+        });
+      case 8: return _buildList(ds, ds.momentRecords.where((r) => _isSameDay(r.date, _selectedDate)).toList(),
         (r) => _card(icon: Icons.photo_library, color: const Color(0xFFFF6B6B), title: r.text.isNotEmpty ? r.text : '[图片]', subtitle: '${_fmtTime(r.date)}${r.imagePaths.isNotEmpty ? '  📸${r.imagePaths.length}张' : ''}', onDelete: () => ds.deleteMoment(r.id), deleteLabel: '这条动态'));
-      case 7: return _buildSimpleList(ds, 'pee', '尿尿', Icons.water_drop, const Color(0xFF4A90D9), '💦');
-      case 8: return _buildSimpleList(ds, 'poop', '粑粑', Icons.report, const Color(0xFF8B5E3C), '💩');
-      case 9: return _buildSimpleList(ds, 'medication', '用药', Icons.medication, const Color(0xFFE74C3C), '💊');
-      case 10: return _buildSimpleList(ds, 'water', '喝水', Icons.local_drink, const Color(0xFF3498DB), '🥤');
-      case 11: return _buildFoodList(ds);
-      case 12: return _buildTempList(ds);
-      case 13: return _buildSimpleList(ds, 'bath', '洗澡', Icons.bathroom, const Color(0xFF81C9D6), '🛁');
+      case 9: return _buildSimpleList(ds, 'pee', '尿尿', Icons.water_drop, const Color(0xFF4A90D9), '💦');
+      case 10: return _buildSimpleList(ds, 'poop', '粑粑', Icons.report, const Color(0xFF8B5E3C), '💩');
+      case 11: return _buildSimpleList(ds, 'medication', '用药', Icons.medication, const Color(0xFFE74C3C), '💊');
+      case 12: return _buildSimpleList(ds, 'water', '喝水', Icons.local_drink, const Color(0xFF3498DB), '🥤');
+      case 13: return _buildFoodList(ds);
+      case 14: return _buildTempList(ds);
+      case 15: return _buildSimpleList(ds, 'bath', '洗澡', Icons.bathroom, const Color(0xFF81C9D6), '🛁');
       default: return const SizedBox();
     }
   }
