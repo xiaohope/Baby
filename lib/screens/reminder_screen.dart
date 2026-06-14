@@ -201,6 +201,28 @@ class _ReminderScreenState extends State<ReminderScreen> {
       _reminders.removeAt(index);
       await _saveReminders();
       setState(() {});
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ 已删除'), duration: Duration(seconds: 1)),
+        );
+      }
+    }
+  }
+
+  Future<void> _testNotification() async {
+    await _notifications.show(
+      99999,
+      '🔔 测试通知',
+      '如果看到这条通知，说明通知功能正常',
+      const NotificationDetails(
+        android: AndroidNotificationDetails('reminders', '提醒',
+          channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
+      ),
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✅ 测试通知已发送，请查看通知栏'), duration: Duration(seconds: 3)),
+      );
     }
   }
 
@@ -226,6 +248,12 @@ class _ReminderScreenState extends State<ReminderScreen> {
                 const SizedBox(height: 4),
                 Text('点击右下角添加', style: TextStyle(
                     color: isDark ? Colors.white24 : Colors.grey.shade300, fontSize: 14)),
+                const SizedBox(height: 20),
+                OutlinedButton.icon(
+                  onPressed: _testNotification,
+                  icon: const Icon(Icons.notifications_active, size: 18),
+                  label: const Text('测试通知'),
+                ),
               ],
             ))
           : ListView.builder(
