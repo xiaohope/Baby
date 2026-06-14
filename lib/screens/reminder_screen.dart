@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart' as tz_data;
-import 'package:timezone/timezone.dart' as tz;
 import '../models/reminder_record.dart';
 
 class ReminderScreen extends StatefulWidget {
@@ -91,14 +89,23 @@ class _ReminderScreenState extends State<ReminderScreen> {
       // 每天固定时间
       var nextTime = DateTime(now.year, now.month, now.day, hour, minute);
       if (nextTime.isBefore(now)) nextTime = nextTime.add(const Duration(days: 1));
-      await _notifications.zonedSchedule(
-        int.parse(r.id), r.typeName, r.title,
-        tz.TZDateTime.from(nextTime, tz.local),
+      await _notifications.show(
+        int.parse('${r.id}_dbg'), '⏰ 提醒已设置',
+        '将在 ${nextTime.hour}:${nextTime.minute.toString().padLeft(2,'0')} 提醒: ${r.title}',
         const NotificationDetails(
           android: AndroidNotificationDetails('reminders', '提醒',
             channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
         ),
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      );
+      // 用 zonedSchedule 但不用 matchDateTimeComponents
+      await _notifications.zonedSchedule(
+        int.parse(r.id), r.typeName, r.title,
+        nextTime as dynamic,
+        const NotificationDetails(
+          android: AndroidNotificationDetails('reminders', '提醒',
+            channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
+        ),
+        androidScheduleMode: AndroidScheduleMode.inexact,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
       );
