@@ -22,11 +22,12 @@ router.get('/members', auth, async (req, res) => {
 router.post('/settings', auth, async (req, res) => {
   try {
     const { babyName, babyBirthday } = req.body;
-    // 用 JSON 存储家庭设置
-    const settings = JSON.stringify({ babyName, babyBirthday });
     const [existing] = await pool.query('SELECT id FROM family_members WHERE family_id = ? AND user_id = ?', [req.familyId, req.userId]);
     if (existing.length === 0) return res.status(403).json({ error: '无权限' });
-    await pool.query('UPDATE families SET name = ? WHERE id = ?', [babyName ? `${babyName}的家庭` : '我的家庭', req.familyId]);
+    const settings = JSON.stringify({ babyName: babyName || '', babyBirthday: babyBirthday || '' });
+    await pool.query('UPDATE families SET name = ?, settings = ? WHERE id = ?', [
+      babyName ? `${babyName}的家庭` : '我的家庭', settings, req.familyId
+    ]);
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -37,8 +38,20 @@ router.post('/settings', auth, async (req, res) => {
 // 获取家庭设置
 router.get('/settings', auth, async (req, res) => {
   try {
-    const [families] = await pool.query('SELECT name FROM families WHERE id = ?', [req.familyId]);
-    res.json({ babyName: families[0]?.name?.replace('的家庭', '') || '宝宝' });
+    const [families] = await pool.query('SELECT name, settings FROM families WHERE id = ?', [req.familyId]);
+    const row = families[0];
+    let babyName = '宝宝', babyBirthday = '';
+    if (row) {
+      babyName = row.name?.replace('的家庭', '') || '宝宝';
+      if (row.settings) {
+        try {
+          const parsed = JSON.parse(row.settings);
+          if (parsed.babyName) babyName = parsed.babyName;
+          if (parsed.babyBirthday) babyBirthday = parsed.babyBirthday;
+        } catch (_) {}
+      }
+    }
+    res.json({ babyName, babyBirthday });
   } catch (err) {
     res.status(500).json({ error: '服务器错误' });
   }

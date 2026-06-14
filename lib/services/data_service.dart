@@ -237,6 +237,14 @@ class DataService extends ChangeNotifier {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('baby_name', _babyName);
         }
+        if (settings['babyBirthday'] is String && (settings['babyBirthday'] as String).isNotEmpty) {
+          final bd = DateTime.tryParse(settings['babyBirthday']);
+          if (bd != null) {
+            _babyBirthday = bd;
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('baby_birthday', bd.toIso8601String());
+          }
+        }
       } catch (_) {}
       notifyListeners();
       return _feedingRecords.length;
@@ -277,6 +285,14 @@ class DataService extends ChangeNotifier {
           _babyName = settings['babyName'];
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('baby_name', _babyName);
+        }
+        if (settings['babyBirthday'] is String && (settings['babyBirthday'] as String).isNotEmpty) {
+          final bd = DateTime.tryParse(settings['babyBirthday']);
+          if (bd != null) {
+            _babyBirthday = bd;
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('baby_birthday', bd.toIso8601String());
+          }
         }
       } catch (_) {}
     }
