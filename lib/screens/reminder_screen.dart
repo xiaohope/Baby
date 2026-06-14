@@ -42,6 +42,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
     // 初始化时区
     try {
       tz_data.initializeTimeZones();
+      tz.setLocalLocation(tz.getLocation('Asia/Shanghai'));
     } catch (_) {}
   }
 

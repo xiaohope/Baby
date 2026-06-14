@@ -55,8 +55,8 @@ class _LoginScreenState extends State<LoginScreen> {
         await AuthService.saveLogin(result);
         ApiService.setToken(result['token']);
         if (mounted) {
-          context.read<DataService>().reloadFromServer();
-          Navigator.pushReplacementNamed(context, '/home');
+          await context.read<DataService>().reloadFromServer();
+          if (mounted) Navigator.pushReplacementNamed(context, '/home');
         }
       }
     } catch (e) {
