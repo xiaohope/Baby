@@ -266,11 +266,13 @@ class _SleepScreenState extends State<SleepScreen> {
                               label: const Text('开始计时'),
                               style: FilledButton.styleFrom(
                                 backgroundColor: const Color(0xFF7C3AED),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      )
-                    else ...[
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ] else [
                       const Text('睡眠质量'),
                       const SizedBox(height: 8),
                       SegmentedButton<SleepQuality>(

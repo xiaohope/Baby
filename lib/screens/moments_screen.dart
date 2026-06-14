@@ -102,7 +102,7 @@ class _MomentsScreenState extends State<MomentsScreen> {
     ds.addMoment(MomentRecord(
       date: DateTime.now(),
       text: result.text,
-      imagePaths: serverImages,
+      imagePaths: base64Images,
     ));
   }
 

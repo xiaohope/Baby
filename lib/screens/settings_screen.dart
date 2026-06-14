@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -341,62 +340,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _checkUpdate(BuildContext context) async {
-    try {
-      final res = await http.get(Uri.parse('${ApiService.baseUrl}/version')).timeout(const Duration(seconds: 10));
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        final serverVersion = data['version'] as String? ?? '4.0.0';
-        final currentVersion = '4.1.0';
-        if (serverVersion.compareTo(currentVersion) > 0) {
-          if (mounted) {
-            showDialog(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                title: const Text('发现新版本 🎉'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('最新版本: $serverVersion'),
-                    const SizedBox(height: 8),
-                    Text(data['desc'] ?? '', style: TextStyle(color: Colors.grey.shade600)),
-                  ],
-                ),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-                  FilledButton(onPressed: () {
-                    Navigator.pop(ctx);
-                    _downloadApk(data['updateUrl'] ?? 'https://github.com/xiaohope/Baby/releases/latest');
-                  }, child: const Text('去下载')),
-                ],
-              ),
-            );
-          }
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('✅ 已是最新版本'), duration: Duration(seconds: 1)),
-            );
-          }
-        }
-      }
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('检查更新失败，请检查网络'), duration: Duration(seconds: 2)),
-        );
-      }
-    }
-  }
 
-  void _downloadApk(String url) {
-    // TODO: 用 url_launcher 打开
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('请在浏览器打开: $url'), duration: const Duration(seconds: 3)),
-    );
-  }
 
   Future<void> _checkUpdate() async {
     try {
