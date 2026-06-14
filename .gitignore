@@ -32,3 +32,6 @@ ios/build/
 # Environment
 .env
 .env.local
+
+build_payload*.ps1
+payload*.json
