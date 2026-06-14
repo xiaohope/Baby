@@ -128,18 +128,18 @@ class _GrowthScreenState extends State<GrowthScreen> {
                         labelText: '备注（可选）',
                         border: OutlineInputBorder(
                           borderRadius: const BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: isDark ? Colors.white30 : const Color(0xFFD4C5B5)),
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Color(0xFFD4C5B5)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: const BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: isDark ? Colors.white30 : const Color(0xFFD4C5B5)),
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Color(0xFFD4C5B5)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: const BorderRadius.all(Radius.circular(12)),
                           borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
                         ),
                         filled: true,
-                        fillColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF5F0EB),
+                        fillColor: isDark ? const Color(0xFF2A2A2A) : Color(0xFFF5F0EB),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -218,18 +218,18 @@ class _GrowthScreenState extends State<GrowthScreen> {
         labelText: label,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFD4C5B5), width: 1),
+          borderSide: BorderSide(color: Color(0xFFD4C5B5), width: 1),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFD4C5B5), width: 1),
+          borderSide: BorderSide(color: Color(0xFFD4C5B5), width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
+          borderSide: BorderSide(color: Color(0xFF6C63FF), width: 2),
         ),
         filled: true,
-        fillColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF5F0EB),
+        fillColor: isDark ? const Color(0xFF2A2A2A) : Color(0xFFF5F0EB),
       ),
     );
   }
