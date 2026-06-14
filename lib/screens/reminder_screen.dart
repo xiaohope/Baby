@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 import '../models/reminder_record.dart';
 
@@ -31,7 +32,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
     );
     // 初始化时区
     try {
-      tz.initializeTimeZones();
+      tz_data.initializeTimeZones();
     } catch (_) {}
   }
 
