@@ -87,19 +87,15 @@ class _ReminderScreenState extends State<ReminderScreen> {
     final minute = r.remindTime.minute;
 
     if (r.repeatDaily) {
-      // 每天重复
-      var nextTime = DateTime(now.year, now.month, now.day, hour, minute);
-      if (nextTime.isBefore(now)) nextTime = nextTime.add(const Duration(days: 1));
-      await _notifications.zonedSchedule(
+      // 每天重复（用periodicallyShow更稳定）
+      await _notifications.periodicallyShow(
         int.parse(r.id), r.typeName, r.title,
-        tz.TZDateTime.from(nextTime, tz.local),
+        RepeatInterval.daily,
         const NotificationDetails(
           android: AndroidNotificationDetails('reminders', '提醒',
             channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
         ),
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
       );
     } else if (r.repeatDays != null && r.repeatDays!.isNotEmpty) {
       // 每周指定天
@@ -141,7 +137,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
     final result = await Navigator.push(context,
       MaterialPageRoute(builder: (_) => const _EditReminderScreen()));
     if (result != null && result is ReminderRecord) {
-      _reminders.add(result);
+      _reminders.insert(0, result);
       await _saveReminders();
       await _scheduleNotification(result);
       if (mounted) {
