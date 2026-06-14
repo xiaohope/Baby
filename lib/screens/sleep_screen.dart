@@ -272,7 +272,8 @@ class _SleepScreenState extends State<SleepScreen> {
                             ),
                           ),
                         ],
-                      ] else [
+                      ),
+                      ] else ...[
                       const Text('睡眠质量'),
                       const SizedBox(height: 8),
                       SegmentedButton<SleepQuality>(
