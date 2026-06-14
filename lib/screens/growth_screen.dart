@@ -81,20 +81,24 @@ class _GrowthScreenState extends State<GrowthScreen> {
     final ds = context.watch<DataService>();
     final records = ds.growthRecords.take(20).toList();
     final latest = records.isNotEmpty ? records.first : null;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('身高体重记录'),
         centerTitle: true,
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : null,
+        iconTheme: IconThemeData(color: isDark ? Colors.white : null),
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: isDark ? null : const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFE6F7FF), Color(0xFFF0FAFF)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
+        color: isDark ? const Color(0xFF121212) : null,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -102,13 +106,13 @@ class _GrowthScreenState extends State<GrowthScreen> {
             const SizedBox(height: 12),
             Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('新增记录', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text('新增记录', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : null)),
                     const SizedBox(height: 16),
                     Row(children: [
                       Expanded(child: _buildField('体重 (kg)', _weightController)),
@@ -135,7 +139,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
                           borderSide: BorderSide(color: Color(0xFF6C63FF), width: 2),
                         ),
                         filled: true,
-                        fillColor: Color(0xFFF5F0EB),
+                        fillColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF5F0EB),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -165,7 +169,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
   Widget _buildLatestCard(GrowthRecord r) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      color: Colors.teal.shade50,
+      color: isDark ? const Color(0xFF1E1E1E) : Colors.teal.shade50,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -174,9 +178,9 @@ class _GrowthScreenState extends State<GrowthScreen> {
             Row(children: [
               const Icon(Icons.straighten, color: Colors.teal),
               const SizedBox(width: 8),
-              const Text('最新记录', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('最新记录', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : null)),
               const Spacer(),
-              Text('${r.date.month}/${r.date.day}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              Text('${r.date.month}/${r.date.day}', style: TextStyle(color: isDark ? Colors.white54 : Colors.grey, fontSize: 12)),
             ]),
             const SizedBox(height: 12),
             Row(
@@ -197,7 +201,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
       child: Column(
         children: [
           Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
-          Text('$label($unit)', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          Text('$label($unit)', style: TextStyle(fontSize: 12, color: isDark ? Colors.white54 : Colors.grey)),
         ],
       ),
     );
@@ -222,7 +226,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
           borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
         ),
         filled: true,
-        fillColor: const Color(0xFFF5F0EB),
+        fillColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF5F0EB),
       ),
     );
   }
