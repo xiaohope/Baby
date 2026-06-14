@@ -147,7 +147,7 @@ class DataService extends ChangeNotifier {
       case 'moment_records': return MomentRecord(
         id: r['id'], date: DateTime.parse(r['date']),
         text: r['text_content'] ?? '',
-        imagePaths: r['images'] != null ? List<String>.from(r['images']) : [],
+        imagePaths: r['images'] != null ? (r['images'] is List ? List<String>.from(r['images']) : List<String>.from(jsonDecode(r['images']))) : [],
       );
       case 'simple_records': return SimpleRecord(
         id: r['id'], category: r['category'],
