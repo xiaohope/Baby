@@ -124,19 +124,19 @@ class _GrowthScreenState extends State<GrowthScreen> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: _noteController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: '备注（可选）',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: Color(0xFFD4C5B5)),
+                          borderRadius: const BorderRadius.all(Radius.circular(12)),
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : const Color(0xFFD4C5B5)),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: Color(0xFFD4C5B5)),
+                          borderRadius: const BorderRadius.all(Radius.circular(12)),
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : const Color(0xFFD4C5B5)),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: Color(0xFF6C63FF), width: 2),
+                          borderRadius: const BorderRadius.all(Radius.circular(12)),
+                          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
                         ),
                         filled: true,
                         fillColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF5F0EB),
@@ -167,6 +167,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
   }
 
   Widget _buildLatestCard(GrowthRecord r) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       color: isDark ? const Color(0xFF1E1E1E) : Colors.teal.shade50,
@@ -197,6 +198,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
   }
 
   Widget _latestItem(String label, String value, String unit, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
       child: Column(
         children: [
@@ -208,6 +210,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
   }
 
   Widget _buildField(String label, TextEditingController controller) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextField(
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),

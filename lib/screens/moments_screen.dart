@@ -159,6 +159,7 @@ class _MomentsScreenState extends State<MomentsScreen> {
   }
 
   Widget _buildMomentCard(MomentRecord r, int index) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final timeStr = '${r.date.month}月${r.date.day}日  ${r.date.hour.toString().padLeft(2, '0')}:${r.date.minute.toString().padLeft(2, '0')}';
 
     return Padding(
