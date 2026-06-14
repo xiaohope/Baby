@@ -121,9 +121,9 @@ class _ReminderScreenState extends State<ReminderScreen> {
         );
       }
     } else {
-      // 一次
+      // 一次（时间已过则顺延到明天）
       var nextTime = DateTime(now.year, now.month, now.day, hour, minute);
-      if (nextTime.isBefore(now)) return;
+      if (nextTime.isBefore(now)) nextTime = nextTime.add(const Duration(days: 1));
       await _notifications.zonedSchedule(
         int.parse(r.id), r.typeName, r.title,
         tz.TZDateTime.from(nextTime, tz.local),
