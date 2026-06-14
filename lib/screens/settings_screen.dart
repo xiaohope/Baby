@@ -298,7 +298,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     leading: const Icon(Icons.info_outline, color: Color(0xFF6C63FF)),
                     title: const Text('版本'),
                     trailing: const Text('4.1.0'),
-                    onTap: () => _checkUpdate(context),
+                    onTap: _checkUpdate,
                   ),
                   const Divider(height: 1),
                   ListTile(
