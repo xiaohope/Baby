@@ -484,8 +484,8 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                         icon: const Icon(Icons.stop_circle_outlined, size: 24),
                         label: const Text('停止计时'),
                         style: FilledButton.styleFrom(
-                          backgroundColor: Colors.red.shade50,
-                          foregroundColor: Colors.red,
+                          backgroundColor: isDark ? const Color(0xFF4A0E0E) : Colors.red.shade50,
+                          foregroundColor: isDark ? Colors.white : Colors.red,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                       )
@@ -509,9 +509,11 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                         _right15minAlerted = false;
                       }),
                       style: OutlinedButton.styleFrom(
+                        foregroundColor: isDark ? Colors.white70 : null,
+                        side: BorderSide(color: isDark ? Colors.white30 : Theme.of(context).colorScheme.outline),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text('重置'),
+                      child: Text('重置', style: TextStyle(color: isDark ? Colors.white70 : null)),
                     ),
                   ],
                 ),
