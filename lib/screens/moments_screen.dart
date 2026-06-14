@@ -30,8 +30,22 @@ class _MomentsScreenState extends State<MomentsScreen> {
     if (result.images.isNotEmpty) {
       for (final path in result.images) {
         try {
+          // 压缩图片避免超过MySQL TEXT限制(65KB)
           final bytes = await File(path).readAsBytes();
-          base64Images.add(base64Encode(bytes));
+          final img = await decodeImageFromList(bytes);
+          final maxSize = 40000; // 目标40KB
+          if (bytes.length > maxSize && img.width > 0) {
+            final scale = (maxSize / bytes.length).clamp(0.3, 1.0);
+            final codec = await instantiateImageCodec(bytes,
+              targetWidth: (img.width * scale).round(),
+              targetHeight: (img.height * scale).round(),
+            );
+            final frame = await codec.getNextFrame();
+            final resized = await frame.image.toByteData(format: ImageByteFormat.png);
+            if (resized != null) base64Images.add(base64Encode(resized.buffer.asUint8List()));
+          } else {
+            base64Images.add(base64Encode(bytes));
+          }
         } catch (_) {}
       }
     }
@@ -90,7 +104,20 @@ class _MomentsScreenState extends State<MomentsScreen> {
       } else {
         try {
           final bytes = await File(path).readAsBytes();
-          base64Images.add(base64Encode(bytes));
+          final img = await decodeImageFromList(bytes);
+          final maxSize = 40000;
+          if (bytes.length > maxSize && img.width > 0) {
+            final scale = (maxSize / bytes.length).clamp(0.3, 1.0);
+            final codec = await instantiateImageCodec(bytes,
+              targetWidth: (img.width * scale).round(),
+              targetHeight: (img.height * scale).round(),
+            );
+            final frame = await codec.getNextFrame();
+            final resized = await frame.image.toByteData(format: ImageByteFormat.png);
+            if (resized != null) base64Images.add(base64Encode(resized.buffer.asUint8List()));
+          } else {
+            base64Images.add(base64Encode(bytes));
+          }
         } catch (_) {
           base64Images.add(path);
         }
