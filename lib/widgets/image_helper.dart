@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-/// 判断字符串是否为base64编码的图片
-bool isBase64Image(String s) => s.length > 500 && !s.startsWith('/') && !s.startsWith('http') && !s.contains('\\');
+/// 判断字符串是否为base64编码的图片（纯base64字符+长度>500）
+bool isBase64Image(String s) => s.length > 500 && RegExp(r'^[A-Za-z0-9+/=]+$').hasMatch(s);
 
 /// 通用图片组件：支持本地文件路径、http URL、base64字符串
 Widget buildImage(String path, {double? width, double? height, BoxFit fit = BoxFit.cover}) {
