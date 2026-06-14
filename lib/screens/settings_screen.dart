@@ -7,6 +7,7 @@ import '../services/data_service.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import 'about_screen.dart';
+import 'reminder_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -277,6 +278,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ],
                 ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // ====== 提醒 ======
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.notifications_outlined, color: Color(0xFF6C63FF)),
+                title: const Text('提醒'),
+                subtitle: const Text('喂奶、换尿布等定时提醒'),
+                trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderScreen())),
               ),
             ),
             const SizedBox(height: 12),
