@@ -142,7 +142,7 @@ class DataService extends ChangeNotifier {
       );
       case 'supplement_records': return SupplementRecord(
         id: r['id'], date: DateTime.parse(r['date']),
-        items: r['items'] != null ? List<String>.from(r['items']) : [],
+        items: r['items'] != null ? (r['items'] is List ? List<String>.from(r['items']) : List<String>.from(jsonDecode(r['items']))) : [],
       );
       case 'moment_records': return MomentRecord(
         id: r['id'], date: DateTime.parse(r['date']),
