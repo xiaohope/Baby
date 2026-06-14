@@ -123,15 +123,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(AuthService.role ?? '', style: const TextStyle(fontSize: 12, color: Color(0xFF6C63FF))),
-                            ),
-                            const SizedBox(height: 3),
                             Text(AuthService.phone ?? '', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
                           ],
                         ),
