@@ -109,27 +109,31 @@ class _SleepScreenState extends State<SleepScreen> {
   Widget build(BuildContext context) {
     final ds = context.watch<DataService>();
     final records = ds.sleepRecords.where((s) => !s.isOngoing).take(20).toList();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('睡眠记录'),
         centerTitle: true,
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : null,
+        iconTheme: IconThemeData(color: isDark ? Colors.white : null),
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: isDark ? null : const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFE6F7FF), Color(0xFFF0FAFF)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
+        color: isDark ? const Color(0xFF121212) : null,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             // 当前状态卡片
             Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -319,23 +323,25 @@ class _SleepScreenState extends State<SleepScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text('历史记录', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text('历史记录', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : null)),
             const SizedBox(height: 8),
             if (records.isEmpty)
               Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                child: const Padding(padding: EdgeInsets.all(16), child: Text('暂无历史记录', style: TextStyle(color: Colors.grey))),
+                color: isDark ? const Color(0xFF1E1E1E) : null,
+                child: Padding(padding: const EdgeInsets.all(16), child: Text('暂无历史记录', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey))),
               )
             else
               ...records.map((r) => Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                color: isDark ? const Color(0xFF1E1E1E) : null,
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Colors.purple.withValues(alpha: 0.1),
                     child: const Icon(Icons.bedtime, color: Colors.purple),
                   ),
-                  title: Text('${_fmt(r.startTime)}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text('睡眠时长: ${r.durationStr}${r.quality != null ? ' 质量: ${_qualityName(r.quality!)}' : ''}'),
+                  title: Text('${_fmt(r.startTime)}', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : null)),
+                  subtitle: Text('睡眠时长: ${r.durationStr}${r.quality != null ? ' 质量: ${_qualityName(r.quality!)}' : ''}', style: TextStyle(color: isDark ? Colors.white70 : null)),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
                     onPressed: () => showDialog(
