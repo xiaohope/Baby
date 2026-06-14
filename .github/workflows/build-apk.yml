@@ -48,6 +48,10 @@ jobs:
           USER: ${{ secrets.SERVER_USER }}
           SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
+          if [ -z "$HOST" ] || [ -z "$USER" ] || [ -z "$SSH_KEY" ]; then
+            echo "⚠️ 跳过上传：未配置服务器密钥（SERVER_HOST/SERVER_USER/SSH_PRIVATE_KEY）"
+            exit 0
+          fi
           mkdir -p ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
