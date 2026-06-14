@@ -87,15 +87,19 @@ class _ReminderScreenState extends State<ReminderScreen> {
     final minute = r.remindTime.minute;
 
     if (r.repeatDaily) {
-      // 每天重复（用periodicallyShow更稳定）
-      await _notifications.periodicallyShow(
+      // 每天固定时间
+      var nextTime = DateTime(now.year, now.month, now.day, hour, minute);
+      if (nextTime.isBefore(now)) nextTime = nextTime.add(const Duration(days: 1));
+      await _notifications.zonedSchedule(
         int.parse(r.id), r.typeName, r.title,
-        RepeatInterval.daily,
+        tz.TZDateTime.from(nextTime, tz.local),
         const NotificationDetails(
           android: AndroidNotificationDetails('reminders', '提醒',
             channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
         ),
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time,
       );
     } else if (r.repeatDays != null && r.repeatDays!.isNotEmpty) {
       // 每周指定天
@@ -139,13 +143,13 @@ class _ReminderScreenState extends State<ReminderScreen> {
     if (result != null && result is ReminderRecord) {
       _reminders.insert(0, result);
       await _saveReminders();
-      await _scheduleNotification(result);
+      _scheduleNotification(result);
+      setState(() {});
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('✅ 已添加提醒'), duration: Duration(seconds: 1)),
         );
       }
-      setState(() {});
     }
   }
 
@@ -156,7 +160,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
     if (result != null && result is ReminderRecord) {
       _reminders[index] = result;
       await _saveReminders();
-      await _scheduleNotification(result);
+      _scheduleNotification(result);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('✅ 已更新'), duration: Duration(seconds: 1)),
