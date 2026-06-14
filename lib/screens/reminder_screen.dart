@@ -44,7 +44,8 @@ class _ReminderScreenState extends State<ReminderScreen> {
       setState(() => _reminders = list.map((e) => ReminderRecord(
         id: e['id'], type: e['type'], title: e['title'],
         remindTime: DateTime.parse(e['remindTime']),
-        repeat: e['repeat'] ?? true,
+        repeatDaily: e['repeatDaily'] ?? e['repeat'] ?? true,
+        repeatDays: e['repeatDays'] != null ? List<int>.from(e['repeatDays']) : null,
         isActive: e['isActive'] ?? true,
         createdAt: DateTime.parse(e['createdAt']),
       )).toList());
@@ -56,7 +57,8 @@ class _ReminderScreenState extends State<ReminderScreen> {
     final data = _reminders.map((r) => {
       'id': r.id, 'type': r.type, 'title': r.title,
       'remindTime': r.remindTime.toIso8601String(),
-      'repeat': r.repeat, 'isActive': r.isActive,
+      'repeatDaily': r.repeatDaily, 'repeatDays': r.repeatDays,
+      'isActive': r.isActive,
       'createdAt': r.createdAt.toIso8601String(),
     }).toList();
     await prefs.setString('reminders', jsonEncode(data));
@@ -74,7 +76,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
       nextTime = nextTime.add(const Duration(days: 1));
     }
 
-    if (r.repeat) {
+    if (r.repeatDaily || (r.repeatDays != null && r.repeatDays!.isNotEmpty)) {
       await _notifications.periodicallyShow(
         int.parse(r.id), r.typeName, r.title,
         RepeatInterval.daily,
@@ -106,6 +108,28 @@ class _ReminderScreenState extends State<ReminderScreen> {
       _reminders.add(result);
       await _saveReminders();
       await _scheduleNotification(result);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ 已添加提醒'), duration: Duration(seconds: 1)),
+        );
+      }
+      setState(() {});
+    }
+  }
+
+  void _editReminder(int index) async {
+    final r = _reminders[index];
+    final result = await Navigator.push(context,
+      MaterialPageRoute(builder: (_) => _EditReminderScreen(initial: r)));
+    if (result != null && result is ReminderRecord) {
+      _reminders[index] = result;
+      await _saveReminders();
+      await _scheduleNotification(result);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ 已更新'), duration: Duration(seconds: 1)),
+        );
+      }
       setState(() {});
     }
   }
@@ -158,6 +182,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
                 return Card(
                   color: isDark ? const Color(0xFF1E1E1E) : null,
                   child: ListTile(
+                    onTap: () => _editReminder(i),
                     leading: Switch(
                       value: r.isActive,
                       onChanged: (_) => _toggleReminder(i),
@@ -166,7 +191,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
                     title: Text('${r.typeName}: ${r.title}',
                         style: TextStyle(color: isDark ? Colors.white : null)),
                     subtitle: Text(
-                      '${r.remindTime.hour.toString().padLeft(2,'0')}:${r.remindTime.minute.toString().padLeft(2,'0')}${r.repeat ? ' (每天)' : ''}',
+                      '${r.remindTime.hour.toString().padLeft(2,'0')}:${r.remindTime.minute.toString().padLeft(2,'0')} (${r.repeatLabel})',
                       style: TextStyle(color: isDark ? Colors.white54 : Colors.grey),
                     ),
                     trailing: IconButton(
@@ -188,17 +213,34 @@ class _ReminderScreenState extends State<ReminderScreen> {
 
 // ====== 添加/编辑提醒 ======
 class _EditReminderScreen extends StatefulWidget {
-  const _EditReminderScreen();
+  final ReminderRecord? initial;
+  const _EditReminderScreen({this.initial});
 
   @override
   State<_EditReminderScreen> createState() => _EditReminderScreenState();
 }
 
 class _EditReminderScreenState extends State<_EditReminderScreen> {
-  String _type = 'custom';
-  final _titleController = TextEditingController();
-  TimeOfDay _time = TimeOfDay.now();
-  bool _repeat = true;
+  late String _type;
+  late TextEditingController _titleController;
+  late TimeOfDay _time;
+  late bool _repeatDaily;
+  late List<int> _repeatDays;
+  bool _showWeekly = false;
+
+  static const _weekNames = ['', '周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+
+  @override
+  void initState() {
+    super.initState();
+    final r = widget.initial;
+    _type = r?.type ?? 'custom';
+    _titleController = TextEditingController(text: r?.title ?? '');
+    _time = r != null ? TimeOfDay.fromDateTime(r.remindTime) : TimeOfDay.now();
+    _repeatDaily = r?.repeatDaily ?? true;
+    _repeatDays = r?.repeatDays?.toList() ?? [];
+    _showWeekly = r != null && !r.repeatDaily && (r.repeatDays?.isNotEmpty ?? false);
+  }
 
   static const _types = [
     ('feeding', '🍼', '喂奶'),
@@ -282,13 +324,51 @@ class _EditReminderScreenState extends State<_EditReminderScreen> {
                         ),
                       ),
                     ),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text('每天重复', style: TextStyle(color: isDark ? Colors.white : null)),
-                      value: _repeat,
-                      onChanged: (v) => setState(() => _repeat = v),
-                      activeColor: const Color(0xFF6C63FF),
+                    const SizedBox(height: 8),
+                    Text('重复方式', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isDark ? Colors.white : null)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8, runSpacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: const Text('每天'),
+                          selected: _repeatDaily,
+                          onSelected: (v) => setState(() { _repeatDaily = true; _showWeekly = false; }),
+                          selectedColor: const Color(0xFF6C63FF).withValues(alpha: 0.2),
+                        ),
+                        ChoiceChip(
+                          label: const Text('每周'),
+                          selected: _showWeekly,
+                          onSelected: (v) => setState(() { _repeatDaily = false; _showWeekly = v; }),
+                          selectedColor: const Color(0xFF6C63FF).withValues(alpha: 0.2),
+                        ),
+                        ChoiceChip(
+                          label: const Text('一次'),
+                          selected: !_repeatDaily && !_showWeekly,
+                          onSelected: (v) => setState(() { _repeatDaily = false; _showWeekly = false; }),
+                          selectedColor: const Color(0xFF6C63FF).withValues(alpha: 0.2),
+                        ),
+                      ],
                     ),
+                    if (_showWeekly) ...[
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8, runSpacing: 8,
+                        children: List.generate(7, (i) {
+                          final day = i + 1;
+                          final selected = _repeatDays.contains(day);
+                          return FilterChip(
+                            label: Text(_weekNames[day], style: TextStyle(fontSize: 13, color: isDark ? Colors.white : null)),
+                            selected: selected,
+                            onSelected: (v) => setState(() {
+                              if (v) { _repeatDays.add(day); }
+                              else { _repeatDays.remove(day); }
+                            }),
+                            selectedColor: const Color(0xFF6C63FF).withValues(alpha: 0.3),
+                          );
+                        }),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
@@ -306,7 +386,8 @@ class _EditReminderScreenState extends State<_EditReminderScreen> {
                             type: _type,
                             title: _titleController.text.trim(),
                             remindTime: remindTime,
-                            repeat: _repeat,
+                            repeatDaily: _repeatDaily,
+                            repeatDays: _repeatDaily ? null : (_showWeekly ? _repeatDays.toList() : null),
                           ));
                         },
                         icon: const Icon(Icons.check),

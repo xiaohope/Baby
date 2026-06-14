@@ -1,10 +1,11 @@
 class ReminderRecord {
   final String id;
-  final String type;      // feeding / diaper / medicine / water / custom
+  final String type;
   final String title;
-  final DateTime remindTime;  // 每日提醒时间
-  final bool repeat;         // 是否每天重复
+  final DateTime remindTime;
   final bool isActive;
+  final bool repeatDaily;
+  final List<int>? repeatDays; // null=daily, [1..7]=Mon..Sun
   final DateTime createdAt;
 
   ReminderRecord({
@@ -12,7 +13,8 @@ class ReminderRecord {
     required this.type,
     required this.title,
     required this.remindTime,
-    this.repeat = true,
+    this.repeatDaily = true,
+    this.repeatDays,
     this.isActive = true,
     DateTime? createdAt,
   }) : id = id ?? DateTime.now().microsecondsSinceEpoch.toString(),
@@ -29,12 +31,22 @@ class ReminderRecord {
     }
   }
 
+  String get repeatLabel {
+    if (repeatDaily) return '每天';
+    if (repeatDays != null && repeatDays!.isNotEmpty) {
+      const names = ['', '周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+      return repeatDays!.map((d) => names[d]).join(' ');
+    }
+    return '一次';
+  }
+
   ReminderRecord copyWith({
     String? id,
     String? type,
     String? title,
     DateTime? remindTime,
-    bool? repeat,
+    bool? repeatDaily,
+    List<int>? repeatDays,
     bool? isActive,
   }) {
     return ReminderRecord(
@@ -42,7 +54,8 @@ class ReminderRecord {
       type: type ?? this.type,
       title: title ?? this.title,
       remindTime: remindTime ?? this.remindTime,
-      repeat: repeat ?? this.repeat,
+      repeatDaily: repeatDaily ?? this.repeatDaily,
+      repeatDays: repeatDays ?? this.repeatDays,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt,
     );
