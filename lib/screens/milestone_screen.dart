@@ -87,23 +87,25 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
   Widget build(BuildContext context) {
     final ds = context.watch<DataService>();
     final records = ds.milestoneRecords.take(30).toList();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('里程碑 & 备忘'),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black87),
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: isDark ? null : const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFE6F7FF), Color(0xFFF0FAFF)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
+        color: isDark ? const Color(0xFF121212) : null,
         child: ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: records.length + 1,
@@ -118,14 +120,16 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
   }
 
   Widget _buildForm() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      color: isDark ? const Color(0xFF1E1E1E) : null,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('新增记录', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('新增记录', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : null)),
             const SizedBox(height: 16),
             SegmentedButton<String>(
               segments: const [
@@ -140,15 +144,15 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
                 shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 foregroundColor: WidgetStateProperty.resolveWith((states) {
                   if (states.contains(WidgetState.selected)) return Colors.white;
-                  return Colors.black87;
+                  return isDark ? Colors.white70 : Colors.black87;
                 }),
                 textStyle: WidgetStateProperty.resolveWith((states) {
                   if (states.contains(WidgetState.selected)) return const TextStyle(color: Colors.white);
-                  return const TextStyle(color: Colors.black87);
+                  return TextStyle(color: isDark ? Colors.white70 : Colors.black87);
                 }),
                 backgroundColor: WidgetStateProperty.resolveWith((states) {
                   if (states.contains(WidgetState.selected)) return const Color(0xFF6C63FF);
-                  return Colors.grey.shade100;
+                  return isDark ? const Color(0xFF2A2A2A) : Colors.grey.shade100;
                 }),
                 side: WidgetStateProperty.all(const BorderSide(color: Color(0xFF6C63FF), width: 1)),
               ),
@@ -160,7 +164,7 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
               runSpacing: 8,
               children: (_presetMilestones[_category] ?? []).map((preset) =>
                 ActionChip(
-                  label: Text(preset, style: const TextStyle(fontSize: 12)),
+                  label: Text(preset, style: TextStyle(fontSize: 12, color: isDark ? Colors.white : null)),
                   onPressed: () => _titleController.text = preset,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 )
@@ -176,7 +180,7 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
               ),
             ),
             const SizedBox(height: 12),
@@ -198,10 +202,10 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
                   suffixIcon: const Icon(Icons.calendar_today, color: Color(0xFF4A90E2)),
                 ),
-                child: Text('${_selectedDate.year}/${_selectedDate.month}/${_selectedDate.day}'),
+                child: Text('${_selectedDate.year}/${_selectedDate.month}/${_selectedDate.day}', style: TextStyle(color: isDark ? Colors.white : null)),
               ),
             ),
             const SizedBox(height: 12),
@@ -215,7 +219,7 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
               ),
             ),
             const SizedBox(height: 16),
@@ -247,12 +251,14 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
       case 'vaccine': emoji = '💉';
       default: emoji = '🌟';
     }
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: isDark ? const Color(0xFF1E1E1E) : null,
       child: ListTile(
         leading: CircleAvatar(backgroundColor: color.withOpacity(0.15), child: Icon(icon, color: color)),
-        title: Text('$emoji ${r.title}', style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}'),
+        title: Text('$emoji ${r.title}', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : null)),
+        subtitle: Text('${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', style: TextStyle(color: isDark ? Colors.white70 : null)),
         trailing: IconButton(
           icon: const Icon(Icons.delete_outline, color: Colors.red),
           onPressed: () => showDialog(
