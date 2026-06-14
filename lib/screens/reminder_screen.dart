@@ -179,29 +179,29 @@ class _ReminderScreenState extends State<ReminderScreen> {
     setState(() {});
   }
 
-  void _deleteReminder(int index) async {
-    showDialog(
+  Future<void> _deleteReminder(int index) async {
+    final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('确认删除'),
         content: const Text('确定要删除这条提醒吗？'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-          FilledButton(onPressed: () {
-            Navigator.pop(ctx);
-            final r = _reminders[index];
-            _notifications.cancel(int.parse(r.id));
-            for (int d = 1; d <= 7; d++) {
-              _notifications.cancel(int.parse('${r.id}_$d'));
-            }
-            _reminders.removeAt(index);
-            _saveReminders();
-            setState(() {});
-          }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('删除')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('删除')),
         ],
       ),
     );
+    if (confirm == true && index < _reminders.length) {
+      final r = _reminders[index];
+      _notifications.cancel(int.parse(r.id));
+      for (int d = 1; d <= 7; d++) {
+        _notifications.cancel(int.parse('${r.id}_$d'));
+      }
+      _reminders.removeAt(index);
+      await _saveReminders();
+      setState(() {});
+    }
   }
 
   @override
