@@ -235,31 +235,36 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
   Widget build(BuildContext context) {
     final ds = context.watch<DataService>();
     final records = ds.feedingRecords.take(30).toList();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('喂奶记录'),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black87),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black87),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: records.length + 1,
-        itemBuilder: (context, index) {
-          if (index == 0) return _buildForm();
-          final r = records[index - 1];
-          return _buildRecordItem(r, ds);
-        },
+      body: Container(
+        color: isDark ? const Color(0xFF121212) : null,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: records.length + 1,
+          itemBuilder: (context, index) {
+            if (index == 0) return _buildForm();
+            final r = records[index - 1];
+            return _buildRecordItem(r, ds);
+          },
+        ),
       ),
     );
   }
 
   Widget _buildForm() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -269,7 +274,7 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('新增记录', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text('新增记录', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : null)),
                 TextButton.icon(
                   icon: const Icon(Icons.access_time_outlined, size: 18, color: Color(0xFF4A90E2)),
                   label: Text(
@@ -317,15 +322,15 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                 shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 foregroundColor: WidgetStateProperty.resolveWith((states) {
                   if (states.contains(WidgetState.selected)) return Colors.white;
-                  return Colors.black87;
+                  return isDark ? Colors.white70 : Colors.black87;
                 }),
                 textStyle: WidgetStateProperty.resolveWith((states) {
                   if (states.contains(WidgetState.selected)) return const TextStyle(color: Colors.white);
-                  return const TextStyle(color: Colors.black87);
+                  return TextStyle(color: isDark ? Colors.white70 : Colors.black87);
                 }),
                 backgroundColor: WidgetStateProperty.resolveWith((states) {
                   if (states.contains(WidgetState.selected)) return const Color(0xFF6C63FF);
-                  return Colors.grey.shade100;
+                  return isDark ? const Color(0xFF2A2A2A) : Colors.grey.shade100;
                 }),
                 side: WidgetStateProperty.all(const BorderSide(color: Color(0xFF6C63FF), width: 1)),
               ),
@@ -397,7 +402,7 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                         avatar: const Icon(Icons.swap_horiz_outlined, size: 16, color: Color(0xFF4A90E2)),
                         label: const Text('换边'),
                         onPressed: _switchSide,
-                        backgroundColor: Colors.white,
+                        backgroundColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       ),
                   ],
@@ -409,9 +414,9 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: _currentSide == BreastSide.left 
+                    color: isDark ? const Color(0xFF2A2A2A) : (_currentSide == BreastSide.left 
                         ? const Color(0xFFE3F2FD) 
-                        : const Color(0xFFF3E5F5),
+                        : const Color(0xFFF3E5F5)),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: _currentSide == BreastSide.left 
@@ -514,7 +519,7 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                 // 手动输入模式（圆角输入框）
                 Row(
                   children: [
-                    const Text('喂养侧别：', style: TextStyle(fontSize: 14)),
+                    Text('喂养侧别：', style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : null)),
                     ChoiceChip(
                       label: const Text('左侧'),
                       selected: _currentSide == BreastSide.left,
@@ -543,7 +548,7 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                       borderSide: BorderSide.none,
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   ),
                 ),
@@ -560,7 +565,7 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
               ),
@@ -576,7 +581,7 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
             ),
@@ -602,19 +607,20 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
 
   Widget _buildRecordItem(FeedingRecord r, DataService ds) {
     final primaryColor = Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: primaryColor.withOpacity(0.1),
           child: Icon(_typeIcon(r.type), color: primaryColor),
         ),
-        title: Text(r.typeName, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(r.typeName, style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : null)),
         subtitle: Text(
           '${_fmt(r.time)}  ${r.displayAmount}${r.breastSide != null ? ' (${r.breastSide == BreastSide.left ? '左侧' : '右侧'})' : ''}${r.note != null ? '  📝${r.note}' : ''}',
-          style: const TextStyle(fontSize: 13, color: Colors.grey),
+          style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.grey),
         ),
         trailing: IconButton(
           icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
