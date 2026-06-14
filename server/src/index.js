@@ -20,6 +20,19 @@ app.use('/api/records', recordsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/uploads', express.static('uploads'));
 
+// 版本检查
+app.get('/api/version', (req, res) => {
+  res.json({
+    version: '4.1.0',
+    apkUrl: '/downloads/baby.apk',
+    updateUrl: 'https://github.com/xiaohope/Baby/releases/latest',
+    desc: '新增: 数据实时同步、图片base64存储、bug修复',
+  });
+});
+
+// 静态文件（APK下载）
+app.use('/downloads', express.static('downloads'));
+
 // 健康检查
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
