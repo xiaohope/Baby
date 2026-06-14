@@ -64,17 +64,25 @@ class _TemperatureScreenState extends State<TemperatureScreen> {
   Widget build(BuildContext context) {
     final ds = context.watch<DataService>();
     final records = ds.tempRecords.take(30).toList();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('体温记录'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('体温记录'),
+        centerTitle: true,
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : null,
+        iconTheme: IconThemeData(color: isDark ? Colors.white : null),
+      ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: isDark ? null : const BoxDecoration(
           gradient: LinearGradient(colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
         ),
+        color: isDark ? const Color(0xFF121212) : null,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             Card(
+              color: isDark ? const Color(0xFF1E1E1E) : null,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -90,7 +98,7 @@ class _TemperatureScreenState extends State<TemperatureScreen> {
                         child: const Icon(Icons.thermostat, color: Color(0xFFE74C3C), size: 20),
                       ),
                       const SizedBox(width: 10),
-                      const Text('记录体温', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text('记录体温', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : null)),
                       const Spacer(),
                       TextButton.icon(
                         icon: const Icon(Icons.access_time, size: 16, color: Color(0xFFE74C3C)),
@@ -110,42 +118,49 @@ class _TemperatureScreenState extends State<TemperatureScreen> {
                     TextField(
                       controller: _tempController,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: '体温 (℃)',
                         hintText: '例如 37.5',
+                        hintStyle: TextStyle(color: isDark ? Colors.white38 : null),
                         suffixText: '℃',
+                        suffixStyle: TextStyle(color: isDark ? Colors.white : null),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: Color(0xFFD4C5B5)),
+                          borderSide: BorderSide(color: isDark ? const Color(0xFF6C63FF) : const Color(0xFFD4C5B5)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: Color(0xFFD4C5B5)),
+                          borderSide: BorderSide(color: isDark ? const Color(0xFF6C63FF).withValues(alpha: 0.5) : const Color(0xFFD4C5B5)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: Color(0xFFE74C3C), width: 2),
+                          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
                         ),
+                        filled: true,
+                        fillColor: isDark ? const Color(0xFF2A2A2A) : null,
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: _noteController,
                       maxLines: 2,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: '备注（可选）',
+                        labelStyle: TextStyle(color: isDark ? Colors.white70 : null),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: Color(0xFFD4C5B5)),
+                          borderSide: BorderSide(color: isDark ? const Color(0xFF6C63FF) : const Color(0xFFD4C5B5)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: Color(0xFFD4C5B5)),
+                          borderSide: BorderSide(color: isDark ? const Color(0xFF6C63FF).withValues(alpha: 0.5) : const Color(0xFFD4C5B5)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: Color(0xFFE74C3C), width: 2),
+                          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
                         ),
+                        filled: true,
+                        fillColor: isDark ? const Color(0xFF2A2A2A) : null,
                       ),
                     ),
                     const SizedBox(height: 16),
