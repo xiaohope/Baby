@@ -95,25 +95,30 @@ class _SimpleRecordScreenState extends State<SimpleRecordScreen> {
   Widget build(BuildContext context) {
     final ds = context.watch<DataService>();
     final records = ds.simpleRecordsByCategory(widget.category);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
         centerTitle: true,
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : null,
+        iconTheme: IconThemeData(color: isDark ? Colors.white : null),
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: isDark ? null : const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
+        color: isDark ? const Color(0xFF121212) : null,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             // 新增记录表单
             Card(
+              color: isDark ? const Color(0xFF1E1E1E) : null,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -129,9 +134,9 @@ class _SimpleRecordScreenState extends State<SimpleRecordScreen> {
                         child: Icon(widget.icon, color: widget.color, size: 20),
                       ),
                       const SizedBox(width: 10),
-                      Text(_editingId != null ? '编辑${widget.title}' : '新增${widget.title}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(_editingId != null ? '编辑${widget.title}' : '新增${widget.title}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : null)),
                       if (_editingId != null)
-                        TextButton(onPressed: _cancelEdit, child: const Text('取消', style: TextStyle(color: Colors.grey))),
+                        TextButton(onPressed: _cancelEdit, child: Text('取消', style: TextStyle(color: isDark ? Colors.white60 : Colors.grey))),
                       const Spacer(),
                       // 时间选择
                       TextButton.icon(
@@ -160,7 +165,7 @@ class _SimpleRecordScreenState extends State<SimpleRecordScreen> {
                     ]),
                     if (widget.category == 'water') ...[
                       const SizedBox(height: 12),
-                      const Text('喝水量', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                      Text('喝水量', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isDark ? Colors.white : null)),
                       const SizedBox(height: 8),
                       Wrap(
                         spacing: 8,
@@ -177,22 +182,23 @@ class _SimpleRecordScreenState extends State<SimpleRecordScreen> {
                     TextField(
                       controller: _noteController,
                       maxLines: 2,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: '备注（可选）',
+                        hintStyle: TextStyle(color: isDark ? Colors.white38 : null),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: Color(0xFFD4C5B5)),
+                          borderSide: BorderSide(color: isDark ? const Color(0xFF6C63FF) : const Color(0xFFD4C5B5)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: Color(0xFFD4C5B5)),
+                          borderSide: BorderSide(color: isDark ? const Color(0xFF6C63FF).withValues(alpha: 0.5) : const Color(0xFFD4C5B5)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: Color(0xFF6C63FF), width: 2),
+                          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
                         ),
                         filled: true,
-                        fillColor: Color(0xFFF5F0EB),
+                        fillColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF5F0EB),
                       ),
                     ),
                     const SizedBox(height: 16),
