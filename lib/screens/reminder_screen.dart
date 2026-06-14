@@ -235,22 +235,38 @@ class _ReminderScreenState extends State<ReminderScreen> {
                 final r = _reminders[i];
                 return Card(
                   color: isDark ? const Color(0xFF1E1E1E) : null,
-                  child: ListTile(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
                     onTap: () => _editReminder(i),
-                    leading: Switch(
-                      value: r.isActive,
-                      onChanged: (_) => _toggleReminder(i),
-                      activeColor: const Color(0xFF6C63FF),
-                    ),
-                    title: Text('${r.typeName}: ${r.title}',
-                        style: TextStyle(color: isDark ? Colors.white : null)),
-                    subtitle: Text(
-                      '${r.remindTime.hour.toString().padLeft(2,'0')}:${r.remindTime.minute.toString().padLeft(2,'0')} (${r.repeatLabel})',
-                      style: TextStyle(color: isDark ? Colors.white54 : Colors.grey),
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                      onPressed: () => _deleteReminder(i),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: Row(
+                        children: [
+                          Switch(
+                            value: r.isActive,
+                            onChanged: (v) => _toggleReminder(i),
+                            activeColor: const Color(0xFF6C63FF),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('${r.typeName}: ${r.title}',
+                                    style: TextStyle(color: isDark ? Colors.white : null)),
+                                Text(
+                                  '${r.remindTime.hour.toString().padLeft(2,'0')}:${r.remindTime.minute.toString().padLeft(2,'0')} (${r.repeatLabel})',
+                                  style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.red, size: 22),
+                            onPressed: () => _deleteReminder(i),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
