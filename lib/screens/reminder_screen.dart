@@ -99,10 +99,10 @@ class _ReminderScreenState extends State<ReminderScreen> {
             channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
         ),
       );
-      // 用 zonedSchedule 但不用 matchDateTimeComponents
+      // 每天固定时间提醒
       await _notifications.zonedSchedule(
         int.parse(r.id), r.typeName, r.title,
-        nextTime as dynamic,
+        tz.TZDateTime.from(nextTime, tz.local),
         const NotificationDetails(
           android: AndroidNotificationDetails('reminders', '提醒',
             channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
@@ -272,38 +272,39 @@ class _ReminderScreenState extends State<ReminderScreen> {
                 final r = _reminders[i];
                 return Card(
                   color: isDark ? const Color(0xFF1E1E1E) : null,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () => _editReminder(i),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      child: Row(
-                        children: [
-                          Switch(
-                            value: r.isActive,
-                            onChanged: (v) => _toggleReminder(i),
-                            activeColor: const Color(0xFF6C63FF),
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('${r.typeName}: ${r.title}',
-                                    style: TextStyle(color: isDark ? Colors.white : null)),
-                                Text(
-                                  '${r.remindTime.hour.toString().padLeft(2,'0')}:${r.remindTime.minute.toString().padLeft(2,'0')} (${r.repeatLabel})',
-                                  style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.grey),
-                                ),
-                              ],
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                    child: Row(
+                      children: [
+                        Switch(
+                          value: r.isActive,
+                          onChanged: (v) => _toggleReminder(i),
+                          activeColor: const Color(0xFF6C63FF),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => _editReminder(i),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('${r.typeName}: ${r.title}',
+                                      style: TextStyle(color: isDark ? Colors.white : null)),
+                                  Text(
+                                    '${r.remindTime.hour.toString().padLeft(2,'0')}:${r.remindTime.minute.toString().padLeft(2,'0')} (${r.repeatLabel})',
+                                    style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.grey),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline, color: Colors.red, size: 22),
-                            onPressed: () => _deleteReminder(i),
-                          ),
-                        ],
-                      ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Colors.red, size: 22),
+                          onPressed: () => _deleteReminder(i),
+                        ),
+                      ],
                     ),
                   ),
                 );
