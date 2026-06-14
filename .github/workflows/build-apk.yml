@@ -40,3 +40,18 @@ jobs:
 
       - name: 📋 列出构建产物
         run: ls -lh build/app/outputs/flutter-apk/
+
+      - name: 🚀 上传 APK 到服务器
+        if: github.ref == 'refs/heads/master'
+        env:
+          HOST: ${{ secrets.SERVER_HOST }}
+          USER: ${{ secrets.SERVER_USER }}
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $HOST >> ~/.ssh/known_hosts 2>/dev/null
+          scp -r build/app/outputs/flutter-apk/app-release.apk $USER@$HOST:/www/wwwroot/baby-api/server/downloads/baby.apk
+          ssh $USER@$HOST "sed -i 's/\"4.1.0\"/\"4.1.${{ github.run_number }}\"/' /www/wwwroot/baby-api/server/src/index.js"
+          ssh $USER@$HOST "pm2 restart baby-api"
