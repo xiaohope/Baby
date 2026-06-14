@@ -110,30 +110,34 @@ class _MomentsScreenState extends State<MomentsScreen> {
   Widget build(BuildContext context) {
     final ds = context.watch<DataService>();
     final moments = ds.momentRecords;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('动态'),
         centerTitle: true,
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : null,
+        iconTheme: IconThemeData(color: isDark ? Colors.white : null),
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: isDark ? null : const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
+        color: isDark ? const Color(0xFF121212) : null,
         child: moments.isEmpty
             ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.photo_library_outlined, size: 64, color: Colors.grey.shade300),
+                    Icon(Icons.photo_library_outlined, size: 64, color: isDark ? Colors.white24 : Colors.grey.shade300),
                     const SizedBox(height: 12),
-                    Text('还没有动态', style: TextStyle(color: Colors.grey.shade400, fontSize: 16)),
+                    Text('还没有动态', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400, fontSize: 16)),
                     const SizedBox(height: 4),
-                    Text('点击右下角按钮发布', style: TextStyle(color: Colors.grey.shade300, fontSize: 14)),
+                    Text('点击右下角按钮发布', style: TextStyle(color: isDark ? Colors.white24 : Colors.grey.shade300, fontSize: 14)),
                   ],
                 ),
               )
@@ -160,6 +164,7 @@ class _MomentsScreenState extends State<MomentsScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Card(
+        color: isDark ? const Color(0xFF1E1E1E) : null,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -186,8 +191,8 @@ class _MomentsScreenState extends State<MomentsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('宝宝', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                        Text(timeStr, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                        Text('宝宝', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : null)),
+                        Text(timeStr, style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.grey.shade500)),
                       ],
                     ),
                   ),
@@ -207,7 +212,7 @@ class _MomentsScreenState extends State<MomentsScreen> {
               // 文案
               if (r.text.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                Text(r.text, style: const TextStyle(fontSize: 15, height: 1.5)),
+                Text(r.text, style: TextStyle(fontSize: 15, height: 1.5, color: isDark ? Colors.white : null)),
               ],
               // 图片九宫格
               if (r.imagePaths.isNotEmpty) ...[
