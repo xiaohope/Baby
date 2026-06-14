@@ -27,6 +27,13 @@ class _ReminderScreenState extends State<ReminderScreen> {
   }
 
   Future<void> _initNotifications() async {
+    // 请求通知权限（Android 13+）
+    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (androidPlugin != null) {
+      await androidPlugin.requestNotificationsPermission();
+    }
+
     await _notifications.initialize(
       const InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
@@ -172,11 +179,28 @@ class _ReminderScreenState extends State<ReminderScreen> {
   }
 
   void _deleteReminder(int index) async {
-    final r = _reminders[index];
-    await _notifications.cancel(int.parse(r.id));
-    _reminders.removeAt(index);
-    await _saveReminders();
-    setState(() {});
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('确认删除'),
+        content: const Text('确定要删除这条提醒吗？'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+          FilledButton(onPressed: () {
+            Navigator.pop(ctx);
+            final r = _reminders[index];
+            _notifications.cancel(int.parse(r.id));
+            for (int d = 1; d <= 7; d++) {
+              _notifications.cancel(int.parse('${r.id}_$d'));
+            }
+            _reminders.removeAt(index);
+            _saveReminders();
+            setState(() {});
+          }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('删除')),
+        ],
+      ),
+    );
   }
 
   @override

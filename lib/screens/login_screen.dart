@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../services/data_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -52,7 +53,10 @@ class _LoginScreenState extends State<LoginScreen> {
       } else if (result.containsKey('token')) {
         await AuthService.saveLogin(result);
         ApiService.setToken(result['token']);
-        if (mounted) Navigator.pushReplacementNamed(context, '/home');
+        if (mounted) {
+          context.read<DataService>().reloadFromServer();
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       }
     } catch (e) {
       _showMsg('连接失败: ${e.toString().length > 60 ? e.toString().substring(0, 60) : e.toString()}');
