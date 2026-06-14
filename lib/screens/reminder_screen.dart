@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
 import '../models/reminder_record.dart';
 
 class ReminderScreen extends StatefulWidget {
@@ -28,6 +29,10 @@ class _ReminderScreenState extends State<ReminderScreen> {
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
       ),
     );
+    // 初始化时区
+    try {
+      tz.initializeTimeZones();
+    } catch (_) {}
   }
 
   Future<void> _loadReminders() async {
@@ -81,7 +86,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
     } else {
       await _notifications.zonedSchedule(
         int.parse(r.id), r.typeName, r.title,
-        nextTime,
+        tz.TZDateTime.from(nextTime, tz.local),
         const NotificationDetails(
           android: AndroidNotificationDetails('reminders', '提醒',
             channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
