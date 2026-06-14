@@ -5,23 +5,28 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         title: const Text('关于 Baby'),
         centerTitle: true,
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : null,
+        iconTheme: IconThemeData(color: isDark ? Colors.white : null),
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: isDark ? null : const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)],
             begin: Alignment.topCenter, end: Alignment.bottomCenter,
           ),
         ),
+        color: isDark ? const Color(0xFF121212) : null,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             // Logo
             Card(
+              color: isDark ? const Color(0xFF1E1E1E) : null,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 32),
                 child: Column(
@@ -37,7 +42,7 @@ class AboutScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     const Text('Baby', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF6C63FF))),
                     const SizedBox(height: 4),
-                    Text('v4.0.0', style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+                    Text('v4.1.1', style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.grey.shade500)),
                   ],
                 ),
               ),
@@ -46,15 +51,16 @@ class AboutScreen extends StatelessWidget {
 
             // 功能介绍
             Card(
+              color: isDark ? const Color(0xFF1E1E1E) : null,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(children: [
-                      Icon(Icons.star, color: Color(0xFF6C63FF), size: 20),
-                      SizedBox(width: 8),
-                      Text('功能介绍', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Row(children: [
+                      const Icon(Icons.star, color: Color(0xFF6C63FF), size: 20),
+                      const SizedBox(width: 8),
+                      Text('功能介绍', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : null)),
                     ]),
                     const SizedBox(height: 12),
                     _featureItem('🍼', '喂奶记录', '记录亲喂、瓶喂、奶粉，支持计时器和手动输入'),
@@ -77,15 +83,16 @@ class AboutScreen extends StatelessWidget {
 
             // 使用说明
             Card(
+              color: isDark ? const Color(0xFF1E1E1E) : null,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(children: [
-                      Icon(Icons.help_outline, color: Color(0xFF6C63FF), size: 20),
-                      SizedBox(width: 8),
-                      Text('使用说明', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Row(children: [
+                      const Icon(Icons.help_outline, color: Color(0xFF6C63FF), size: 20),
+                      const SizedBox(width: 8),
+                      Text('使用说明', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : null)),
                     ]),
                     const SizedBox(height: 12),
                     _tipItem('1', '首页', '顶部显示宝宝信息和今日概况，中间有快捷记录按钮，底部是近期记录'),
@@ -103,23 +110,24 @@ class AboutScreen extends StatelessWidget {
 
             // 关于我们
             Card(
+              color: isDark ? const Color(0xFF1E1E1E) : null,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(children: [
-                      Icon(Icons.favorite, color: Color(0xFFFF6B6B), size: 20),
-                      SizedBox(width: 8),
-                      Text('关于我们', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Row(children: [
+                      const Icon(Icons.favorite, color: Color(0xFFFF6B6B), size: 20),
+                      const SizedBox(width: 8),
+                      Text('关于我们', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : null)),
                     ]),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Baby 是一款专为家长设计的宝宝成长记录 App。'
                       '记录宝宝成长的每一个瞬间，从喂奶、换尿布到辅食、体温，'
                       '所有数据一目了然。支持多设备云端同步，家庭成员共同记录，'
                       '不错过宝宝的每一步成长。',
-                      style: TextStyle(fontSize: 14, height: 1.6),
+                      style: TextStyle(fontSize: 14, height: 1.6, color: isDark ? Colors.white70 : null),
                     ),
                     const SizedBox(height: 16),
                     SizedBox(
