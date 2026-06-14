@@ -87,6 +87,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
             channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
         ),
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
       );
     }
