@@ -72,20 +72,24 @@ class _SupplementScreenState extends State<SupplementScreen> {
   Widget build(BuildContext context) {
     final ds = context.watch<DataService>();
     final allRecords = ds.allSupplementRecords();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('营养补充'),
         centerTitle: true,
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : null,
+        iconTheme: IconThemeData(color: isDark ? Colors.white : null),
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: isDark ? null : const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
+        color: isDark ? const Color(0xFF121212) : null,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -99,7 +103,7 @@ class _SupplementScreenState extends State<SupplementScreen> {
                     Row(children: [
                       const Icon(Icons.medication, color: Color(0xFF6C63FF)),
                       const SizedBox(width: 8),
-                      Text('今日补充', style: Theme.of(context).textTheme.titleMedium),
+                      Text('今日补充', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: isDark ? Colors.white : null)),
                       const Spacer(),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -127,17 +131,20 @@ class _SupplementScreenState extends State<SupplementScreen> {
                         Expanded(
                           child: TextField(
                             controller: _newItemController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               hintText: '输入补充剂名称',
+                              hintStyle: TextStyle(color: isDark ? Colors.white38 : null),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.all(Radius.circular(12)),
-                                borderSide: BorderSide(color: Color(0xFFD4C5B5)),
+                                borderSide: const BorderSide(color: Color(0xFFD4C5B5)),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.all(Radius.circular(12)),
-                                borderSide: BorderSide(color: Color(0xFFD4C5B5)),
+                                borderSide: BorderSide(color: isDark ? Colors.white30 : const Color(0xFFD4C5B5)),
                               ),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              filled: true,
+                              fillColor: isDark ? const Color(0xFF2A2A2A) : null,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                               isDense: true,
                             ),
                             onSubmitted: (_) => _addItem(),
@@ -165,7 +172,7 @@ class _SupplementScreenState extends State<SupplementScreen> {
                             children: [
                               Icon(Icons.medication_outlined, size: 40, color: Colors.grey.shade300),
                               const SizedBox(height: 8),
-                              Text('今日尚未添加', style: TextStyle(color: Colors.grey.shade400)),
+                              Text('今日尚未添加', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400)),
                             ],
                           ),
                         ),
@@ -192,7 +199,7 @@ class _SupplementScreenState extends State<SupplementScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF6C63FF).withValues(alpha: 0.05),
+                                    color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFF6C63FF).withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Row(
@@ -200,7 +207,7 @@ class _SupplementScreenState extends State<SupplementScreen> {
                                       Expanded(
                                         child: Text(
                                           _items[i],
-                                          style: TextStyle(fontSize: 15, decoration: _checked.contains(i) ? TextDecoration.none : null),
+                                          style: TextStyle(fontSize: 15, color: isDark ? Colors.white : null, decoration: _checked.contains(i) ? TextDecoration.none : null),
                                         ),
                                       ),
                                       InkWell(
@@ -208,7 +215,7 @@ class _SupplementScreenState extends State<SupplementScreen> {
                                         borderRadius: BorderRadius.circular(6),
                                         child: Padding(
                                           padding: const EdgeInsets.all(4),
-                                          child: Icon(Icons.edit_outlined, size: 18, color: Colors.grey.shade500),
+                                          child: Icon(Icons.edit_outlined, size: 18, color: isDark ? Colors.white54 : Colors.grey.shade500),
                                         ),
                                       ),
                                       const SizedBox(width: 4),
@@ -245,20 +252,21 @@ class _SupplementScreenState extends State<SupplementScreen> {
             const SizedBox(height: 20),
 
             // ====== 历史记录 ======
-            Text('历史记录', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text('历史记录', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: isDark ? Colors.white : null)),
             const SizedBox(height: 8),
             if (allRecords.isEmpty)
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Center(
-                    child: Text('暂无记录', style: TextStyle(color: Colors.grey.shade400)),
+                    child: Text('暂无记录', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400)),
                   ),
                 ),
               )
             else
               ...allRecords.map((r) => Card(
                 margin: const EdgeInsets.only(bottom: 8),
+                color: isDark ? const Color(0xFF1E1E1E) : null,
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Colors.green.withValues(alpha: 0.1),
@@ -266,9 +274,9 @@ class _SupplementScreenState extends State<SupplementScreen> {
                   ),
                   title: Text(
                     '${r.date.month}月${r.date.day}日',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : null),
                   ),
-                  subtitle: Text(r.items.join('、'), style: const TextStyle(fontSize: 13)),
+                  subtitle: Text(r.items.join('、'), style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : null)),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
                     onPressed: () => showDialog(
