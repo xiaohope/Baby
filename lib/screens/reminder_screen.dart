@@ -14,6 +14,8 @@ class ReminderScreen extends StatefulWidget {
 }
 
 class _ReminderScreenState extends State<ReminderScreen> {
+  static const _weekNames = ['', '周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+
   List<ReminderRecord> _reminders = [];
   final _notifications = FlutterLocalNotificationsPlugin();
 
@@ -65,28 +67,22 @@ class _ReminderScreenState extends State<ReminderScreen> {
   }
 
   Future<void> _scheduleNotification(ReminderRecord r) async {
+    // 取消所有旧通知
     await _notifications.cancel(int.parse(r.id));
+    for (int d = 1; d <= 7; d++) {
+      await _notifications.cancel(int.parse('${r.id}_$d'));
+    }
 
     if (!r.isActive) return;
 
     final now = DateTime.now();
-    var nextTime = DateTime(now.year, now.month, now.day,
-        r.remindTime.hour, r.remindTime.minute);
-    if (nextTime.isBefore(now)) {
-      nextTime = nextTime.add(const Duration(days: 1));
-    }
+    final hour = r.remindTime.hour;
+    final minute = r.remindTime.minute;
 
-    if (r.repeatDaily || (r.repeatDays != null && r.repeatDays!.isNotEmpty)) {
-      await _notifications.periodicallyShow(
-        int.parse(r.id), r.typeName, r.title,
-        RepeatInterval.daily,
-        const NotificationDetails(
-          android: AndroidNotificationDetails('reminders', '提醒',
-            channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
-        ),
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      );
-    } else {
+    if (r.repeatDaily) {
+      // 每天重复
+      var nextTime = DateTime(now.year, now.month, now.day, hour, minute);
+      if (nextTime.isBefore(now)) nextTime = nextTime.add(const Duration(days: 1));
       await _notifications.zonedSchedule(
         int.parse(r.id), r.typeName, r.title,
         tz.TZDateTime.from(nextTime, tz.local),
@@ -96,7 +92,40 @@ class _ReminderScreenState extends State<ReminderScreen> {
         ),
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-        matchDateTimeComponents: DateTimeComponents.time,
+        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+      );
+    } else if (r.repeatDays != null && r.repeatDays!.isNotEmpty) {
+      // 每周指定天
+      for (final day in r.repeatDays!) {
+        final daysUntil = (day - now.weekday + 7) % 7;
+        var nextTime = DateTime(now.year, now.month, now.day, hour, minute)
+            .add(Duration(days: daysUntil == 0 ? 7 : daysUntil));
+        if (nextTime.isBefore(now)) nextTime = nextTime.add(const Duration(days: 7));
+        await _notifications.zonedSchedule(
+          int.parse('${r.id}_$day'), r.typeName, '$r.title (${_weekNames[day]})',
+          tz.TZDateTime.from(nextTime, tz.local),
+          const NotificationDetails(
+            android: AndroidNotificationDetails('reminders', '提醒',
+              channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
+          ),
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+          matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+        );
+      }
+    } else {
+      // 一次
+      var nextTime = DateTime(now.year, now.month, now.day, hour, minute);
+      if (nextTime.isBefore(now)) return;
+      await _notifications.zonedSchedule(
+        int.parse(r.id), r.typeName, r.title,
+        tz.TZDateTime.from(nextTime, tz.local),
+        const NotificationDetails(
+          android: AndroidNotificationDetails('reminders', '提醒',
+            channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
+        ),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
     }
   }
