@@ -153,6 +153,14 @@ class _ReminderScreenState extends State<ReminderScreen> {
     if (result != null && result is ReminderRecord) {
       _reminders.insert(0, result);
       await _saveReminders();
+      // 立即弹一条通知（确认功能正常）
+      _notifications.show(
+        int.parse(result.id), result.typeName, result.title,
+        const NotificationDetails(
+          android: AndroidNotificationDetails('reminders', '提醒',
+            channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
+        ),
+      );
       _scheduleNotification(result);
       setState(() {});
       if (mounted) {
@@ -203,14 +211,15 @@ class _ReminderScreenState extends State<ReminderScreen> {
     );
     if (confirm == true && index < _reminders.length) {
       final r = _reminders[index];
-      _notifications.cancel(int.parse(r.id));
+      final id = int.parse(r.id);
+      _notifications.cancel(id);
       for (int d = 1; d <= 7; d++) {
-        _notifications.cancel(int.parse('${r.id}_$d'));
+        _notifications.cancel(int.parse('$id$d'));
       }
       _reminders.removeAt(index);
       await _saveReminders();
-      setState(() {});
       if (mounted) {
+        setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('✅ 已删除'), duration: Duration(seconds: 1)),
         );

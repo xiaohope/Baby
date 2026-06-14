@@ -17,7 +17,7 @@ class ReminderRecord {
     this.repeatDays,
     this.isActive = true,
     DateTime? createdAt,
-  }) : id = id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+  }) : id = id ?? (DateTime.now().millisecondsSinceEpoch % 100000).toString(),
        createdAt = createdAt ?? DateTime.now();
 
   String get typeName {
