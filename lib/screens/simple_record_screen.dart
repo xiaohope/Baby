@@ -29,6 +29,9 @@ class _SimpleRecordScreenState extends State<SimpleRecordScreen> {
   final _noteController = TextEditingController();
   DateTime _recordTime = DateTime.now();
   String? _editingId;
+  String? _selectedWaterAmount;
+
+  static const _waterOptions = ['50ml', '100ml', '150ml', '200ml', '250ml', '300ml'];
 
   @override
   void initState() {
@@ -50,6 +53,7 @@ class _SimpleRecordScreenState extends State<SimpleRecordScreen> {
       _editingId = null;
       _noteController.clear();
       _recordTime = DateTime.now();
+      _selectedWaterAmount = null;
     });
   }
 
@@ -62,11 +66,14 @@ class _SimpleRecordScreenState extends State<SimpleRecordScreen> {
   Future<void> _save() async {
     final ds = context.read<DataService>();
     if (_editingId != null) await ds.deleteSimpleRecord(_editingId!);
+    final note = _selectedWaterAmount != null
+        ? '${_selectedWaterAmount} ${_noteController.text.trim()}'
+        : _noteController.text.trim();
     await ds.addSimpleRecord(SimpleRecord(
       id: _editingId,
       category: widget.category,
       time: _recordTime,
-      note: _noteController.text.trim(),
+      note: note,
     ));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -75,6 +82,7 @@ class _SimpleRecordScreenState extends State<SimpleRecordScreen> {
       setState(() {
         _noteController.clear();
         _recordTime = DateTime.now();
+        _selectedWaterAmount = null;
       });
     }
   }
@@ -150,6 +158,21 @@ class _SimpleRecordScreenState extends State<SimpleRecordScreen> {
                         },
                       ),
                     ]),
+                    if (widget.category == 'water') ...[
+                      const SizedBox(height: 12),
+                      const Text('喝水量', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _waterOptions.map((opt) => ChoiceChip(
+                          label: Text(opt),
+                          selected: _selectedWaterAmount == opt,
+                          onSelected: (v) => setState(() => _selectedWaterAmount = v ? opt : null),
+                          selectedColor: const Color(0xFF6C63FF).withValues(alpha: 0.2),
+                        )).toList(),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     TextField(
                       controller: _noteController,

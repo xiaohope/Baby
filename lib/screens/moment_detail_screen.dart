@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import '../widgets/image_helper.dart';
 import 'photo_preview_screen.dart';
 
 class MomentDetailScreen extends StatelessWidget {
@@ -95,23 +95,7 @@ class MomentDetailScreen extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: path.startsWith('/uploads/') || path.startsWith('http')
-              ? Image.network(
-                  path.startsWith('http') ? path : 'http://8.138.224.195$path',
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.broken_image, color: Colors.grey),
-                  ),
-                )
-              : Image.file(
-                  File(path),
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.broken_image, color: Colors.grey),
-                  ),
-                ),
+            child: buildImage(path),
           ),
         );
       }).toList(),

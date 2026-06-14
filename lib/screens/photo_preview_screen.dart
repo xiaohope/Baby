@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import '../widgets/image_helper.dart';
 
 class PhotoPreviewScreen extends StatefulWidget {
   final List<String> images;
@@ -56,13 +56,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
             return InteractiveViewer(
               maxScale: 5,
               child: Center(
-                child: Image.file(
-                  File(widget.images[i]),
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Center(
-                    child: Icon(Icons.broken_image, color: Colors.white54, size: 64),
-                  ),
-                ),
+                child: buildImage(widget.images[i], fit: BoxFit.contain),
               ),
             );
           },

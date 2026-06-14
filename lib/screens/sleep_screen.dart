@@ -15,6 +15,8 @@ class _SleepScreenState extends State<SleepScreen> {
   bool _isOngoing = false;
   DateTime? _startTime;
   DateTime _recordStartTime = DateTime.now();
+  DateTime _recordEndTime = DateTime.now();
+  bool _useManualEnd = false;
   SleepQuality _quality = SleepQuality.good;
 
   @override
@@ -75,6 +77,22 @@ class _SleepScreenState extends State<SleepScreen> {
       _startTime = null;
       _quality = SleepQuality.good;
     });
+  }
+
+  Future<void> _saveManualSleep() async {
+    final ds = context.read<DataService>();
+    final record = SleepRecord(
+      startTime: _recordStartTime,
+      endTime: _recordEndTime,
+      quality: _quality,
+    );
+    await ds.addSleep(record);
+    final duration = _recordEndTime.difference(_recordStartTime);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('✅ 已保存，共 ${duration.inHours}小时${duration.inMinutes % 60}分钟'), duration: const Duration(seconds: 2)),
+      );
+    }
   }
 
   String _fmt(DateTime t) => '${t.month}/${t.day} ${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}';
@@ -194,13 +212,60 @@ class _SleepScreenState extends State<SleepScreen> {
                       ),
                     ],
                     const SizedBox(height: 16),
-                    if (!_isOngoing)
-                      FilledButton.icon(
-                        onPressed: _startSleep,
-                        icon: const Icon(Icons.bedtime),
-                        label: const Text('开始记录睡眠'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF7C3AED),
+                    if (!_isOngoing) ...[
+                      // 结束时间选择器
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextButton.icon(
+                              icon: const Icon(Icons.access_time, size: 16, color: Color(0xFF4A90E2)),
+                              label: Text('开始: ${_fmt(_recordStartTime)}', style: const TextStyle(fontSize: 12, color: Color(0xFF4A90E2))),
+                              onPressed: () async {
+                                final date = await showDatePicker(
+                                  context: context, initialDate: _recordStartTime,
+                                  firstDate: DateTime.now().subtract(const Duration(days: 365)), lastDate: DateTime.now(),
+                                );
+                                if (date != null && mounted) {
+                                  final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(_recordStartTime));
+                                  if (time != null) setState(() => _recordStartTime = DateTime(date.year, date.month, date.day, time.hour, time.minute));
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextButton.icon(
+                              icon: const Icon(Icons.access_time, size: 16, color: Colors.orange),
+                              label: Text('结束: ${_fmt(_recordEndTime)}', style: const TextStyle(fontSize: 12, color: Colors.orange)),
+                              onPressed: () async {
+                                final date = await showDatePicker(
+                                  context: context, initialDate: _recordEndTime,
+                                  firstDate: DateTime.now().subtract(const Duration(days: 365)), lastDate: DateTime.now(),
+                                );
+                                if (date != null && mounted) {
+                                  final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(_recordEndTime));
+                                  if (time != null) {
+                                    setState(() {
+                                      _recordEndTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+                                      _useManualEnd = true;
+                                    });
+                                  }
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: FilledButton.icon(
+                              onPressed: _startSleep,
+                              icon: const Icon(Icons.bedtime),
+                              label: const Text('开始计时'),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF7C3AED),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),

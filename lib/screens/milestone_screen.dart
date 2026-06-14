@@ -18,6 +18,7 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
   final _titleController = TextEditingController();
   final _noteController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
+  String? _editingId;
 
   final Map<String, List<String>> _presetMilestones = {
     'milestone': ['第一次微笑', '翻身', '独坐', '爬行', '站立', '迈步走', '叫爸爸妈妈', '长牙', '认人', '认生'],
@@ -31,6 +32,7 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
     _category = widget.initialCategory;
     final r = widget.initialRecord;
     if (r != null) {
+      _editingId = r.id;
       _titleController.text = r.title;
       _selectedDate = r.date;
       _noteController.text = r.note ?? '';
@@ -48,7 +50,9 @@ class _MilestoneScreenState extends State<MilestoneScreen> {
   Future<void> _save() async {
     if (_titleController.text.isEmpty) return;
     final ds = context.read<DataService>();
+    if (_editingId != null) await ds.deleteMilestone(_editingId!);
     await ds.addMilestone(MilestoneRecord(
+      id: _editingId,
       date: _selectedDate,
       title: _titleController.text,
       note: _noteController.text.isEmpty ? null : _noteController.text,

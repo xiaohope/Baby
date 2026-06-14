@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../models/moment_record.dart';
 import '../services/data_service.dart';
 import '../services/api_service.dart';
+import '../widgets/image_helper.dart';
 import 'photo_preview_screen.dart';
 
 class MomentsScreen extends StatefulWidget {
@@ -24,21 +25,13 @@ class _MomentsScreenState extends State<MomentsScreen> {
     );
     if (result == null || (result.text.isEmpty && result.images.isEmpty)) return;
 
-    // 上传图片到服务器
-    List<String> serverImages = [];
+    // 转base64直接存数据库
+    List<String> base64Images = [];
     if (result.images.isNotEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('正在上传图片...'), duration: Duration(seconds: 10)),
-        );
-      }
       for (final path in result.images) {
         try {
           final bytes = await File(path).readAsBytes();
-          final b64 = base64Encode(bytes);
-          final ext = path.split('.').last;
-          final url = await ApiService.uploadImage('data:image/$ext;base64,$b64');
-          if (url != null) serverImages.add(url);
+          base64Images.add(base64Encode(bytes));
         } catch (_) {}
       }
     }
@@ -47,7 +40,7 @@ class _MomentsScreenState extends State<MomentsScreen> {
     await ds.addMoment(MomentRecord(
       date: DateTime.now(),
       text: result.text,
-      imagePaths: serverImages.isNotEmpty ? serverImages : result.images,
+      imagePaths: base64Images.isNotEmpty ? base64Images : result.images,
     ));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -89,20 +82,17 @@ class _MomentsScreenState extends State<MomentsScreen> {
     );
     if (result == null) return;
 
-    // 上传新图片到服务器
-    List<String> serverImages = [];
+    // 转base64直接存数据库
+    List<String> base64Images = [];
     for (final path in result.images) {
-      if (path.startsWith('/uploads/') || path.startsWith('http')) {
-        serverImages.add(path); // 已经是服务器URL
+      if (path.length > 500) {
+        base64Images.add(path); // 已经是base64
       } else {
         try {
           final bytes = await File(path).readAsBytes();
-          final b64 = base64Encode(bytes);
-          final ext = path.split('.').last;
-          final url = await ApiService.uploadImage('data:image/$ext;base64,$b64');
-          if (url != null) serverImages.add(url);
+          base64Images.add(base64Encode(bytes));
         } catch (_) {
-          serverImages.add(path);
+          base64Images.add(path);
         }
       }
     }
@@ -255,27 +245,7 @@ class _MomentsScreenState extends State<MomentsScreen> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: path.startsWith('/uploads/') || path.startsWith('http')
-              ? Image.network(
-                  path.startsWith('http') ? path : 'http://8.138.224.195$path',
-                  fit: BoxFit.cover,
-                  width: imageSize,
-                  height: imageSize,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.broken_image, color: Colors.grey),
-                  ),
-                )
-              : Image.file(
-                  File(path),
-                  fit: BoxFit.cover,
-                  width: imageSize,
-                  height: imageSize,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.broken_image, color: Colors.grey),
-                  ),
-                ),
+            child: buildImage(path, width: imageSize, height: imageSize),
           ),
         );
       }).toList(),
@@ -403,9 +373,7 @@ class _AddMomentDialogState extends State<_AddMomentDialog> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: _images[i].startsWith('/uploads/') || _images[i].startsWith('http')
-                          ? Image.network(_images[i].startsWith('http') ? _images[i] : 'http://8.138.224.195${_images[i]}', width: 80, height: 80, fit: BoxFit.cover)
-                          : Image.file(File(_images[i]), width: 80, height: 80, fit: BoxFit.cover),
+                        child: buildImage(_images[i], width: 80, height: 80),
                       ),
                       Positioned(
                         top: -4, right: -4,

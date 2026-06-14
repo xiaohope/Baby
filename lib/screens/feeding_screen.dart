@@ -74,9 +74,11 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
         setState(() {
           _breastSeconds = elapsed;
           _isTimerRunning = true;
+          _timerStartTime = startTime;
           _currentSide = sideStr == 'right' ? BreastSide.right : BreastSide.left;
           _check15MinAlert();
         });
+        _startTimer();
       }
     }
   }
@@ -187,8 +189,10 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
 
   void _startTimer() {
     setState(() {
-      _isTimerRunning = true;
-      _timerStartTime = DateTime.now();
+      if (!_isTimerRunning) {
+        _isTimerRunning = true;
+        _timerStartTime = DateTime.now();
+      }
       _left15minAlerted = false;
       _right15minAlerted = false;
       _useManualInput = false;
@@ -198,6 +202,7 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
       if (!mounted || !_isTimerRunning) return false;
       setState(() => _breastSeconds++);
       _check15MinAlert();
+      _saveTimerState();
       return _isTimerRunning;
     });
   }
@@ -207,11 +212,9 @@ class _FeedingScreenState extends State<FeedingScreen> with WidgetsBindingObserv
       if (_currentSide == BreastSide.left) {
         _currentSide = BreastSide.right;
         _right15minAlerted = false;
-        if (_isTimerRunning) _breastSeconds = 0;
       } else {
         _currentSide = BreastSide.left;
         _left15minAlerted = false;
-        if (_isTimerRunning) _breastSeconds = 0;
       }
     });
   }

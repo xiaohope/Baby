@@ -229,15 +229,18 @@ class DataService extends ChangeNotifier {
     try {
       final data = await ApiService.syncRecords();
       _parseServerData(data);
+      // 刷新宝宝信息
+      try {
+        final settings = await ApiService.downloadSettings();
+        if (settings['babyName'] != null) {
+          _babyName = settings['babyName'];
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('baby_name', _babyName);
+        }
+      } catch (_) {}
       notifyListeners();
-      final today = DateTime.now();
-      final todayCount = _feedingRecords.where((r) =>
-        r.time.year == today.year && r.time.month == today.month && r.time.day == today.day
-      ).length;
-      print('reloadFromServer: ${_feedingRecords.length} total, $todayCount today');
       return _feedingRecords.length;
     } catch (e) {
-      print('reloadFromServer error: $e');
       notifyListeners();
       return -1;
     }
@@ -267,6 +270,15 @@ class DataService extends ChangeNotifier {
       } catch (e) {
         _loadError = '加载失败: 网络错误';
       }
+      // 从服务器拉取宝宝信息
+      try {
+        final settings = await ApiService.downloadSettings();
+        if (settings['babyName'] != null) {
+          _babyName = settings['babyName'];
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('baby_name', _babyName);
+        }
+      } catch (_) {}
     }
 
     _isLoading = false;

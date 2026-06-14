@@ -4,8 +4,6 @@ import 'package:provider/provider.dart';
 import '../services/data_service.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
-import '../services/sync_service.dart';
-import '../services/data_service.dart';
 import 'about_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -249,7 +247,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     InkWell(
                       onTap: _isEditing ? () async {
                         final d = await showDatePicker(
-                          context: context, initialDate: _birthday ?? DateTime.now().subtract(const Duration(days: 30)),
+                          context: context, initialDate: _birthday ?? DateTime.now(),
                           firstDate: DateTime(2020), lastDate: DateTime.now(),
                         );
                         if (d != null) setState(() => _birthday = d);
@@ -320,30 +318,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 trailing: const Icon(Icons.lock_outline, color: Colors.grey),
               ),
             ),
-            const SizedBox(height: 12),
 
-            // ====== 数据同步 ======
-            Card(
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.cloud_upload, color: Color(0xFF6C63FF)),
-                    title: const Text('上传到云端'),
-                    subtitle: const Text('将本地数据备份到服务器'),
-                    onTap: () => _syncData('upload'),
-                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.cloud_download, color: Color(0xFF6C63FF)),
-                    title: const Text('从云端下载'),
-                    subtitle: const Text('拉取家庭其他成员的数据'),
-                    onTap: () => _syncData('download'),
-                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
             const SizedBox(height: 12),
 
             // ====== 退出登录 ======
@@ -360,34 +335,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _syncData(String action) async {
-    final ds = context.read<DataService>();
-    if (!AuthService.isLoggedIn) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请先登录')),
-      );
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('正在处理...')),
-    );
-    if (action == 'upload') {
-      final result = await SyncService.uploadAll(ds);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['error'] != null ? '上传失败: ${result['error']}' : '已上传 ${result['uploaded']} 条')),
-        );
-      }
-    } else {
-      await ds.reloadFromServer();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('已从服务器加载最新数据')),
-        );
-      }
-    }
   }
 
   Future<void> _logout() async {
