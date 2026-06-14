@@ -52,10 +52,10 @@ jobs:
             echo "⚠️ 跳过上传：未配置服务器密钥（SERVER_HOST/SERVER_USER/SSH_PRIVATE_KEY）"
             exit 0
           fi
-          mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H $HOST >> ~/.ssh/known_hosts 2>/dev/null
+          mkdir -p /home/runner/.ssh
+          echo "$SSH_KEY" > /home/runner/.ssh/id_rsa
+          chmod 600 /home/runner/.ssh/id_rsa
+          ssh-keyscan -H $HOST >> /home/runner/.ssh/known_hosts 2>/dev/null
           scp -r build/app/outputs/flutter-apk/app-release.apk $USER@$HOST:/www/wwwroot/baby-api/server/downloads/baby.apk
           ssh $USER@$HOST "sed -i 's/\"4.1.0\"/\"4.1.${{ github.run_number }}\"/' /www/wwwroot/baby-api/server/src/index.js"
-          ssh $USER@$HOST "pm2 restart baby-api"
+          ssh $USER@$HOST "cd /www/wwwroot/baby-api/server && pm2 restart baby-api 2>/dev/null || pm2 start src/index.js --name baby-api"
