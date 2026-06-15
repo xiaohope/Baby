@@ -19,9 +19,10 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
+class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProviderStateMixin {
   DateTime? _selectedDate;
   int _selectedIndex = 0;
+  late TabController _tabController;
 
   static const _tabData = [
     ['喂奶', Icons.local_drink, Color(0xFF6C63FF)],
@@ -44,6 +45,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
     ['牙齿', Icons.egg, Color(0xFF26A69A)],
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
   String dateStr(DateTime d) => '${d.year}/${d.month.toString().padLeft(2,'0')}/${d.day.toString().padLeft(2,'0')}';
   String timeStr(DateTime t) => '${t.month}/${t.day} ${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}';
 
@@ -55,95 +68,109 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final ds = context.watch<DataService>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('历史记录'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(_selectedDate != null ? Icons.clear : Icons.calendar_month, color: const Color(0xFF6C63FF)),
-            onPressed: () {
-              if (_selectedDate != null) {
-                setState(() => _selectedDate = null);
-              } else {
-                showDatePicker(
-                  context: context, initialDate: DateTime.now(),
-                  firstDate: DateTime(2020), lastDate: DateTime.now(),
-                ).then((d) { if (d != null) setState(() => _selectedDate = d); });
-              }
-            },
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('历史记录'),
+          centerTitle: true,
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(text: '📋 列表'),
+              Tab(text: '⏱ 时间轴'),
+            ],
+            labelColor: const Color(0xFF6C63FF),
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: const Color(0xFF6C63FF),
           ),
-        ],
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: Theme.of(context).brightness == Brightness.dark
-              ? null : const LinearGradient(colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
-          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF121212) : null,
-        ),
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await context.read<DataService>().reloadFromServer();
-            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已刷新'), duration: Duration(seconds: 1)));
-          },
-          child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(_selectedDate != null ? dateStr(_selectedDate!) : '全部记录', style: const TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            Expanded(
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 76,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.only(left: 4, top: 4, bottom: 4),
-                      itemCount: _tabData.length,
-                      itemBuilder: (ctx, i) {
-                        final label = _tabData[i][0] as String;
-                        final icon = _tabData[i][1] as IconData;
-                        final color = _tabData[i][2] as Color;
-                        final isSelected = i == _selectedIndex;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 2),
-                          child: Material(
-                            color: isSelected ? color.withValues(alpha: 0.15) : Colors.transparent,
-                            borderRadius: BorderRadius.circular(12),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(12),
-                              onTap: () => setState(() => _selectedIndex = i),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                child: Column(
-                                  children: [
-                                    Icon(icon, color: isSelected ? color : Colors.grey, size: 22),
-                                    const SizedBox(height: 3),
-                                    Text(label, style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                      color: isSelected ? color : Colors.grey,
-                                    )),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  Container(width: 1, color: Colors.grey.withValues(alpha: 0.15)),
-                  Expanded(
-                    child: _buildContent(ds),
-                  ),
-                ],
-              ),
+          actions: [
+            IconButton(
+              icon: Icon(_selectedDate != null ? Icons.clear : Icons.calendar_month, color: const Color(0xFF6C63FF)),
+              onPressed: () {
+                if (_selectedDate != null) {
+                  setState(() => _selectedDate = null);
+                } else {
+                  showDatePicker(
+                    context: context, initialDate: DateTime.now(),
+                    firstDate: DateTime(2020), lastDate: DateTime.now(),
+                  ).then((d) { if (d != null) setState(() => _selectedDate = d); });
+                }
+              },
             ),
           ],
         ),
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: isDark ? null : const LinearGradient(colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+            color: isDark ? const Color(0xFF121212) : null,
+          ),
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildCategoryView(ds, isDark),
+              _buildTimeline(ds, isDark),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  // ====== Tab1: 分类列表 ======
+  Widget _buildCategoryView(DataService ds, bool isDark) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        await context.read<DataService>().reloadFromServer();
+        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已刷新'), duration: Duration(seconds: 1)));
+      },
+      child: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(_selectedDate != null ? dateStr(_selectedDate!) : '全部记录', style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+          )),
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 80,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                itemCount: _tabData.length,
+                itemBuilder: (ctx, i) {
+                  final label = _tabData[i][0] as String;
+                  final icon = _tabData[i][1] as IconData;
+                  final color = _tabData[i][2] as Color;
+                  final isSelected = i == _selectedIndex;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => setState(() => _selectedIndex = i),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isSelected ? color.withValues(alpha: 0.15) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(icon, color: isSelected ? color : Colors.grey, size: 20),
+                            const SizedBox(width: 4),
+                            Text(label, style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: isSelected ? color : Colors.grey)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          SliverFillRemaining(child: _buildContent(ds)),
+        ],
       ),
     );
   }
@@ -180,8 +207,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       case 14: return _buildTempList(ds);
       case 15: return _buildSimpleList(ds, 'bath', '洗澡', Icons.bathroom, const Color(0xFF81C9D6), '🛁');
       case 16: return _buildMilkStorageList(ds);
-      case 17: return _buildToothList(ds);
-      default: return const SizedBox();
+      default: return _buildToothList(ds);
     }
   }
 
@@ -205,12 +231,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Widget _buildMilkStorageList(DataService ds) {
     final records = ds.milkStorageRecords.where((r) => dateMatch(r.dateTime)).toList();
-    return _buildList(ds, records, (r) => _card(
-      r.type == 'breast' ? Icons.water_drop : Icons.kitchen,
-      r.type == 'breast' ? Colors.blue : Colors.orange,
-      '${r.typeName} ${r.displayAmount}',
-      timeStr(r.dateTime),
-      () => ds.deleteMilkStorage(r.id), '这条储奶记录'));
+    return _buildList(ds, records, (r) => _card(r.type == 'breast' ? Icons.water_drop : Icons.kitchen, r.type == 'breast' ? Colors.blue : Colors.orange, '${r.typeName} ${r.displayAmount}', timeStr(r.dateTime), () => ds.deleteMilkStorage(r.id), '这条储奶记录'));
   }
 
   Widget _buildToothList(DataService ds) {
@@ -273,4 +294,117 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ),
     );
   }
+
+  // ====== Tab2: 时间轴 ======
+  Widget _buildTimeline(DataService ds, bool isDark) {
+    // 收集所有记录
+    final items = <_TimelineItem>[];
+    for (final r in ds.feedingRecords) items.add(_TimelineItem(r.time, Icons.local_drink, Colors.blue, '🍼 喂奶', r.typeName));
+    for (final r in ds.diaperRecords) items.add(_TimelineItem(r.time, Icons.baby_changing_station, Colors.orange, '🧷 尿布', r.typeName));
+    for (final r in ds.sleepRecords) items.add(_TimelineItem(r.startTime, Icons.bedtime, Colors.purple, '😴 睡眠', r.isOngoing ? '睡眠中' : r.durationStr ?? ''));
+    for (final r in ds.growthRecords) items.add(_TimelineItem(r.date, Icons.straighten, Colors.teal, '📏 成长', '体重: ${r.weightKg ?? "-"}kg'));
+    for (final r in ds.milestoneRecords) items.add(_TimelineItem(r.date, Icons.star, Colors.amber, '🌟 ${r.category == "vaccine" ? "疫苗" : r.category == "hospital" ? "就医" : "里程碑"}', r.title));
+    for (final r in ds.allSupplementRecords()) items.add(_TimelineItem(r.date, Icons.medication, Colors.green, '💊 补充', r.items.join('、')));
+    for (final r in ds.momentRecords) items.add(_TimelineItem(r.date, Icons.photo_library, const Color(0xFFFF6B6B), '📸 动态', r.text.isNotEmpty ? r.text.substring(0, r.text.length > 20 ? 20 : r.text.length) : '[图片]'));
+    for (final r in ds.simpleRecords) items.add(_TimelineItem(r.time, Icons.fiber_manual_record, Colors.grey, r.category, r.note));
+    for (final r in ds.foodRecords) items.add(_TimelineItem(r.time, Icons.restaurant, const Color(0xFFFF8A80), '🥣 辅食', r.name));
+    for (final r in ds.tempRecords) items.add(_TimelineItem(r.time, Icons.thermostat, r.temperature > 37.5 ? Colors.red : Colors.green, '🌡 体温', '${r.temperature}℃'));
+    for (final r in ds.milkStorageRecords) items.add(_TimelineItem(r.dateTime, r.type == 'breast' ? Icons.water_drop : Icons.kitchen, r.type == 'breast' ? Colors.blue : Colors.orange, r.typeName, r.displayAmount));
+    for (final r in ds.toothRecords) items.add(_TimelineItem(r.foundDate, Icons.egg, Colors.teal, '🦷 牙齿', r.toothName));
+
+    // 按时间排序
+    items.sort((a, b) => b.time.compareTo(a.time));
+
+    // 按日期分组
+    final grouped = <String, List<_TimelineItem>>{};
+    for (final item in items) {
+      final key = '${item.time.year}/${item.time.month.toString().padLeft(2,'0')}/${item.time.day.toString().padLeft(2,'0')}';
+      if (dateMatch(item.time)) {
+        grouped.putIfAbsent(key, () => []).add(item);
+      }
+    }
+
+    if (grouped.isEmpty) {
+      return Center(child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.timeline, size: 64, color: isDark ? Colors.white24 : Colors.grey.shade300),
+          const SizedBox(height: 12),
+          Text(_selectedDate != null ? '当日无记录' : '暂无记录', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400, fontSize: 16)),
+        ],
+      ));
+    }
+
+    final sortedDates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        await context.read<DataService>().reloadFromServer();
+        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已刷新'), duration: Duration(seconds: 1)));
+      },
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          for (final dateKey in sortedDates) ...[
+            Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 4),
+              child: Text(dateKey, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : null)),
+            ),
+            for (final item in grouped[dateKey]!) ...[
+              Padding(
+                padding: const EdgeInsets.only(left: 8, bottom: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(children: [
+                      Container(
+                        width: 10, height: 10,
+                        decoration: BoxDecoration(color: item.color, shape: BoxShape.circle),
+                      ),
+                      Container(width: 2, height: 30, color: item.color.withValues(alpha: 0.2)),
+                    ]),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Card(
+                        margin: EdgeInsets.zero,
+                        color: isDark ? const Color(0xFF1E1E1E) : null,
+                        child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(children: [
+                                Icon(item.icon, color: item.color, size: 16),
+                                const SizedBox(width: 4),
+                                Text(item.title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: isDark ? Colors.white : null)),
+                                const Spacer(),
+                                Text('${item.time.hour.toString().padLeft(2,'0')}:${item.time.minute.toString().padLeft(2,'0')}', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                              ]),
+                              if (item.desc.isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Text(item.desc, style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.grey.shade600)),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TimelineItem {
+  final DateTime time;
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String desc;
+  _TimelineItem(this.time, this.icon, this.color, this.title, this.desc);
 }
