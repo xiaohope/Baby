@@ -226,11 +226,9 @@ class DataService extends ChangeNotifier {
 
   /// 从服务器返回的字符串解析DateTime（去除时区后缀，当作本地时间处理）
   DateTime _parseDt(String s) {
-    try {
-      return DateTime.parse(s.replaceAll(RegExp(r'[\.\d]*[Z\+-].*$'), ''));
-    } catch (_) {
-      return DateTime.parse(s.replaceAll('T', ' ').split('.').first.replaceAll('Z', ''));
-    }
+    // 去掉末尾的时区后缀 (Z, +08:00等) 和毫秒部分
+    final clean = s.split('+')[0].split('Z')[0].split('.')[0].replaceAll('T', ' ');
+    return DateTime.parse(clean);
   }
 
   String _tableDbName(dynamic record) {
