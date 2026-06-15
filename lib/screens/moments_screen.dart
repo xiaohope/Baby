@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -25,24 +24,11 @@ class _MomentsScreenState extends State<MomentsScreen> {
     );
     if (result == null || (result.text.isEmpty && result.images.isEmpty)) return;
 
-    // 转base64直接存数据库
-    List<String> base64Images = [];
-    if (result.images.isNotEmpty) {
-      for (final path in result.images) {
-        try {
-          final bytes = await File(path).readAsBytes();
-          final b64 = base64Encode(bytes);
-          // 如果超过50KB就跳过（MySQL TEXT上限65KB，留余量）
-          if (b64.length < 50000) base64Images.add(b64);
-        } catch (_) {}
-      }
-    }
-
     final ds = context.read<DataService>();
     await ds.addMoment(MomentRecord(
       date: DateTime.now(),
       text: result.text,
-      imagePaths: base64Images.isNotEmpty ? base64Images : result.images,
+      imagePaths: result.images,
     ));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -84,29 +70,12 @@ class _MomentsScreenState extends State<MomentsScreen> {
     );
     if (result == null) return;
 
-    // 转base64直接存数据库
-    List<String> base64Images = [];
-    for (final path in result.images) {
-      if (path.length > 500) {
-        base64Images.add(path); // 已经是base64
-      } else {
-        try {
-          final bytes = await File(path).readAsBytes();
-          final b64 = base64Encode(bytes);
-          if (b64.length < 50000) base64Images.add(b64);
-          else base64Images.add(path); // 超50KB保留路径
-        } catch (_) {
-          base64Images.add(path);
-        }
-      }
-    }
-
     final ds = context.read<DataService>();
     ds.deleteMoment(record.id);
     ds.addMoment(MomentRecord(
       date: DateTime.now(),
       text: result.text,
-      imagePaths: base64Images,
+      imagePaths: result.images,
     ));
   }
 
@@ -306,7 +275,13 @@ class _AddMomentDialogState extends State<_AddMomentDialog> {
   Future<void> _pickImage(ImageSource source) async {
     final xFile = await _picker.pickImage(source: source, maxWidth: 800, imageQuality: 60);
     if (xFile != null) {
-      setState(() => _images.add(xFile.path));
+      try {
+        final bytes = await xFile.readAsBytes();
+        final b64 = base64Encode(bytes);
+        if (b64.length < 50000) {
+          if (mounted) setState(() => _images.add(b64));
+        }
+      } catch (_) {}
     }
   }
 
