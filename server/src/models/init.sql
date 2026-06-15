@@ -189,6 +189,7 @@ CREATE TABLE IF NOT EXISTS supplement_records (
   date DATETIME NOT NULL,
   text_content TEXT,
   images JSON,
+  user_name VARCHAR(50) DEFAULT '±¦±¦',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (family_id) REFERENCES families(id)

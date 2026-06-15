@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/moment_record.dart';
 import '../services/data_service.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
 import '../widgets/image_helper.dart';
 import 'photo_preview_screen.dart';
 
@@ -29,6 +30,7 @@ class _MomentsScreenState extends State<MomentsScreen> {
       date: DateTime.now(),
       text: result.text,
       imagePaths: result.images,
+      userName: AuthService.nickname ?? '宝宝',
     ));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -76,6 +78,7 @@ class _MomentsScreenState extends State<MomentsScreen> {
       date: DateTime.now(),
       text: result.text,
       imagePaths: result.images,
+      userName: AuthService.nickname ?? '宝宝',
     ));
   }
 
@@ -151,13 +154,11 @@ class _MomentsScreenState extends State<MomentsScreen> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF6C63FF), Color(0xFFFF8A80)],
-                      ),
+                      color: r.userName == '妈妈' ? const Color(0xFFFF6B6B) : const Color(0xFF6C63FF),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Center(
-                      child: Text('👶', style: TextStyle(fontSize: 20)),
+                    child: Center(
+                      child: Text(r.userName == '妈妈' ? '👩' : '👨', style: const TextStyle(fontSize: 20)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -165,7 +166,7 @@ class _MomentsScreenState extends State<MomentsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('宝宝', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : null)),
+                        Text(r.userName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : null)),
                         Text(timeStr, style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.grey.shade500)),
                       ],
                     ),

@@ -102,7 +102,7 @@ class DataService extends ChangeNotifier {
     };
     if (record is MomentRecord) return {
       'id': record.id, 'date': record.date.toIso8601String(),
-      'text_content': record.text, 'images': record.imagePaths,
+      'text_content': record.text, 'images': record.imagePaths, 'user_name': record.userName,
     };
     if (record is SimpleRecord) return {
       'id': record.id, 'category': record.category,
@@ -161,6 +161,7 @@ class DataService extends ChangeNotifier {
       case 'moment_records': return MomentRecord(
         id: r['id'], date: DateTime.parse(r['date']),
         text: r['text_content'] ?? '',
+        userName: r['user_name'] ?? '宝宝',
         imagePaths: r['images'] != null ? (r['images'] is List ? List<String>.from(r['images']) : List<String>.from(jsonDecode(r['images']))) : [],
       );
       case 'simple_records': return SimpleRecord(
