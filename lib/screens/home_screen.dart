@@ -16,6 +16,7 @@ import 'moments_screen.dart';
 import 'simple_record_screen.dart';
 import 'food_screen.dart';
 import 'temperature_screen.dart';
+import 'milk_storage_screen.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -553,6 +554,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _QuickAction(emoji: '🥣', label: '辅食', icon: Icons.restaurant, color: const Color(0xFFFF8A80), screen: const FoodScreen()),
       _QuickAction(emoji: '🌡', label: '体温', icon: Icons.thermostat, color: const Color(0xFFE74C3C), screen: const TemperatureScreen()),
       _QuickAction(emoji: '🛁', label: '洗澡', icon: Icons.bathroom, color: const Color(0xFF81C9D6), screen: const SimpleRecordScreen(category: 'bath', title: '洗澡', icon: Icons.bathroom, color: Color(0xFF81C9D6), emoji: '🛁')),
+      _QuickAction(emoji: '🧊', label: '储奶', icon: Icons.water_drop, color: const Color(0xFF6C63FF), screen: const MilkStorageScreen()),
     ];
 
     return Column(
@@ -797,20 +799,14 @@ class _HomeScreenState extends State<HomeScreen> {
   // ====== 工具方法 ======
   String _calcAge(DateTime birthday) {
     final now = DateTime.now();
-    int months = (now.year - birthday.year) * 12 + now.month - birthday.month;
-    int days = now.day - birthday.day;
-    if (days < 0) {
-      months--;
-      final prevMonth = DateTime(now.year, now.month - 1, birthday.day);
-      days = now.difference(prevMonth).inDays;
-    }
-    if (months < 0) return '';
-    final years = months ~/ 12;
-    final m = months % 12;
-    if (months == 0) return '$days天';
-    if (years == 0) return '${m}个月$days天';
-    if (m == 0) return '$years岁$days天';
-    return '$years岁${m}个月$days天';
+    int totalDays = now.difference(birthday).inDays + 1;
+    if (totalDays < 30) return '$totalDays天';
+    int years = totalDays ~/ 365;
+    int months = (totalDays % 365) ~/ 30;
+    int days = (totalDays % 365) % 30;
+    if (years == 0) return '${months}个月${days}天';
+    if (months == 0) return '$years岁${days}天';
+    return '$years岁${months}个月${days}天';
   }
 
   String _formatSleep(int minutes) {

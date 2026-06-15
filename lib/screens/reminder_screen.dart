@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:add_2_calendar/add_2_calendar.dart';
 import '../models/reminder_record.dart';
 
 class ReminderScreen extends StatefulWidget {
@@ -18,6 +20,14 @@ class _ReminderScreenState extends State<ReminderScreen> {
 
   List<ReminderRecord> _reminders = [];
   final _notifications = FlutterLocalNotificationsPlugin();
+  final Map<String, Timer> _activeTimers = {};
+
+  void _cancelTimer(String id) {
+    if (_activeTimers.containsKey(id)) {
+      _activeTimers[id]!.cancel();
+      _activeTimers.remove(id);
+    }
+  }
 
   @override
   void initState() {
@@ -75,6 +85,9 @@ class _ReminderScreenState extends State<ReminderScreen> {
   }
 
   Future<void> _scheduleNotification(ReminderRecord r) async {
+    // 取消旧的定时器
+    _cancelTimer(r.id);
+
     // 取消所有旧通知
     await _notifications.cancel(int.parse(r.id));
     for (int d = 1; d <= 7; d++) {
@@ -99,6 +112,18 @@ class _ReminderScreenState extends State<ReminderScreen> {
             channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
         ),
       );
+      // 定时器备用方案（App存活时保证触发）
+      _cancelTimer(r.id);
+      _activeTimers[r.id] = Timer(nextTime.difference(now), () {
+        _notifications.show(
+          int.parse(r.id), r.typeName, r.title,
+          const NotificationDetails(
+            android: AndroidNotificationDetails('reminders', '提醒',
+              channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
+          ),
+        );
+      });
+
       // 每天固定时间提醒
       await _notifications.zonedSchedule(
         int.parse(r.id), r.typeName, r.title,
@@ -112,15 +137,22 @@ class _ReminderScreenState extends State<ReminderScreen> {
         matchDateTimeComponents: DateTimeComponents.time,
       );
     } else if (r.repeatDays != null && r.repeatDays!.isNotEmpty) {
-      // 每周指定天
+      // 每周指定天 - timer fallback
       for (final day in r.repeatDays!) {
         final daysUntil = (day - now.weekday + 7) % 7;
-        var nextTime = DateTime(now.year, now.month, now.day, hour, minute)
+        var t = DateTime(now.year, now.month, now.day, hour, minute)
             .add(Duration(days: daysUntil == 0 ? 7 : daysUntil));
-        if (nextTime.isBefore(now)) nextTime = nextTime.add(const Duration(days: 7));
+        if (t.isBefore(now)) t = t.add(const Duration(days: 7));
+        _cancelTimer('${r.id}_$day');
+        _activeTimers['${r.id}_$day'] = Timer(t.difference(now), () {
+          _notifications.show(int.parse('${r.id}_$day'), r.typeName, '${r.title} (${_weekNames[day]})', const NotificationDetails(
+            android: AndroidNotificationDetails('reminders', '提醒', channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
+          ));
+        });
+        var nextTime2 = t;
         await _notifications.zonedSchedule(
           int.parse('${r.id}_$day'), r.typeName, '$r.title (${_weekNames[day]})',
-          tz.TZDateTime.from(nextTime, tz.local),
+          tz.TZDateTime.from(nextTime2, tz.local),
           const NotificationDetails(
             android: AndroidNotificationDetails('reminders', '提醒',
               channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
@@ -134,6 +166,12 @@ class _ReminderScreenState extends State<ReminderScreen> {
       // 一次（时间已过则顺延到明天）
       var nextTime = DateTime(now.year, now.month, now.day, hour, minute);
       if (nextTime.isBefore(now)) nextTime = nextTime.add(const Duration(days: 1));
+      _cancelTimer(r.id);
+      _activeTimers[r.id] = Timer(nextTime.difference(now), () {
+        _notifications.show(int.parse(r.id), r.typeName, r.title, const NotificationDetails(
+          android: AndroidNotificationDetails('reminders', '提醒', channelDescription: '定时提醒通知', importance: Importance.high, priority: Priority.high),
+        ));
+      });
       await _notifications.zonedSchedule(
         int.parse(r.id), r.typeName, r.title,
         tz.TZDateTime.from(nextTime, tz.local),
@@ -145,6 +183,26 @@ class _ReminderScreenState extends State<ReminderScreen> {
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
     }
+  }
+
+  Future<void> _addToCalendar(ReminderRecord r) async {
+    final now = DateTime.now();
+    var startTime = DateTime(now.year, now.month, now.day, r.remindTime.hour, r.remindTime.minute);
+    if (startTime.isBefore(now)) startTime = startTime.add(const Duration(days: 1));
+    final event = Event(
+      title: '${r.typeName}: ${r.title}',
+      description: 'Baby App 提醒',
+      location: '',
+      startDate: startTime,
+      endDate: startTime.add(const Duration(minutes: 15)),
+      allDay: false,
+      iosParams: const IOSParams(reminder: Duration(minutes: 5)),
+
+      androidParams: const AndroidParams(emailInvites: false),
+    );
+    try {
+      await Add2Calendar.addEvent2Cal(event);
+    } catch (_) {}
   }
 
   void _addReminder() async {
@@ -162,6 +220,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
         ),
       );
       _scheduleNotification(result);
+      _addToCalendar(result); // 添加到系统日历
       setState(() {});
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -179,6 +238,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
       _reminders[index] = result;
       await _saveReminders();
       _scheduleNotification(result);
+      _addToCalendar(result);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('✅ 已更新'), duration: Duration(seconds: 1)),
@@ -188,11 +248,11 @@ class _ReminderScreenState extends State<ReminderScreen> {
     }
   }
 
-  void _toggleReminder(int index) async {
+  void _toggleReminder(int index) {
     final r = _reminders[index];
     _reminders[index] = r.copyWith(isActive: !r.isActive);
-    await _saveReminders();
-    await _scheduleNotification(_reminders[index]);
+    _saveReminders();
+    _scheduleNotification(_reminders[index]);
     setState(() {});
   }
 

@@ -11,6 +11,7 @@ import '../models/moment_record.dart';
 import '../models/simple_record.dart';
 import '../models/food_record.dart';
 import '../models/temperature_record.dart';
+import '../models/milk_storage_record.dart';
 import 'auth_service.dart';
 import 'api_service.dart';
 
@@ -28,6 +29,7 @@ class DataService extends ChangeNotifier {
   List<SimpleRecord> _simpleRecords = [];
   List<FoodRecord> _foodRecords = [];
   List<TemperatureRecord> _tempRecords = [];
+  List<MilkStorageRecord> _milkStorageRecords = [];
   String _babyName = '宝宝';
   DateTime? _babyBirthday;
   ThemeMode _themeMode = ThemeMode.system;
@@ -45,6 +47,7 @@ class DataService extends ChangeNotifier {
   List<SimpleRecord> get simpleRecords => _simpleRecords;
   List<FoodRecord> get foodRecords => _foodRecords;
   List<TemperatureRecord> get tempRecords => _tempRecords;
+  List<MilkStorageRecord> get milkStorageRecords => _milkStorageRecords;
   String get babyName => _babyName;
   DateTime? get babyBirthday => _babyBirthday;
   ThemeMode get themeMode => _themeMode;
@@ -61,6 +64,7 @@ class DataService extends ChangeNotifier {
     if (record is SimpleRecord) return 'simple';
     if (record is FoodRecord) return 'food';
     if (record is TemperatureRecord) return 'temperature';
+    if (record is MilkStorageRecord) return 'milk_storage';
     return '';
   }
 
@@ -108,6 +112,12 @@ class DataService extends ChangeNotifier {
     if (record is TemperatureRecord) return {
       'id': record.id, 'temperature': record.temperature,
       'time': _localDt(record.time), 'note': record.note,
+    };
+    if (record is MilkStorageRecord) return {
+      'id': record.id, 'type': record.type,
+      'date_time': _localDt(record.dateTime),
+      'amount_ml': record.amountMl, 'brand': record.brand,
+      'amount_g': record.amountG, 'note': record.note,
     };
     return {};
   }
@@ -160,6 +170,12 @@ class DataService extends ChangeNotifier {
       case 'temperature_records': return TemperatureRecord(
         id: r['id'], temperature: (r['temperature'] as num).toDouble(),
         time: _parseDt(r['time'].toString()), note: r['note'],
+      );
+      case 'milk_storage_records': return MilkStorageRecord(
+        id: r['id'], type: r['type'] ?? 'breast',
+        dateTime: _parseDt(r['date_time'].toString()),
+        amountMl: r['amount_ml'], brand: r['brand'],
+        amountG: r['amount_g'], note: r['note'],
       );
       default: return null;
     }
@@ -219,6 +235,7 @@ class DataService extends ChangeNotifier {
       case 'simple': return 'simple_records';
       case 'food': return 'food_records';
       case 'temperature': return 'temperature_records';
+      case 'milk_storage': return 'milk_storage_records';
       default: return '';
     }
   }
@@ -313,6 +330,7 @@ class DataService extends ChangeNotifier {
       'simple_records': (List list) => _simpleRecords = list.cast<SimpleRecord>()..sort((a,b) => b.time.compareTo(a.time)),
       'food_records': (List list) => _foodRecords = list.cast<FoodRecord>()..sort((a,b) => b.time.compareTo(a.time)),
       'temperature_records': (List list) => _tempRecords = list.cast<TemperatureRecord>()..sort((a,b) => b.time.compareTo(a.time)),
+      'milk_storage_records': (List list) => _milkStorageRecords = list.cast<MilkStorageRecord>()..sort((a,b) => b.dateTime.compareTo(a.dateTime)),
     };
 
     for (final entry in tables.entries) {
@@ -529,6 +547,21 @@ class DataService extends ChangeNotifier {
   Future<void> deleteTemperature(String id) async {
     if (await _deleteFromServer('temperature_records', id)) {
       _tempRecords.removeWhere((r) => r.id == id);
+      notifyListeners();
+    }
+  }
+
+  // ---- 储奶 ----
+  Future<void> addMilkStorage(MilkStorageRecord record) async {
+    if (await _saveToServer(record)) {
+      _milkStorageRecords.insert(0, record);
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteMilkStorage(String id) async {
+    if (await _deleteFromServer('milk_storage_records', id)) {
+      _milkStorageRecords.removeWhere((r) => r.id == id);
       notifyListeners();
     }
   }

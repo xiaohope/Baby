@@ -55,8 +55,25 @@ class _LoginScreenState extends State<LoginScreen> {
         await AuthService.saveLogin(result);
         ApiService.setToken(result['token']);
         if (mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => const Center(child: Card(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('正在加载数据...'),
+                ]),
+              ),
+            )),
+          );
           await context.read<DataService>().reloadFromServer();
-          if (mounted) Navigator.pushReplacementNamed(context, '/home');
+          if (mounted) {
+            Navigator.of(context).popUntil((r) => r.isFirst);
+            Navigator.pushReplacementNamed(context, '/home');
+          }
         }
       }
     } catch (e) {
