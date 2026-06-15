@@ -85,6 +85,7 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
             labelColor: const Color(0xFF6C63FF),
             unselectedLabelColor: Colors.grey,
             indicatorColor: const Color(0xFF6C63FF),
+            dividerColor: Colors.transparent,
           ),
           actions: [
             IconButton(
@@ -126,50 +127,60 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
         await context.read<DataService>().reloadFromServer();
         if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已刷新'), duration: Duration(seconds: 1)));
       },
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(child: Container(
+      child: Column(
+        children: [
+          Container(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(_selectedDate != null ? dateStr(_selectedDate!) : '全部记录', style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-          )),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 80,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                itemCount: _tabData.length,
-                itemBuilder: (ctx, i) {
-                  final label = _tabData[i][0] as String;
-                  final icon = _tabData[i][1] as IconData;
-                  final color = _tabData[i][2] as Color;
-                  final isSelected = i == _selectedIndex;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () => setState(() => _selectedIndex = i),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
+            child: Text(_selectedDate != null ? dateStr(_selectedDate!) : '全部记录', style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 76,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(left: 4, top: 4, bottom: 4),
+                    itemCount: _tabData.length,
+                    itemBuilder: (ctx, i) {
+                      final label = _tabData[i][0] as String;
+                      final icon = _tabData[i][1] as IconData;
+                      final color = _tabData[i][2] as Color;
+                      final isSelected = i == _selectedIndex;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Material(
                           color: isSelected ? color.withValues(alpha: 0.15) : Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () => setState(() => _selectedIndex = i),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: Column(
+                                children: [
+                                  Icon(icon, color: isSelected ? color : Colors.grey, size: 22),
+                                  const SizedBox(height: 3),
+                                  Text(label, style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    color: isSelected ? color : Colors.grey,
+                                  )),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(icon, color: isSelected ? color : Colors.grey, size: 20),
-                            const SizedBox(width: 4),
-                            Text(label, style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: isSelected ? color : Colors.grey)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
+                      );
+                    },
+                  ),
+                ),
+                Container(width: 1, color: Colors.grey.withValues(alpha: 0.15)),
+                Expanded(
+                  child: _buildContent(ds),
+                ),
+              ],
             ),
           ),
-          SliverFillRemaining(child: _buildContent(ds)),
         ],
       ),
     );

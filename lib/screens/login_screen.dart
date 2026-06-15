@@ -89,14 +89,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: isDark ? null : const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFF8F0FF), Color(0xFFFFF5EE), Color(0xFFF0F8FF)],
             begin: Alignment.topCenter, end: Alignment.bottomCenter,
           ),
         ),
+        color: isDark ? const Color(0xFF121212) : null,
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -106,8 +108,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const Icon(Icons.child_care, size: 64, color: Color(0xFF6C63FF)),
                   const SizedBox(height: 12),
-                  const Text('Baby', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF6C63FF))),
-                  const Text('宝宝成长记录', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                  Text('安·Baby', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF6C63FF))),
+                  Text('宝宝成长记录', style: TextStyle(fontSize: 14, color: isDark ? Colors.white54 : Colors.grey)),
                   const SizedBox(height: 40),
                   TextField(
                     controller: _phoneController,
