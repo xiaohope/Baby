@@ -40,6 +40,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     ['辅食', Icons.restaurant, Color(0xFFFF8A80)],
     ['体温', Icons.thermostat, Color(0xFFE74C3C)],
     ['洗澡', Icons.bathroom, Color(0xFF81C9D6)],
+    ['储奶', Icons.kitchen, Color(0xFF6C63FF)],
   ];
 
   String dateStr(DateTime d) => '${d.year}/${d.month.toString().padLeft(2,'0')}/${d.day.toString().padLeft(2,'0')}';
@@ -177,6 +178,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       case 13: return _buildFoodList(ds);
       case 14: return _buildTempList(ds);
       case 15: return _buildSimpleList(ds, 'bath', '洗澡', Icons.bathroom, const Color(0xFF81C9D6), '🛁');
+      case 16: return _buildMilkStorageList(ds);
       default: return const SizedBox();
     }
   }
@@ -197,6 +199,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
       final isHot = r.temperature > 37.5;
       return _card(Icons.thermostat, isHot ? Colors.red : Colors.green, '${r.temperature.toStringAsFixed(1)}℃', '${timeStr(r.time)}${r.note != null ? '  📝${r.note}' : ''}', () => ds.deleteTemperature(r.id), '这条体温记录', () => Navigator.push(context, MaterialPageRoute(builder: (_) => TemperatureScreen(initialRecord: r))));
     });
+  }
+
+  Widget _buildMilkStorageList(DataService ds) {
+    final records = ds.milkStorageRecords.where((r) => dateMatch(r.dateTime)).toList();
+    return _buildList(ds, records, (r) => _card(
+      r.type == 'breast' ? Icons.water_drop : Icons.kitchen,
+      r.type == 'breast' ? Colors.blue : Colors.orange,
+      '${r.typeName} ${r.displayAmount}',
+      timeStr(r.dateTime),
+      () => ds.deleteMilkStorage(r.id), '这条储奶记录'));
   }
 
   Widget _buildList(DataService ds, List records, Widget Function(dynamic) builder) {

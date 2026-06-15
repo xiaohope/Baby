@@ -20,6 +20,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _nameController = TextEditingController();
   DateTime? _birthday;
   bool _isEditing = false;
+  bool _editingJustExited = false;
   String _savedName = '';
   DateTime? _savedBirthday;
 
@@ -40,6 +41,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _startEditing() {
+    final ds = context.read<DataService>();
+    _nameController.text = ds.babyName;
+    _birthday = ds.babyBirthday;
+    _savedName = ds.babyName;
+    _savedBirthday = ds.babyBirthday;
     setState(() => _isEditing = true);
   }
 
@@ -48,6 +54,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _nameController.text = _savedName;
       _birthday = _savedBirthday;
       _isEditing = false;
+      _editingJustExited = true;
     });
   }
 
@@ -63,7 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _savedName = _nameController.text;
     _savedBirthday = _birthday;
     if (mounted) {
-      setState(() => _isEditing = false);
+      setState(() { _isEditing = false; _editingJustExited = true; });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('✅ 已保存'), duration: Duration(seconds: 1)),
       );
@@ -73,6 +80,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final ds = context.watch<DataService>();
+    // 非编辑模式下同步显示最新数据
+    if (!_isEditing && !_editingJustExited) {
+      _nameController.text = ds.babyName;
+      _birthday = ds.babyBirthday;
+    }
 
     return Scaffold(
       appBar: AppBar(
