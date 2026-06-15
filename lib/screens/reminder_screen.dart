@@ -198,7 +198,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
       allDay: false,
       iosParams: const IOSParams(reminder: Duration(minutes: 5)),
 
-      androidParams: const AndroidParams(emailInvites: false),
+      androidParams: const AndroidParams(),
     );
     try {
       await Add2Calendar.addEvent2Cal(event);
