@@ -278,9 +278,7 @@ class _AddMomentDialogState extends State<_AddMomentDialog> {
       try {
         final bytes = await xFile.readAsBytes();
         final b64 = base64Encode(bytes);
-        if (b64.length < 50000) {
-          if (mounted) setState(() => _images.add(b64));
-        }
+        if (mounted) setState(() => _images.add(b64));
       } catch (_) {}
     }
   }
