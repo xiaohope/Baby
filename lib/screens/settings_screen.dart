@@ -313,7 +313,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: Color(0xFF6C63FF)),
                     title: const Text('版本'),
-                    trailing: const Text('4.1.1'),
+                    trailing: const Text('4.2.0'),
                     onTap: _checkUpdate,
                   ),
                   const Divider(height: 1),
@@ -364,7 +364,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final serverVersion = data['version'] as String? ?? '4.0.0';
-        const currentVersion = '4.1.1';
+        const currentVersion = '4.2.0';
         if (serverVersion.compareTo(currentVersion) > 0 && mounted) {
           showDialog(
             context: context,

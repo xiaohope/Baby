@@ -23,7 +23,7 @@ app.use('/uploads', express.static('uploads'));
 // 版本检查
 app.get('/api/version', (req, res) => {
   res.json({
-    version: '4.1.1',
+    version: '4.2.0',
     apkUrl: '/downloads/baby.apk',
     updateUrl: 'https://github.com/xiaohope/Baby/releases/latest',
     desc: '新增: 数据实时同步、图片base64存储、bug修复',
