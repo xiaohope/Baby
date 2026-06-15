@@ -346,7 +346,15 @@ class DataService extends ChangeNotifier {
 
     for (final entry in tables.entries) {
       final rawList = data[entry.key] as List? ?? [];
-      final parsed = rawList.map((r) => _mapToRecord(entry.key, r)).whereType<dynamic>().toList();
+      final parsed = <dynamic>[];
+      for (final r in rawList) {
+        try {
+          final record = _mapToRecord(entry.key, r);
+          if (record != null) parsed.add(record);
+        } catch (_) {
+          // 跳过解析失败的记录（如图片数据损坏）
+        }
+      }
       entry.value(parsed);
     }
   }
