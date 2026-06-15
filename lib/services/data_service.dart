@@ -145,9 +145,9 @@ class DataService extends ChangeNotifier {
       );
       case 'growth_records': return GrowthRecord(
         id: r['id'], date: DateTime.parse(r['date']),
-        weightKg: (r['weight_kg'] as num?)?.toDouble(),
-        heightCm: (r['height_cm'] as num?)?.toDouble(),
-        headCircumferenceCm: (r['head_circumference_cm'] as num?)?.toDouble(),
+        weightKg: double.tryParse(r['weight_kg']?.toString() ?? ''),
+        heightCm: double.tryParse(r['height_cm']?.toString() ?? ''),
+        headCircumferenceCm: double.tryParse(r['head_circumference_cm']?.toString() ?? ''),
         note: r['note'],
       );
       case 'milestone_records': return MilestoneRecord(
@@ -173,7 +173,7 @@ class DataService extends ChangeNotifier {
         feeling: r['feeling'], time: _parseDt(r['time'].toString()), note: r['note'],
       );
       case 'temperature_records': return TemperatureRecord(
-        id: r['id'], temperature: (r['temperature'] as num).toDouble(),
+        id: r['id'], temperature: double.tryParse(r['temperature']?.toString() ?? '') ?? 0.0,
         time: _parseDt(r['time'].toString()), note: r['note'],
       );
       case 'milk_storage_records': return MilkStorageRecord(
