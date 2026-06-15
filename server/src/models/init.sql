@@ -111,7 +111,20 @@ CREATE TABLE IF NOT EXISTS milk_storage_records (
   brand VARCHAR(100),
   amount_g INT,
   note TEXT,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (family_id) REFERENCES families(id)
+);
+
+-- ÑÀ³Ý¼ÇÂ¼
+CREATE TABLE IF NOT EXISTS tooth_records (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36) NOT NULL,
+  family_id VARCHAR(36) NOT NULL,
+  tooth_index INT NOT NULL,
+  found_date DATE NOT NULL,
+  note TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (family_id) REFERENCES families(id)
 );

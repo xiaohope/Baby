@@ -40,6 +40,10 @@ class StatsScreen extends StatelessWidget {
     final tempCount = stats['tempCount'] ?? 0;
     final bathCount = stats['bathCount'] ?? 0;
     final vaccineCount = stats['vaccineCount'] ?? 0;
+    final milkBagCount = stats['milkBagCount'] ?? 0;
+    final milkLiter = stats['milkLiter'] ?? 0;
+    final formulaCount = stats['formulaCount'] ?? 0;
+    final toothCount = stats['toothCount'] ?? 0;
     final totalSleepMinutes = stats['totalSleepMinutes'] ?? 0;
     final totalBreastMinutes = stats['totalBreastMinutes'] ?? 0;
 
@@ -59,36 +63,25 @@ class StatsScreen extends StatelessWidget {
           // ====== 今日概况 ======
           Text('今日概况', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Row(children: [
-                    _statCard('喂奶', '$feedingCount次', Icons.local_drink, const Color(0xFF6C63FF)),
-                    _statCard('奶量', '${totalBottleMl}ml', Icons.water_drop, const Color(0xFF81C9D6)),
-                    _statCard('尿布', '$diaperCount次', Icons.baby_changing_station, const Color(0xFFFF8A80)),
-                  ]),
-                  const SizedBox(height: 8),
-                  Row(children: [
-                    _statCard('睡眠', _formatSleep(totalSleepMinutes), Icons.bedtime, const Color(0xFFD4A5FF)),
-                    _statCard('母乳', '$totalBreastMinutes分', Icons.child_care, const Color(0xFFFF6B6B)),
-                    _statCard('尿尿', '$peeSimpleCount次', Icons.water_drop, const Color(0xFF4A90D9)),
-                    _statCard('喝水', '$waterCount次', Icons.local_drink, const Color(0xFF3498DB)),
-                    _statCard('辅食', '$foodCount次', Icons.restaurant, const Color(0xFFFF8A80)),
-                    _statCard('体温', '$tempCount次', Icons.thermostat, const Color(0xFFE74C3C)),
-                    _statCard('洗澡', '$bathCount次', Icons.bathroom, const Color(0xFF81C9D6)),
-                    _statCard('疫苗', '$vaccineCount次', Icons.vaccines, const Color(0xFF27AE60)),
-                  ]),
-                  const SizedBox(height: 8),
-                  Row(children: [
-                    _statCard('粑粑', '$poopSimpleCount次', Icons.report, const Color(0xFF8B5E3C)),
-                    _statCard('用药', '$medCount次', Icons.medication, const Color(0xFFE74C3C)),
-                  ]),
-                ],
-              ),
-            ),
-          ),
+          _buildStatGrid([
+            _StatItem('喂奶', '$feedingCount次', Icons.local_drink, const Color(0xFF6C63FF)),
+            _StatItem('奶量', '${totalBottleMl}ml', Icons.water_drop, const Color(0xFF81C9D6)),
+            _StatItem('尿布', '$diaperCount次', Icons.baby_changing_station, const Color(0xFFFF8A80)),
+            _StatItem('睡眠', _formatSleep(totalSleepMinutes), Icons.bedtime, const Color(0xFFD4A5FF)),
+            _StatItem('母乳', '$totalBreastMinutes分', Icons.child_care, const Color(0xFFFF6B6B)),
+            _StatItem('尿尿', '$peeSimpleCount次', Icons.water_drop, const Color(0xFF4A90D9)),
+            _StatItem('粑粑', '$poopSimpleCount次', Icons.report, const Color(0xFF8B5E3C)),
+            _StatItem('喝水', '$waterCount次', Icons.local_drink, const Color(0xFF3498DB)),
+            _StatItem('用药', '$medCount次', Icons.medication, const Color(0xFFE74C3C)),
+            _StatItem('辅食', '$foodCount次', Icons.restaurant, const Color(0xFFFF8A80)),
+            _StatItem('体温', '$tempCount次', Icons.thermostat, const Color(0xFFE74C3C)),
+            _StatItem('洗澡', '$bathCount次', Icons.bathroom, const Color(0xFF81C9D6)),
+            _StatItem('疫苗', '$vaccineCount次', Icons.vaccines, const Color(0xFF27AE60)),
+            _StatItem('储奶', '$milkBagCount袋', Icons.kitchen, const Color(0xFF6C63FF)),
+            _StatItem('奶量', '${(milkLiter / 1000).toStringAsFixed(2)}L', Icons.water_drop, const Color(0xFF6C63FF)),
+            _StatItem('奶粉', '$formulaCount罐', Icons.inventory_2, const Color(0xFFFF8A80)),
+            _StatItem('牙齿', '$toothCount颗', Icons.egg, Colors.teal),
+          ]),
           const SizedBox(height: 24),
 
           // ====== 近7天喂奶趋势 ======
@@ -150,6 +143,31 @@ class StatsScreen extends StatelessWidget {
   }
 
   // ====== 组件 ======
+  Widget _buildStatGrid(List<_StatItem> items) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: GridView.count(
+          crossAxisCount: 4,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          childAspectRatio: 1.1,
+          mainAxisSpacing: 4,
+          crossAxisSpacing: 4,
+          children: items.map((item) => Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(item.icon, color: item.color, size: 22),
+              const SizedBox(height: 4),
+              Text(item.value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: item.color)),
+              Text(item.label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+            ],
+          )).toList(),
+        ),
+      ),
+    );
+  }
+
   Widget _statCard(String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Column(
@@ -338,7 +356,7 @@ class StatsScreen extends StatelessWidget {
 
   Widget _buildWeekSummary(DataService ds, BuildContext context) {
     final now = DateTime.now();
-    int totalFeeding = 0, totalDiaper = 0, totalPee = 0, totalPoop = 0, totalMed = 0, totalWater = 0, totalFood = 0, totalTemp = 0, totalBath = 0, totalVaccine = 0, totalSleepH = 0;
+    int totalFeeding = 0, totalDiaper = 0, totalPee = 0, totalPoop = 0, totalMed = 0, totalWater = 0, totalFood = 0, totalTemp = 0, totalBath = 0, totalVaccine = 0, totalMilkBag = 0, totalMilkLiter = 0, totalFormula = 0, totalSleepH = 0;
     for (int i = 6; i >= 0; i--) {
       final d = now.subtract(Duration(days: i));
       totalFeeding += ds.feedingRecords.where((r) => _isSameDay(r.time, d)).length;
@@ -351,6 +369,10 @@ class StatsScreen extends StatelessWidget {
       totalTemp += ds.tempRecords.where((r) => _isSameDay(r.time, d)).length;
       totalBath += ds.simpleRecordsByCategory('bath').where((r) => _isSameDay(r.time, d)).length;
       totalVaccine += ds.milestoneRecords.where((r) => _isSameDay(r.date, d) && r.category == 'vaccine').length;
+      final dayMilk = ds.milkStorageRecords.where((r) => _isSameDay(r.dateTime, d)).toList();
+      totalMilkBag += dayMilk.where((r) => r.type == 'breast').length;
+      totalMilkLiter += dayMilk.where((r) => r.type == 'breast').fold<int>(0, (s, r) => s + (r.amountMl ?? 0));
+      totalFormula += dayMilk.where((r) => r.type == 'formula').length;
       for (final s in ds.sleepRecords.where((r) => _isSameDay(r.startTime, d))) {
         if (s.duration != null) totalSleepH += s.duration!.inHours;
       }
@@ -359,24 +381,33 @@ class StatsScreen extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('本周汇总', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
       const SizedBox(height: 12),
-      Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
-        Row(children: [
-          _statCard('喂奶', '${totalFeeding}次', Icons.local_drink, const Color(0xFF6C63FF)),
-          _statCard('尿布', '${totalDiaper}次', Icons.baby_changing_station, const Color(0xFFFF8A80)),
-          _statCard('睡眠', '${totalSleepH}小时', Icons.bedtime, const Color(0xFFD4A5FF)),
-        ]),
-        const SizedBox(height: 8),
-        Row(children: [
-          _statCard('尿尿', '${totalPee}次', Icons.water_drop, const Color(0xFF4A90D9)),
-          _statCard('粑粑', '${totalPoop}次', Icons.report, const Color(0xFF8B5E3C)),
-          _statCard('用药', '${totalMed}次', Icons.medication, const Color(0xFFE74C3C)),
-          _statCard('喝水', '${totalWater}次', Icons.local_drink, const Color(0xFF3498DB)),
-          _statCard('辅食', '${totalFood}次', Icons.restaurant, const Color(0xFFFF8A80)),
-          _statCard('体温', '${totalTemp}次', Icons.thermostat, const Color(0xFFE74C3C)),
-          _statCard('洗澡', '${totalBath}次', Icons.bathroom, const Color(0xFF81C9D6)),
-          _statCard('疫苗', '${totalVaccine}次', Icons.vaccines, const Color(0xFF27AE60)),
-        ]),
-      ]))),
+      _buildStatGrid([
+        _StatItem('喂奶', '${totalFeeding}次', Icons.local_drink, const Color(0xFF6C63FF)),
+        _StatItem('尿布', '${totalDiaper}次', Icons.baby_changing_station, const Color(0xFFFF8A80)),
+        _StatItem('睡眠', '${totalSleepH}小时', Icons.bedtime, const Color(0xFFD4A5FF)),
+        _StatItem('尿尿', '${totalPee}次', Icons.water_drop, const Color(0xFF4A90D9)),
+        _StatItem('粑粑', '${totalPoop}次', Icons.report, const Color(0xFF8B5E3C)),
+        _StatItem('用药', '${totalMed}次', Icons.medication, const Color(0xFFE74C3C)),
+        _StatItem('喝水', '${totalWater}次', Icons.local_drink, const Color(0xFF3498DB)),
+        _StatItem('辅食', '${totalFood}次', Icons.restaurant, const Color(0xFFFF8A80)),
+        _StatItem('体温', '${totalTemp}次', Icons.thermostat, const Color(0xFFE74C3C)),
+        _StatItem('洗澡', '${totalBath}次', Icons.bathroom, const Color(0xFF81C9D6)),
+        _StatItem('疫苗', '${totalVaccine}次', Icons.vaccines, const Color(0xFF27AE60)),
+        _StatItem('储奶', '${totalMilkBag}袋', Icons.kitchen, const Color(0xFF6C63FF)),
+        _StatItem('奶量', '${(totalMilkLiter / 1000).toStringAsFixed(2)}L', Icons.water_drop, const Color(0xFF6C63FF)),
+        _StatItem('奶粉', '${totalFormula}罐', Icons.inventory_2, const Color(0xFFFF8A80)),
+        _StatItem('牙齿', '${ds.toothRecords.length}颗', Icons.egg, Colors.teal),
+      ]),
     ]);
   }
+}
+
+class _StatItem {
+
+class _StatItem {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+  const _StatItem(this.label, this.value, this.icon, this.color);
 }

@@ -17,6 +17,7 @@ import 'simple_record_screen.dart';
 import 'food_screen.dart';
 import 'temperature_screen.dart';
 import 'milk_storage_screen.dart';
+import 'tooth_screen.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -555,6 +556,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _QuickAction(emoji: '🌡', label: '体温', icon: Icons.thermostat, color: const Color(0xFFE74C3C), screen: const TemperatureScreen()),
       _QuickAction(emoji: '🛁', label: '洗澡', icon: Icons.bathroom, color: const Color(0xFF81C9D6), screen: const SimpleRecordScreen(category: 'bath', title: '洗澡', icon: Icons.bathroom, color: Color(0xFF81C9D6), emoji: '🛁')),
       _QuickAction(emoji: '🧊', label: '储奶', icon: Icons.water_drop, color: const Color(0xFF6C63FF), screen: const MilkStorageScreen()),
+      _QuickAction(emoji: '🦷', label: '牙齿', icon: Icons.egg, color: Colors.teal, screen: const ToothScreen()),
     ];
 
     return Column(

@@ -41,6 +41,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     ['体温', Icons.thermostat, Color(0xFFE74C3C)],
     ['洗澡', Icons.bathroom, Color(0xFF81C9D6)],
     ['储奶', Icons.kitchen, Color(0xFF6C63FF)],
+    ['牙齿', Icons.egg, Color(0xFF26A69A)],
   ];
 
   String dateStr(DateTime d) => '${d.year}/${d.month.toString().padLeft(2,'0')}/${d.day.toString().padLeft(2,'0')}';
@@ -179,6 +180,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       case 14: return _buildTempList(ds);
       case 15: return _buildSimpleList(ds, 'bath', '洗澡', Icons.bathroom, const Color(0xFF81C9D6), '🛁');
       case 16: return _buildMilkStorageList(ds);
+      case 17: return _buildToothList(ds);
       default: return const SizedBox();
     }
   }
@@ -209,6 +211,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
       '${r.typeName} ${r.displayAmount}',
       timeStr(r.dateTime),
       () => ds.deleteMilkStorage(r.id), '这条储奶记录'));
+  }
+
+  Widget _buildToothList(DataService ds) {
+    final records = ds.toothRecords.where((r) => dateMatch(r.foundDate)).toList();
+    return _buildList(ds, records, (r) => _card(Icons.egg, Colors.teal, '${r.toothName} (${r.toothType})', '${r.foundDate.month}/${r.foundDate.day}${r.note != null ? '  📝${r.note}' : ''}', () => ds.deleteTooth(r.id), '这条牙齿记录'));
   }
 
   Widget _buildList(DataService ds, List records, Widget Function(dynamic) builder) {

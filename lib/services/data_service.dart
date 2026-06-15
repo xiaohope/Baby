@@ -12,6 +12,7 @@ import '../models/simple_record.dart';
 import '../models/food_record.dart';
 import '../models/temperature_record.dart';
 import '../models/milk_storage_record.dart';
+import '../models/tooth_record.dart';
 import 'auth_service.dart';
 import 'api_service.dart';
 
@@ -30,6 +31,7 @@ class DataService extends ChangeNotifier {
   List<FoodRecord> _foodRecords = [];
   List<TemperatureRecord> _tempRecords = [];
   List<MilkStorageRecord> _milkStorageRecords = [];
+  List<ToothRecord> _toothRecords = [];
   String _babyName = '宝宝';
   DateTime? _babyBirthday;
   ThemeMode _themeMode = ThemeMode.system;
@@ -48,6 +50,7 @@ class DataService extends ChangeNotifier {
   List<FoodRecord> get foodRecords => _foodRecords;
   List<TemperatureRecord> get tempRecords => _tempRecords;
   List<MilkStorageRecord> get milkStorageRecords => _milkStorageRecords;
+  List<ToothRecord> get toothRecords => _toothRecords;
   String get babyName => _babyName;
   DateTime? get babyBirthday => _babyBirthday;
   ThemeMode get themeMode => _themeMode;
@@ -65,6 +68,7 @@ class DataService extends ChangeNotifier {
     if (record is FoodRecord) return 'food';
     if (record is TemperatureRecord) return 'temperature';
     if (record is MilkStorageRecord) return 'milk_storage';
+    if (record is ToothRecord) return 'tooth';
     return '';
   }
 
@@ -177,6 +181,11 @@ class DataService extends ChangeNotifier {
         amountMl: r['amount_ml'], brand: r['brand'],
         amountG: r['amount_g'], note: r['note'],
       );
+      case 'tooth_records': return ToothRecord(
+        id: r['id'], toothIndex: r['tooth_index'],
+        foundDate: DateTime.parse(r['found_date']),
+        note: r['note'],
+      );
       default: return null;
     }
   }
@@ -236,6 +245,7 @@ class DataService extends ChangeNotifier {
       case 'food': return 'food_records';
       case 'temperature': return 'temperature_records';
       case 'milk_storage': return 'milk_storage_records';
+      case 'tooth': return 'tooth_records';
       default: return '';
     }
   }
@@ -331,6 +341,7 @@ class DataService extends ChangeNotifier {
       'food_records': (List list) => _foodRecords = list.cast<FoodRecord>()..sort((a,b) => b.time.compareTo(a.time)),
       'temperature_records': (List list) => _tempRecords = list.cast<TemperatureRecord>()..sort((a,b) => b.time.compareTo(a.time)),
       'milk_storage_records': (List list) => _milkStorageRecords = list.cast<MilkStorageRecord>()..sort((a,b) => b.dateTime.compareTo(a.dateTime)),
+      'tooth_records': (List list) => _toothRecords = list.cast<ToothRecord>()..sort((a,b) => b.foundDate.compareTo(a.foundDate)),
     };
 
     for (final entry in tables.entries) {
@@ -566,6 +577,21 @@ class DataService extends ChangeNotifier {
     }
   }
 
+  // ---- 牙齿 ----
+  Future<void> addTooth(ToothRecord record) async {
+    if (await _saveToServer(record)) {
+      _toothRecords.insert(0, record);
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteTooth(String id) async {
+    if (await _deleteFromServer('tooth_records', id)) {
+      _toothRecords.removeWhere((r) => r.id == id);
+      notifyListeners();
+    }
+  }
+
   // ---- 今日统计 ----
   Map<String, dynamic> todayStats() {
     final now = DateTime.now();
@@ -615,6 +641,15 @@ class DataService extends ChangeNotifier {
       r.category == 'vaccine' && r.date.toIso8601String().substring(0, 10) == nowStr
     ).length;
 
+    // 储奶统计
+    final todayMilkRecords = _milkStorageRecords.where((r) =>
+      r.dateTime.toIso8601String().substring(0, 10) == nowStr
+    ).toList();
+    int milkBagCount = todayMilkRecords.where((r) => r.type == 'breast').length;
+    int milkLiter = todayMilkRecords.where((r) => r.type == 'breast').fold<int>(0, (s, r) => s + (r.amountMl ?? 0));
+    int formulaCount = todayMilkRecords.where((r) => r.type == 'formula').length;
+    int toothCount = _toothRecords.length;
+
     int totalSleepMinutes = 0;
     for (final s in sleeps) {
       if (s.duration != null) {
@@ -637,6 +672,10 @@ class DataService extends ChangeNotifier {
       'tempCount': tempCount,
       'bathCount': bathCount,
       'vaccineCount': vaccineCount,
+      'milkBagCount': milkBagCount,
+      'milkLiter': milkLiter,
+      'formulaCount': formulaCount,
+      'toothCount': toothCount,
       'totalSleepMinutes': totalSleepMinutes,
     };
   }

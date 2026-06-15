@@ -33,6 +33,7 @@ router.post('/upload', auth, async (req, res) => {
           food: { name: 'food_records', timeField: 'time' },
           temperature: { name: 'temperature_records', timeField: 'time' },
           milk_storage: { name: 'milk_storage_records', timeField: 'date_time' },
+          tooth: { name: 'tooth_records', timeField: 'found_date' },
         };
 
         const tableInfo = tableMap[table];
@@ -86,7 +87,7 @@ router.get('/sync', auth, async (req, res) => {
     const tables = [
       'feeding_records', 'diaper_records', 'sleep_records',
       'growth_records', 'milestone_records', 'supplement_records',
-      'moment_records', 'simple_records', 'food_records', 'temperature_records', 'milk_storage_records',
+      'moment_records', 'simple_records', 'food_records', 'temperature_records', 'milk_storage_records', 'tooth_records',
     ];
 
     const result = {};
@@ -118,7 +119,7 @@ router.delete('/:table/:id', auth, async (req, res) => {
     const allowedTables = [
       'feeding_records', 'diaper_records', 'sleep_records',
       'growth_records', 'milestone_records', 'supplement_records',
-      'moment_records', 'simple_records', 'food_records', 'temperature_records', 'milk_storage_records',
+      'moment_records', 'simple_records', 'food_records', 'temperature_records', 'milk_storage_records', 'tooth_records',
     ];
     if (!allowedTables.includes(table)) {
       return res.status(400).json({ error: '无效的表名' });
