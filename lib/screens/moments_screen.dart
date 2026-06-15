@@ -31,6 +31,23 @@ class _MomentsScreenState extends State<MomentsScreen> {
       for (final path in result.images) {
         try {
           final bytes = await File(path).readAsBytes();
+          // 压缩图片到<50KB避免MySQL TEXT截断(65KB)
+          final img = await decodeImageFromList(bytes);
+          double scale = 1.0;
+          if (bytes.length > 40000) scale = 40000 / bytes.length;
+          if (scale < 0.3) scale = 0.3;
+          if (scale < 1.0) {
+            final codec = await instantiateImageCodec(bytes,
+              targetWidth: (img.width * scale).round(),
+              targetHeight: (img.height * scale).round(),
+            );
+            final frame = await codec.getNextFrame();
+            final resized = await frame.image.toByteData(format: ImageByteFormat.jpeg, quality: 70);
+            if (resized != null) {
+              base64Images.add(base64Encode(resized.buffer.asUint8List()));
+              continue;
+            }
+          }
           base64Images.add(base64Encode(bytes));
         } catch (_) {}
       }
@@ -90,6 +107,22 @@ class _MomentsScreenState extends State<MomentsScreen> {
       } else {
         try {
           final bytes = await File(path).readAsBytes();
+          final img = await decodeImageFromList(bytes);
+          double scale = 1.0;
+          if (bytes.length > 40000) scale = 40000 / bytes.length;
+          if (scale < 0.3) scale = 0.3;
+          if (scale < 1.0) {
+            final codec = await instantiateImageCodec(bytes,
+              targetWidth: (img.width * scale).round(),
+              targetHeight: (img.height * scale).round(),
+            );
+            final frame = await codec.getNextFrame();
+            final resized = await frame.image.toByteData(format: ImageByteFormat.jpeg, quality: 70);
+            if (resized != null) {
+              base64Images.add(base64Encode(resized.buffer.asUint8List()));
+              continue;
+            }
+          }
           base64Images.add(base64Encode(bytes));
         } catch (_) {
           base64Images.add(path);
