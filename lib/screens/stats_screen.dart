@@ -403,8 +403,6 @@ class StatsScreen extends StatelessWidget {
 }
 
 class _StatItem {
-
-class _StatItem {
   final String label;
   final String value;
   final IconData icon;

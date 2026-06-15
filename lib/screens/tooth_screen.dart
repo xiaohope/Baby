@@ -157,7 +157,7 @@ class _ToothScreenState extends State<ToothScreen> {
                       children: List.generate(5, (i) {
                         final idx = 6 + i; // 左上 6-10
                         final has = recordedIndexes.contains(idx);
-                        return _toothBtn(idx, has, Colors.blue);
+                        return _toothBtn(idx, has, Colors.blue, allRecords: records, isDarkMode: isDark);
                       }),
                     ),
                     const SizedBox(height: 4),
@@ -166,7 +166,7 @@ class _ToothScreenState extends State<ToothScreen> {
                       children: List.generate(5, (i) {
                         final idx = 1 + i; // 右上 1-5
                         final has = recordedIndexes.contains(idx);
-                        return _toothBtn(idx, has, Colors.red);
+                        return _toothBtn(idx, has, Colors.red, allRecords: records, isDarkMode: isDark);
                       }),
                     ),
                     const SizedBox(height: 16),
@@ -176,7 +176,7 @@ class _ToothScreenState extends State<ToothScreen> {
                       children: List.generate(5, (i) {
                         final idx = 11 + i; // 左下 11-15
                         final has = recordedIndexes.contains(idx);
-                        return _toothBtn(idx, has, Colors.green);
+                        return _toothBtn(idx, has, Colors.green, allRecords: records, isDarkMode: isDark);
                       }),
                     ),
                     const SizedBox(height: 4),
@@ -185,7 +185,7 @@ class _ToothScreenState extends State<ToothScreen> {
                       children: List.generate(5, (i) {
                         final idx = 16 + i; // 右下 16-20
                         final has = recordedIndexes.contains(idx);
-                        return _toothBtn(idx, has, Colors.orange);
+                        return _toothBtn(idx, has, Colors.orange, allRecords: records, isDarkMode: isDark);
                       }),
                     ),
                   ],
@@ -302,18 +302,20 @@ class _ToothScreenState extends State<ToothScreen> {
     );
   }
 
-  Widget _toothBtn(int index, bool hasRecord, Color color) {
+  Widget _toothBtn(int index, bool hasRecord, Color color, {List<ToothRecord>? allRecords, bool? isDarkMode}) {
+    final rec = allRecords ?? <ToothRecord>[];
+    final dark = isDarkMode ?? false;
     return Padding(
       padding: const EdgeInsets.all(2),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
         onTap: hasRecord
-            ? () => _editTooth(records.firstWhere((r) => r.toothIndex == index))
+            ? () => _editTooth(rec.firstWhere((r) => r.toothIndex == index))
             : () => _addTooth(index),
         child: Container(
           width: 48, height: 48,
           decoration: BoxDecoration(
-            color: hasRecord ? color.withValues(alpha: 0.2) : (isDark ? const Color(0xFF2A2A2A) : Colors.grey.shade100),
+            color: hasRecord ? color.withValues(alpha: 0.2) : (dark ? const Color(0xFF2A2A2A) : Colors.grey.shade100),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: hasRecord ? color : Colors.grey.shade300, width: 1),
           ),
