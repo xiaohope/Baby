@@ -15,6 +15,7 @@ class _SupplementScreenState extends State<SupplementScreen> {
   final _newItemController = TextEditingController();
   List<String> _items = [];
   final Set<int> _checked = {};
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
@@ -36,7 +37,7 @@ class _SupplementScreenState extends State<SupplementScreen> {
     final ds = context.read<DataService>();
     final checkedItems = _items.asMap().entries.where((e) => _checked.contains(e.key)).map((e) => e.value).toList();
     await ds.setSupplement(SupplementRecord(
-      date: DateTime.now(),
+      date: _selectedDate,
       items: checkedItems,
     ));
     if (mounted) {
@@ -103,24 +104,20 @@ class _SupplementScreenState extends State<SupplementScreen> {
                     Row(children: [
                       const Icon(Icons.medication, color: Color(0xFF6C63FF)),
                       const SizedBox(width: 8),
-                      Text('今日补充', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: isDark ? Colors.white : null)),
+                      Text('营养补充', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: isDark ? Colors.white : null)),
                       const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: _items.isNotEmpty
-                              ? Colors.green.withValues(alpha: 0.1)
-                              : Colors.grey.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${_items.length}项',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: _items.isNotEmpty ? Colors.green : Colors.grey,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                      TextButton.icon(
+                        icon: const Icon(Icons.calendar_today, size: 16, color: Color(0xFF6C63FF)),
+                        label: Text('${_selectedDate.month}/${_selectedDate.day} ${_selectedDate.hour.toString().padLeft(2,'0')}:${_selectedDate.minute.toString().padLeft(2,'0')}', style: const TextStyle(fontSize: 12, color: Color(0xFF6C63FF))),
+                        onPressed: () async {
+                          final d = await showDatePicker(context: context, initialDate: _selectedDate, firstDate: DateTime(2020), lastDate: DateTime.now().add(const Duration(days: 1)));
+                          if (d != null) {
+                            final t = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(_selectedDate));
+                            if (t != null && mounted) {
+                              setState(() => _selectedDate = DateTime(d.year, d.month, d.day, t.hour, t.minute));
+                            }
+                          }
+                        },
                       ),
                     ]),
                     const SizedBox(height: 16),

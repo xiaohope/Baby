@@ -97,7 +97,7 @@ class DataService extends ChangeNotifier {
       'title': record.title, 'note': record.note, 'category': record.category,
     };
     if (record is SupplementRecord) return {
-      'id': record.id, 'date': record.date.toIso8601String().substring(0, 10),
+      'id': record.id, 'date': _localDt(record.date),
       'items': record.items,
     };
     if (record is MomentRecord) return {
@@ -155,7 +155,7 @@ class DataService extends ChangeNotifier {
         title: r['title'], note: r['note'], category: r['category'] ?? 'milestone',
       );
       case 'supplement_records': return SupplementRecord(
-        id: r['id'], date: DateTime.parse(r['date']),
+        id: r['id'], date: _parseDt(r['date'].toString()),
         items: r['items'] != null ? (r['items'] is List ? List<String>.from(r['items']) : List<String>.from(jsonDecode(r['items']))) : [],
       );
       case 'moment_records': return MomentRecord(

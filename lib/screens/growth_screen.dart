@@ -16,11 +16,13 @@ class _GrowthScreenState extends State<GrowthScreen> {
   final _heightController = TextEditingController();
   final _headController = TextEditingController();
   final _noteController = TextEditingController();
+  DateTime _selectedDate = DateTime.now();
   String? _editingId;
 
   void _startEdit(GrowthRecord r) {
     setState(() {
       _editingId = r.id;
+      _selectedDate = r.date;
       _weightController.text = r.weightKg?.toString() ?? '';
       _heightController.text = r.heightCm?.toString() ?? '';
       _headController.text = r.headCircumferenceCm?.toString() ?? '';
@@ -59,7 +61,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
     if (_editingId != null) await ds.deleteGrowth(_editingId!);
     await ds.addGrowth(GrowthRecord(
       id: _editingId,
-      date: DateTime.now(),
+      date: _selectedDate,
       weightKg: double.tryParse(_weightController.text),
       heightCm: double.tryParse(_heightController.text),
       headCircumferenceCm: double.tryParse(_headController.text),
@@ -112,7 +114,18 @@ class _GrowthScreenState extends State<GrowthScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('新增记录', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : null)),
+                    Row(children: [
+                      Text('新增记录', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : null)),
+                      const Spacer(),
+                      TextButton.icon(
+                        icon: const Icon(Icons.calendar_today, size: 16),
+                        label: Text('${_selectedDate.month}/${_selectedDate.day}', style: const TextStyle(fontSize: 13)),
+                        onPressed: () async {
+                          final d = await showDatePicker(context: context, initialDate: _selectedDate, firstDate: DateTime(2020), lastDate: DateTime.now());
+                          if (d != null && mounted) setState(() => _selectedDate = d);
+                        },
+                      ),
+                    ]),
                     const SizedBox(height: 16),
                     Row(children: [
                       Expanded(child: _buildField('体重 (kg)', _weightController)),
