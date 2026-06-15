@@ -195,13 +195,13 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
       case 2: return _buildList(ds, ds.sleepRecords.where((r) => dateMatch(r.startTime)).toList(),
         (r) => _card(Icons.bedtime, Colors.purple, r.isOngoing ? '睡眠中' : '睡眠', '${timeStr(r.startTime)}${r.endTime != null ? ' - ${timeStr(r.endTime!)}' : ''}  ${r.durationStr}', () => ds.deleteSleep(r.id), '这条睡眠记录', () => Navigator.push(context, MaterialPageRoute(builder: (_) => SleepScreen(initialRecord: r)))));
       case 3: return _buildList(ds, ds.growthRecords.where((r) => dateMatch(r.date)).toList(),
-        (r) => _card(Icons.straighten, Colors.teal, '${r.date.month}/${r.date.day}', [
+        (r) => _card(Icons.straighten, Colors.teal, '${r.date.month}/${r.date.day} ${r.date.hour.toString().padLeft(2,'0')}:${r.date.minute.toString().padLeft(2,'0')}', [
           if (r.weightKg != null) '体重: ${r.weightKg}kg',
           if (r.heightCm != null) '身长: ${r.heightCm}cm',
           if (r.headCircumferenceCm != null) '头围: ${r.headCircumferenceCm}cm',
         ].join('  '), () => ds.deleteGrowth(r.id), '这条成长记录', () => Navigator.push(context, MaterialPageRoute(builder: (_) => GrowthScreen(initialRecord: r)))));
       case 4: return _buildList(ds, ds.allSupplementRecords().where((r) => dateMatch(r.date)).toList(),
-        (r) => _card(Icons.medication, Colors.green, '${r.date.month}月${r.date.day}日', r.items.join('、'), () => ds.deleteSupplement(r.id), '这条补充记录', () => Navigator.push(context, MaterialPageRoute(builder: (_) => SupplementScreen(initialRecord: r)))));
+        (r) => _card(Icons.medication, Colors.green, '${r.date.month}/${r.date.day} ${r.date.hour.toString().padLeft(2,'0')}:${r.date.minute.toString().padLeft(2,'0')}', r.items.join('、'), () => ds.deleteSupplement(r.id), '这条补充记录', () => Navigator.push(context, MaterialPageRoute(builder: (_) => SupplementScreen(initialRecord: r)))));
       case 5: return _buildList(ds, ds.milestoneRecords.where((r) => dateMatch(r.date) && r.category == 'milestone').toList(),
         (r) => _card(Icons.star, Colors.amber, '🌟 ${r.title}', '${r.date.month}/${r.date.day}${r.note != null ? '  ${r.note}' : ''}', () => ds.deleteMilestone(r.id), '这条里程碑记录', () => Navigator.push(context, MaterialPageRoute(builder: (_) => MilestoneScreen(initialCategory: 'milestone', initialRecord: r)))));
       case 6: return _buildList(ds, ds.milestoneRecords.where((r) => dateMatch(r.date) && r.category == 'vaccine').toList(),
