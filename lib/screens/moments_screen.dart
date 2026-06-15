@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -32,24 +31,9 @@ class _MomentsScreenState extends State<MomentsScreen> {
       for (final path in result.images) {
         try {
           final bytes = await File(path).readAsBytes();
-          // 压缩图片到<50KB避免MySQL TEXT截断(65KB)
-          final img = await decodeImageFromList(bytes);
-          double scale = 1.0;
-          if (bytes.length > 40000) scale = 40000 / bytes.length;
-          if (scale < 0.3) scale = 0.3;
-          if (scale < 1.0) {
-            final codec = await instantiateImageCodec(bytes,
-              targetWidth: (img.width * scale).round(),
-              targetHeight: (img.height * scale).round(),
-            );
-            final frame = await codec.getNextFrame();
-            final resized = await frame.image.toByteData(format: ImageByteFormat.jpeg, quality: 70);
-            if (resized != null) {
-              base64Images.add(base64Encode(resized.buffer.asUint8List()));
-              continue;
-            }
-          }
-          base64Images.add(base64Encode(bytes));
+          final b64 = base64Encode(bytes);
+          // 如果超过50KB就跳过（MySQL TEXT上限65KB，留余量）
+          if (b64.length < 50000) base64Images.add(b64);
         } catch (_) {}
       }
     }
@@ -108,23 +92,9 @@ class _MomentsScreenState extends State<MomentsScreen> {
       } else {
         try {
           final bytes = await File(path).readAsBytes();
-          final img = await decodeImageFromList(bytes);
-          double scale = 1.0;
-          if (bytes.length > 40000) scale = 40000 / bytes.length;
-          if (scale < 0.3) scale = 0.3;
-          if (scale < 1.0) {
-            final codec = await instantiateImageCodec(bytes,
-              targetWidth: (img.width * scale).round(),
-              targetHeight: (img.height * scale).round(),
-            );
-            final frame = await codec.getNextFrame();
-            final resized = await frame.image.toByteData(format: ImageByteFormat.jpeg, quality: 70);
-            if (resized != null) {
-              base64Images.add(base64Encode(resized.buffer.asUint8List()));
-              continue;
-            }
-          }
-          base64Images.add(base64Encode(bytes));
+          final b64 = base64Encode(bytes);
+          if (b64.length < 50000) base64Images.add(b64);
+          else base64Images.add(path); // 超50KB保留路径
         } catch (_) {
           base64Images.add(path);
         }
@@ -334,7 +304,7 @@ class _AddMomentDialogState extends State<_AddMomentDialog> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    final xFile = await _picker.pickImage(source: source, imageQuality: 80);
+    final xFile = await _picker.pickImage(source: source, maxWidth: 800, imageQuality: 60);
     if (xFile != null) {
       setState(() => _images.add(xFile.path));
     }
