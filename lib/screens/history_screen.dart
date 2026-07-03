@@ -242,7 +242,66 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
 
   Widget _buildMilkStorageList(DataService ds) {
     final records = ds.milkStorageRecords.where((r) => dateMatch(r.dateTime)).toList();
-    return _buildList(ds, records, (r) => _card(r.type == 'breast' ? Icons.water_drop : Icons.kitchen, r.type == 'breast' ? Colors.blue : Colors.orange, '${r.typeName} ${r.displayAmount}', timeStr(r.dateTime), () => ds.deleteMilkStorage(r.id), '这条储奶记录'));
+    if (records.isEmpty) {
+      return Center(child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.kitchen, size: 48, color: Colors.grey.shade300),
+          const SizedBox(height: 8),
+          Text('当日无储奶记录', style: TextStyle(color: Colors.grey.shade400)),
+        ],
+      ));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(8),
+      itemCount: records.length,
+      itemBuilder: (ctx, i) {
+        final r = records[i];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 6),
+          child: ListTile(
+            onTap: null,
+            dense: true,
+            leading: CircleAvatar(
+              radius: 18,
+              backgroundColor: (r.type == 'breast' ? Colors.blue : Colors.orange).withValues(alpha: 0.1),
+              child: Icon(r.type == 'breast' ? Icons.water_drop : Icons.kitchen, color: r.type == 'breast' ? Colors.blue : Colors.orange, size: 18),
+            ),
+            title: Text('${r.typeName} ${r.displayAmount}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: r.consumed ? Colors.grey : null, decoration: r.consumed ? TextDecoration.lineThrough : null)),
+            subtitle: Text(timeStr(r.dateTime), style: const TextStyle(fontSize: 11)),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(r.consumed ? Icons.check_circle : Icons.check_circle_outline, color: r.consumed ? Colors.green : Colors.grey, size: 20),
+                  onPressed: () => ds.toggleConsumed(r.id),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                  onPressed: () => showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      title: const Text('确认删除'),
+                      content: const Text('确定要删除这条储奶记录吗？'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+                        FilledButton(onPressed: () { Navigator.pop(ctx); ds.deleteMilkStorage(r.id); }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('删除')),
+                      ],
+                    ),
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildToothList(DataService ds) {

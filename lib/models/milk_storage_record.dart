@@ -6,6 +6,7 @@ class MilkStorageRecord {
   final String? brand;    // 奶粉品牌
   final int? amountG;     // 奶粉克数
   final String? note;
+  final bool consumed;
   final DateTime createdAt;
 
   MilkStorageRecord({
@@ -16,6 +17,7 @@ class MilkStorageRecord {
     this.brand,
     this.amountG,
     this.note,
+    this.consumed = false,
     DateTime? createdAt,
   }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString(),
        createdAt = createdAt ?? DateTime.now();

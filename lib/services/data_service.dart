@@ -122,6 +122,7 @@ class DataService extends ChangeNotifier {
       'date_time': _localDt(record.dateTime),
       'amount_ml': record.amountMl, 'brand': record.brand,
       'amount_g': record.amountG, 'note': record.note,
+      'consumed': record.consumed ? 1 : 0,
     };
     return {};
   }
@@ -181,6 +182,7 @@ class DataService extends ChangeNotifier {
         dateTime: _parseDt(r['date_time'].toString()),
         amountMl: r['amount_ml'], brand: r['brand'],
         amountG: r['amount_g'], note: r['note'],
+        consumed: r['consumed'] == 1,
       );
       case 'tooth_records': return ToothRecord(
         id: r['id'], toothIndex: r['tooth_index'],
@@ -584,6 +586,22 @@ class DataService extends ChangeNotifier {
     }
   }
 
+  Future<void> toggleConsumed(String id) async {
+    final idx = _milkStorageRecords.indexWhere((r) => r.id == id);
+    if (idx < 0) return;
+    final old = _milkStorageRecords[idx];
+    final updated = MilkStorageRecord(
+      id: old.id, type: old.type, dateTime: old.dateTime,
+      amountMl: old.amountMl, brand: old.brand, amountG: old.amountG,
+      note: old.note, consumed: !old.consumed,
+    );
+    // 先删后加触发 upsert
+    if (await _saveToServer(updated)) {
+      _milkStorageRecords[idx] = updated;
+      notifyListeners();
+    }
+  }
+
   // ---- 牙齿 ----
   Future<void> addTooth(ToothRecord record) async {
     if (await _saveToServer(record)) {
@@ -654,7 +672,10 @@ class DataService extends ChangeNotifier {
     ).toList();
     int milkBagCount = todayMilkRecords.where((r) => r.type == 'breast').length;
     int milkLiter = todayMilkRecords.where((r) => r.type == 'breast').fold<int>(0, (s, r) => s + (r.amountMl ?? 0));
+    int consumedBreastCount = todayMilkRecords.where((r) => r.type == 'breast' && r.consumed).length;
+    int consumedBreastMl = todayMilkRecords.where((r) => r.type == 'breast' && r.consumed).fold<int>(0, (s, r) => s + (r.amountMl ?? 0));
     int formulaCount = todayMilkRecords.where((r) => r.type == 'formula').length;
+    int consumedFormulaCount = todayMilkRecords.where((r) => r.type == 'formula' && r.consumed).length;
     int toothCount = _toothRecords.length;
 
     int totalSleepMinutes = 0;
@@ -681,7 +702,10 @@ class DataService extends ChangeNotifier {
       'vaccineCount': vaccineCount,
       'milkBagCount': milkBagCount,
       'milkLiter': milkLiter,
+      'consumedBreastCount': consumedBreastCount,
+      'consumedBreastMl': consumedBreastMl,
       'formulaCount': formulaCount,
+      'consumedFormulaCount': consumedFormulaCount,
       'toothCount': toothCount,
       'totalSleepMinutes': totalSleepMinutes,
     };

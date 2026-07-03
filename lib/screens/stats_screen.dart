@@ -43,6 +43,9 @@ class StatsScreen extends StatelessWidget {
     final milkBagCount = stats['milkBagCount'] ?? 0;
     final milkLiter = stats['milkLiter'] ?? 0;
     final formulaCount = stats['formulaCount'] ?? 0;
+    final consumedBreastCount = stats['consumedBreastCount'] ?? 0;
+    final consumedBreastMl = stats['consumedBreastMl'] ?? 0;
+    final consumedFormulaCount = stats['consumedFormulaCount'] ?? 0;
     final toothCount = stats['toothCount'] ?? 0;
     final totalSleepMinutes = stats['totalSleepMinutes'] ?? 0;
     final totalBreastMinutes = stats['totalBreastMinutes'] ?? 0;
@@ -80,6 +83,9 @@ class StatsScreen extends StatelessWidget {
             _StatItem('储奶', '$milkBagCount袋', Icons.kitchen, const Color(0xFF6C63FF)),
             _StatItem('奶量', '${(milkLiter / 1000).toStringAsFixed(2)}L', Icons.water_drop, const Color(0xFF6C63FF)),
             _StatItem('奶粉', '$formulaCount罐', Icons.inventory_2, const Color(0xFFFF8A80)),
+            _StatItem('已喝', '$consumedBreastCount袋', Icons.check_circle, Colors.green),
+            _StatItem('已喝', '${consumedBreastMl}ml', Icons.water_drop, Colors.green),
+            _StatItem('已用', '$consumedFormulaCount罐', Icons.check_circle, Colors.green),
             _StatItem('牙齿', '$toothCount颗', Icons.egg, Colors.teal),
           ]),
           const SizedBox(height: 24),
@@ -396,6 +402,8 @@ class StatsScreen extends StatelessWidget {
         _StatItem('储奶', '${totalMilkBag}袋', Icons.kitchen, const Color(0xFF6C63FF)),
         _StatItem('奶量', '${(totalMilkLiter / 1000).toStringAsFixed(2)}L', Icons.water_drop, const Color(0xFF6C63FF)),
         _StatItem('奶粉', '${totalFormula}罐', Icons.inventory_2, const Color(0xFFFF8A80)),
+        _StatItem('已喝', '${totalMilkBag - totalMilkBag}袋', Icons.check_circle, Colors.green),
+        _StatItem('已用', '${totalFormula}罐', Icons.check_circle, Colors.green),
         _StatItem('牙齿', '${ds.toothRecords.length}颗', Icons.egg, Colors.teal),
       ]),
     ]);
