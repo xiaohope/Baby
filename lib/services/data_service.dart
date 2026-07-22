@@ -13,6 +13,10 @@ import '../models/food_record.dart';
 import '../models/temperature_record.dart';
 import '../models/milk_storage_record.dart';
 import '../models/tooth_record.dart';
+import '../models/inventory_category.dart';
+import '../models/inventory_item.dart';
+import '../models/inventory_usage.dart';
+import '../models/shopping_item.dart';
 import 'auth_service.dart';
 import 'api_service.dart';
 
@@ -32,6 +36,10 @@ class DataService extends ChangeNotifier {
   List<TemperatureRecord> _tempRecords = [];
   List<MilkStorageRecord> _milkStorageRecords = [];
   List<ToothRecord> _toothRecords = [];
+  List<InventoryCategory> _inventoryCategories = [];
+  List<InventoryItem> _inventoryItems = [];
+  List<InventoryUsage> _inventoryUsage = [];
+  List<ShoppingItem> _shoppingItems = [];
   String _babyName = '宝宝';
   DateTime? _babyBirthday;
   ThemeMode _themeMode = ThemeMode.system;
@@ -51,6 +59,10 @@ class DataService extends ChangeNotifier {
   List<TemperatureRecord> get tempRecords => _tempRecords;
   List<MilkStorageRecord> get milkStorageRecords => _milkStorageRecords;
   List<ToothRecord> get toothRecords => _toothRecords;
+  List<InventoryCategory> get inventoryCategories => _inventoryCategories;
+  List<InventoryItem> get inventoryItems => _inventoryItems;
+  List<InventoryUsage> get inventoryUsage => _inventoryUsage;
+  List<ShoppingItem> get shoppingItems => _shoppingItems;
   String get babyName => _babyName;
   DateTime? get babyBirthday => _babyBirthday;
   ThemeMode get themeMode => _themeMode;
@@ -69,6 +81,10 @@ class DataService extends ChangeNotifier {
     if (record is TemperatureRecord) return 'temperature';
     if (record is MilkStorageRecord) return 'milk_storage';
     if (record is ToothRecord) return 'tooth';
+    if (record is InventoryCategory) return 'inventory_category';
+    if (record is InventoryItem) return 'inventory_item';
+    if (record is InventoryUsage) return 'inventory_usage';
+    if (record is ShoppingItem) return 'shopping_item';
     return '';
   }
 
@@ -184,6 +200,22 @@ class DataService extends ChangeNotifier {
         amountG: r['amount_g'], note: r['note'],
         consumed: r['consumed'] == 1,
       );
+      case 'inventory_categories': return InventoryCategory(
+        id: r['id'], name: r['name'], icon: r['icon'] ?? '📦', sortOrder: r['sort_order'] ?? 0,
+      );
+      case 'inventory_items': return InventoryItem(
+        id: r['id'], categoryId: r['category_id'], name: r['name'],
+        total: r['total'] ?? 0, remaining: r['remaining'] ?? 0,
+        unit: r['unit'] ?? '个', threshold: r['threshold'] ?? 1, note: r['note'],
+      );
+      case 'inventory_usage': return InventoryUsage(
+        id: r['id'], itemId: r['item_id'], usedCount: r['used_count'],
+        usedAt: _parseDt(r['used_at'].toString()), note: r['note'],
+      );
+      case 'shopping_items': return ShoppingItem(
+        id: r['id'], itemId: r['item_id'], itemName: r['item_name'],
+        quantity: r['quantity'] ?? 1, isDone: r['is_done'] == 1, note: r['note'],
+      );
       case 'tooth_records': return ToothRecord(
         id: r['id'], toothIndex: r['tooth_index'],
         foundDate: DateTime.parse(r['found_date']),
@@ -247,6 +279,10 @@ class DataService extends ChangeNotifier {
       case 'temperature': return 'temperature_records';
       case 'milk_storage': return 'milk_storage_records';
       case 'tooth': return 'tooth_records';
+      case 'inventory_category': return 'inventory_categories';
+      case 'inventory_item': return 'inventory_items';
+      case 'inventory_usage': return 'inventory_usage';
+      case 'shopping_item': return 'shopping_items';
       default: return '';
     }
   }
@@ -343,6 +379,10 @@ class DataService extends ChangeNotifier {
       'temperature_records': (List list) => _tempRecords = list.cast<TemperatureRecord>()..sort((a,b) => b.time.compareTo(a.time)),
       'milk_storage_records': (List list) => _milkStorageRecords = list.cast<MilkStorageRecord>()..sort((a,b) => b.dateTime.compareTo(a.dateTime)),
       'tooth_records': (List list) => _toothRecords = list.cast<ToothRecord>()..sort((a,b) => b.foundDate.compareTo(a.foundDate)),
+      'inventory_categories': (List list) => _inventoryCategories = list.cast<InventoryCategory>()..sort((a,b) => a.sortOrder.compareTo(b.sortOrder)),
+      'inventory_items': (List list) => _inventoryItems = list.cast<InventoryItem>()..sort((a,b) => a.name.compareTo(b.name)),
+      'inventory_usage': (List list) => _inventoryUsage = list.cast<InventoryUsage>()..sort((a,b) => b.usedAt.compareTo(a.usedAt)),
+      'shopping_items': (List list) => _shoppingItems = list.cast<ShoppingItem>()..sort((a,b) => a.isDone == b.isDone ? 0 : (a.isDone ? 1 : -1)),
     };
 
     for (final entry in tables.entries) {
@@ -615,6 +655,79 @@ class DataService extends ChangeNotifier {
       _toothRecords.removeWhere((r) => r.id == id);
       notifyListeners();
     }
+
+  // ---- 仓库 ----
+  Future<void> addInventoryCategory(InventoryCategory cat) async {
+    if (await _saveToServer(cat)) {
+      _inventoryCategories.insert(0, cat);
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteInventoryCategory(String id) async {
+    if (await _deleteFromServer('inventory_categories', id)) {
+      _inventoryCategories.removeWhere((r) => r.id == id);
+      _inventoryItems.removeWhere((r) => r.categoryId == id);
+      notifyListeners();
+    }
+  }
+
+  Future<void> addInventoryItem(InventoryItem item) async {
+    if (await _saveToServer(item)) {
+      _inventoryItems.add(item);
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateInventoryItem(InventoryItem item) async {
+    if (await _saveToServer(item)) {
+      final idx = _inventoryItems.indexWhere((r) => r.id == item.id);
+      if (idx >= 0) _inventoryItems[idx] = item;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteInventoryItem(String id) async {
+    if (await _deleteFromServer('inventory_items', id)) {
+      _inventoryItems.removeWhere((r) => r.id == id);
+      notifyListeners();
+    }
+  }
+
+  Future<void> addInventoryUsage(InventoryUsage usage) async {
+    if (await _saveToServer(usage)) {
+      _inventoryUsage.insert(0, usage);
+      notifyListeners();
+    }
+  }
+
+  Future<void> addShoppingItem(ShoppingItem item) async {
+    if (await _saveToServer(item)) {
+      _shoppingItems.add(item);
+      notifyListeners();
+    }
+  }
+
+  Future<void> toggleShoppingItem(String id) async {
+    final idx = _shoppingItems.indexWhere((r) => r.id == id);
+    if (idx < 0) return;
+    final old = _shoppingItems[idx];
+    final updated = ShoppingItem(
+      id: old.id, itemId: old.itemId, itemName: old.itemName,
+      quantity: old.quantity, isDone: !old.isDone, note: old.note,
+    );
+    if (await _saveToServer(updated)) {
+      _shoppingItems[idx] = updated;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteShoppingItem(String id) async {
+    if (await _deleteFromServer('shopping_items', id)) {
+      _shoppingItems.removeWhere((r) => r.id == id);
+      notifyListeners();
+    }
+  }
   }
 
   // ---- 今日统计 ----

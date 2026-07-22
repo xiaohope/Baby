@@ -194,3 +194,62 @@ CREATE TABLE IF NOT EXISTS supplement_records (
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (family_id) REFERENCES families(id)
 );
+
+-- 仓库分类
+CREATE TABLE IF NOT EXISTS inventory_categories (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36) NOT NULL,
+  family_id VARCHAR(36) NOT NULL,
+  name VARCHAR(50) NOT NULL,
+  icon VARCHAR(10) DEFAULT '📦',
+  sort_order INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (family_id) REFERENCES families(id)
+);
+
+-- 库存物品
+CREATE TABLE IF NOT EXISTS inventory_items (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36) NOT NULL,
+  family_id VARCHAR(36) NOT NULL,
+  category_id VARCHAR(36) NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  total INT DEFAULT 0,
+  remaining INT DEFAULT 0,
+  unit VARCHAR(20) DEFAULT '个',
+  threshold INT DEFAULT 1,
+  note TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (family_id) REFERENCES families(id)
+);
+
+-- 使用记录
+CREATE TABLE IF NOT EXISTS inventory_usage (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36) NOT NULL,
+  family_id VARCHAR(36) NOT NULL,
+  item_id VARCHAR(36) NOT NULL,
+  used_count INT NOT NULL,
+  used_at DATETIME NOT NULL,
+  note TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (family_id) REFERENCES families(id)
+);
+
+-- 购物清单
+CREATE TABLE IF NOT EXISTS shopping_items (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36) NOT NULL,
+  family_id VARCHAR(36) NOT NULL,
+  item_id VARCHAR(36),
+  item_name VARCHAR(100) NOT NULL,
+  quantity INT DEFAULT 1,
+  is_done BOOLEAN DEFAULT FALSE,
+  note TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (family_id) REFERENCES families(id)
+);

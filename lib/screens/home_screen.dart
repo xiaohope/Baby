@@ -18,6 +18,7 @@ import 'food_screen.dart';
 import 'temperature_screen.dart';
 import 'milk_storage_screen.dart';
 import 'tooth_screen.dart';
+import 'inventory_screen.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -41,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final screens = [
       _buildMainPage(ds, stats, ongoingSleep, supplement),
       const HistoryScreen(),
+      const InventoryScreen(),
       const StatsScreen(),
       const SettingsScreen(),
     ];
@@ -53,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: '首页'),
           NavigationDestination(icon: Icon(Icons.history_outlined), selectedIcon: Icon(Icons.history), label: '历史'),
+          NavigationDestination(icon: Icon(Icons.inventory_2_outlined), selectedIcon: Icon(Icons.inventory_2), label: '📦仓库'),
           NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: '统计'),
           NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: '我的'),
         ],

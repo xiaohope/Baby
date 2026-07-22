@@ -63,7 +63,10 @@ class _MilkStorageScreenState extends State<MilkStorageScreen> {
     final formulaRecords = records.where((r) => r.type == 'formula').toList();
     final totalBags = breastRecords.length;
     final totalLiters = breastRecords.fold<int>(0, (s, r) => s + (r.amountMl ?? 0));
+    final consumedBags = breastRecords.where((r) => r.consumed).length;
+    final consumedMl = breastRecords.where((r) => r.consumed).fold<int>(0, (s, r) => s + (r.amountMl ?? 0));
     final totalCans = formulaRecords.length;
+    final consumedCans = formulaRecords.where((r) => r.consumed).length;
     final brands = formulaRecords.map((r) => r.brand).whereType<String>().toSet().length;
 
     return Scaffold(
@@ -93,6 +96,12 @@ class _MilkStorageScreenState extends State<MilkStorageScreen> {
                     Row(children: [
                       _statItem('🥫 奶粉罐数', '$totalCans 罐', Colors.orange),
                       _statItem('🏷️ 品牌', '$brands 种', Colors.orange),
+                    ]),
+                    const SizedBox(height: 8),
+                    Row(children: [
+                      _statItem('✅ 已喝(袋)', '$consumedBags 袋', Colors.green),
+                      _statItem('✅ 已喝(ml)', '$consumedMl ml', Colors.green),
+                      _statItem('✅ 已用(罐)', '$consumedCans 罐', Colors.green),
                     ]),
                   ],
                 ),
@@ -230,22 +239,36 @@ class _MilkStorageScreenState extends State<MilkStorageScreen> {
                     backgroundColor: r.type == 'breast' ? Colors.blue.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1),
                     child: Icon(r.type == 'breast' ? Icons.water_drop : Icons.inventory_2, color: r.type == 'breast' ? Colors.blue : Colors.orange),
                   ),
-                  title: Text('${r.typeName} ${r.displayAmount}', style: TextStyle(color: isDark ? Colors.white : null)),
+                  title: Text('${r.typeName} ${r.displayAmount}', style: TextStyle(color: isDark ? Colors.white : null, decoration: r.consumed ? TextDecoration.lineThrough : null)),
                   subtitle: Text('${_fmt(r.dateTime)}${r.note != null ? '  📝${r.note}' : ''}', style: TextStyle(color: isDark ? Colors.white70 : null)),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                    onPressed: () => showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        title: const Text('确认删除'),
-                        content: const Text('确定要删除这条储奶记录吗？'),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-                          FilledButton(onPressed: () { Navigator.pop(ctx); ds.deleteMilkStorage(r.id); }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('删除')),
-                        ],
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(r.consumed ? Icons.check_circle : Icons.check_circle_outline, color: r.consumed ? Colors.green : Colors.grey, size: 20),
+                        onPressed: () => ds.toggleConsumed(r.id),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                       ),
-                    ),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                        onPressed: () => showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            title: const Text('确认删除'),
+                            content: const Text('确定要删除这条储奶记录吗？'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+                              FilledButton(onPressed: () { Navigator.pop(ctx); ds.deleteMilkStorage(r.id); }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('删除')),
+                            ],
+                          ),
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
                   ),
                 ),
               )),

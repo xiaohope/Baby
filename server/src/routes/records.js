@@ -34,6 +34,15 @@ router.post('/upload', auth, async (req, res) => {
           temperature: { name: 'temperature_records', timeField: 'time' },
           milk_storage: { name: 'milk_storage_records', timeField: 'date_time' },
           tooth: { name: 'tooth_records', timeField: 'found_date' },
+          inventory_category: { name: 'inventory_categories', timeField: 'created_at' },
+          inventory_item: { name: 'inventory_items', timeField: 'created_at' },
+          inventory_usage: { name: 'inventory_usage', timeField: 'used_at' },
+          shopping_item: { name: 'shopping_items', timeField: 'created_at' },
+          inventory_category: { name: 'inventory_categories', timeField: 'created_at' },
+          inventory_item: { name: 'inventory_items', timeField: 'created_at' },
+          inventory_usage: { name: 'inventory_usage', timeField: 'used_at' },
+          shopping_item: { name: 'shopping_items', timeField: 'created_at' },
+        
         };
 
         const tableInfo = tableMap[table];
@@ -87,7 +96,7 @@ router.get('/sync', auth, async (req, res) => {
     const tables = [
       'feeding_records', 'diaper_records', 'sleep_records',
       'growth_records', 'milestone_records', 'supplement_records',
-      'moment_records', 'simple_records', 'food_records', 'temperature_records', 'milk_storage_records', 'tooth_records',
+      'moment_records', 'simple_records', 'food_records', 'temperature_records', 'milk_storage_records', 'inventory_categories', 'inventory_items', 'inventory_usage', 'shopping_items', 'tooth_records', 'inventory_categories', 'inventory_items', 'inventory_usage', 'shopping_items',
     ];
 
     const result = {};
@@ -119,7 +128,7 @@ router.delete('/:table/:id', auth, async (req, res) => {
     const allowedTables = [
       'feeding_records', 'diaper_records', 'sleep_records',
       'growth_records', 'milestone_records', 'supplement_records',
-      'moment_records', 'simple_records', 'food_records', 'temperature_records', 'milk_storage_records', 'tooth_records',
+      'moment_records', 'simple_records', 'food_records', 'temperature_records', 'milk_storage_records', 'inventory_categories', 'inventory_items', 'inventory_usage', 'shopping_items', 'tooth_records' 'inventory_categories' 'inventory_items' 'inventory_usage' 'shopping_items',
     ];
     if (!allowedTables.includes(table)) {
       return res.status(400).json({ error: '无效的表名' });

@@ -1,0 +1,444 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/inventory_category.dart';
+import '../models/inventory_item.dart';
+import '../models/inventory_usage.dart';
+import '../models/shopping_item.dart';
+import '../services/data_service.dart';
+
+class InventoryScreen extends StatefulWidget {
+  const InventoryScreen({super.key});
+
+  @override
+  State<InventoryScreen> createState() => _InventoryScreenState();
+}
+
+class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  String? _selectedCategoryId;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ds = context.watch<DataService>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('📦 仓库'),
+        centerTitle: true,
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: '📋 库存'),
+            Tab(text: '🛒 待购买'),
+            Tab(text: '📊 统计'),
+          ],
+          labelColor: const Color(0xFF6C63FF),
+          unselectedLabelColor: Colors.grey,
+          indicatorColor: const Color(0xFF6C63FF),
+          dividerColor: Colors.transparent,
+        ),
+      ),
+      body: Container(
+        color: isDark ? const Color(0xFF121212) : null,
+        child: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildInventoryTab(ds, isDark),
+            _buildShoppingTab(ds, isDark),
+            _buildStatsTab(ds, isDark),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ====== 库存 Tab ======
+  Widget _buildInventoryTab(DataService ds, bool isDark) {
+    final categories = ds.inventoryCategories;
+    final items = _selectedCategoryId == null
+        ? ds.inventoryItems
+        : ds.inventoryItems.where((i) => i.categoryId == _selectedCategoryId).toList();
+
+    return Column(
+      children: [
+        // 分类横向滚动
+        SizedBox(
+          height: 48,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            children: [
+              ...categories.map((c) => Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: ChoiceChip(
+                  label: Text('${c.icon} ${c.name}', style: const TextStyle(fontSize: 13)),
+                  selected: _selectedCategoryId == c.id,
+                  onSelected: (v) => setState(() => _selectedCategoryId = v ? c.id : null),
+                  selectedColor: const Color(0xFF6C63FF).withValues(alpha: 0.2),
+                ),
+              )),
+              // 添加分类按钮
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: ActionChip(
+                  avatar: const Icon(Icons.add, size: 16),
+                  label: const Text('分类', style: TextStyle(fontSize: 12)),
+                  onPressed: () => _addCategoryDialog(ds),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        // 物品列表
+        Expanded(
+          child: items.isEmpty
+              ? Center(child: Text('暂无物品，点击右下角添加', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400)))
+              : ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: items.length,
+                  itemBuilder: (ctx, i) {
+                    final item = items[i];
+                    final cat = categories.cast<InventoryCategory?>().firstWhere(
+                      (c) => c?.id == item.categoryId, orElse: () => null);
+                    return _buildItemCard(item, cat, ds, isDark);
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItemCard(InventoryItem item, InventoryCategory? cat, DataService ds, bool isDark) {
+    final ratio = item.total > 0 ? item.remaining / item.total : 0.0;
+    final isLow = item.isLow;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      color: isDark ? const Color(0xFF1E1E1E) : null,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Text('${cat?.icon ?? '📦'} ', style: const TextStyle(fontSize: 16)),
+              Expanded(child: Text(item.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : null))),
+              if (isLow) const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 18),
+            ]),
+            const SizedBox(height: 6),
+            // 进度条
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: ratio.clamp(0.0, 1.0),
+                backgroundColor: isLow ? Colors.red.withValues(alpha: 0.15) : Colors.grey.withValues(alpha: 0.15),
+                valueColor: AlwaysStoppedAnimation(isLow ? Colors.red : const Color(0xFF6C63FF)),
+                minHeight: 8,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(children: [
+              Text('剩余 ${item.remaining} / ${item.total} ${item.unit}', style: TextStyle(fontSize: 12, color: isLow ? Colors.red : (isDark ? Colors.white70 : Colors.grey))),
+              if (isLow) Text('  低于阈值${item.threshold}${item.unit}', style: const TextStyle(fontSize: 11, color: Colors.red)),
+            ]),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                _actionBtn(Icons.remove_circle_outline, '使用', () => _useItemDialog(item, ds)),
+                const SizedBox(width: 4),
+                _actionBtn(Icons.add_circle_outline, '补货', () => _restockItemDialog(item, ds)),
+                const SizedBox(width: 4),
+                _actionBtn(Icons.edit_outlined, '编辑', () => _editItemDialog(item, cat, ds)),
+                const SizedBox(width: 4),
+                _actionBtn(Icons.delete_outline, '删除', () => _deleteItemConfirm(item, ds), Colors.red),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _actionBtn(IconData icon, String label, VoidCallback onTap, [Color? color]) {
+    return TextButton.icon(
+      onPressed: onTap,
+      icon: Icon(icon, size: 16, color: color ?? const Color(0xFF6C63FF)),
+      label: Text(label, style: TextStyle(fontSize: 11, color: color ?? const Color(0xFF6C63FF))),
+      style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 6), minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+    );
+  }
+
+  // ====== 待购买 Tab ======
+  Widget _buildShoppingTab(DataService ds, bool isDark) {
+    final autoItems = <ShoppingItem>[];
+    // 低于阈值的自动加入显示列表
+    for (final item in ds.inventoryItems) {
+      if (item.isLow && !ds.shoppingItems.any((s) => s.itemId == item.id && !s.isDone)) {
+        autoItems.add(ShoppingItem(itemId: item.id, itemName: '${item.name} (剩余${item.remaining}/${item.threshold}${item.unit})'));
+      }
+    }
+    final shoppingItems = ds.shoppingItems.where((s) => !s.isDone).toList();
+    final allItems = [...autoItems, ...shoppingItems];
+
+    return Column(
+      children: [
+        Expanded(
+          child: allItems.isEmpty
+              ? Center(child: Text('暂无待购物品', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400)))
+              : ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: allItems.length,
+                  itemBuilder: (ctx, i) {
+                    final item = allItems[i];
+                    final isAuto = item.itemId != null && autoItems.contains(item);
+                    return Card(
+                      color: isDark ? const Color(0xFF1E1E1E) : null,
+                      child: ListTile(
+                        leading: Icon(isAuto ? Icons.warning_amber : Icons.shopping_cart, color: const Color(0xFF6C63FF)),
+                        title: Text(item.itemName, style: TextStyle(color: isDark ? Colors.white : null)),
+                        subtitle: isAuto ? const Text('库存不足，自动加入', style: TextStyle(fontSize: 11, color: Colors.red)) : null,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (!isAuto) IconButton(
+                              icon: const Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
+                              onPressed: () => ds.toggleShoppingItem(item.id),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                            if (!isAuto) IconButton(
+                              icon: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                              onPressed: () => ds.deleteShoppingItem(item.id),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _addShoppingItemDialog(ds),
+              icon: const Icon(Icons.add),
+              label: const Text('手动添加待购'),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ====== 统计 Tab ======
+  Widget _buildStatsTab(DataService ds, bool isDark) {
+    final categories = ds.inventoryCategories;
+    if (categories.isEmpty) {
+      return Center(child: Text('暂无数据', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400)));
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: categories.map((cat) {
+        final catItems = ds.inventoryItems.where((i) => i.categoryId == cat.id).toList();
+        final totalItems = catItems.length;
+        final lowItems = catItems.where((i) => i.isLow).length;
+        final totalRemaining = catItems.fold<int>(0, (s, i) => s + i.remaining);
+        final weekUsage = ds.inventoryUsage.where((u) =>
+          catItems.any((i) => i.id == u.itemId) &&
+          u.usedAt.isAfter(DateTime.now().subtract(const Duration(days: 7)))
+        ).fold<int>(0, (s, u) => s + u.usedCount);
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          color: isDark ? const Color(0xFF1E1E1E) : null,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(children: [
+              Text('${cat.icon} ', style: const TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(cat.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : null)),
+                    const SizedBox(height: 4),
+                    Text('$totalItems 件物品  ·  库存不足 $lowItems 件  ·  剩余 $totalRemaining', style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.grey)),
+                    Text('本周使用 $weekUsage 次', style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.grey.shade500)),
+                  ],
+                ),
+              ),
+            ]),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // ====== 对话框 ======
+  void _addCategoryDialog(DataService ds) {
+    final nameCtrl = TextEditingController();
+    final iconCtrl = TextEditingController(text: '📦');
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text('添加分类'),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: '分类名称', hintText: '如：尿不湿')),
+        const SizedBox(height: 8),
+        TextField(controller: iconCtrl, decoration: const InputDecoration(labelText: '图标', hintText: '如：🩲🧴🧻'), maxLength: 2),
+      ]),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+        FilledButton(onPressed: () {
+          if (nameCtrl.text.trim().isNotEmpty) {
+            ds.addInventoryCategory(InventoryCategory(
+              name: nameCtrl.text.trim(), icon: iconCtrl.text.trim().isNotEmpty ? iconCtrl.text.trim() : '📦',
+            ));
+            Navigator.pop(ctx);
+          }
+        }, child: const Text('添加')),
+      ],
+    ));
+  }
+
+  void _editItemDialog(InventoryItem item, InventoryCategory? cat, DataService ds) {
+    final nameCtrl = TextEditingController(text: item.name);
+    final totalCtrl = TextEditingController(text: item.total.toString());
+    final remainCtrl = TextEditingController(text: item.remaining.toString());
+    final unitCtrl = TextEditingController(text: item.unit);
+    final thresholdCtrl = TextEditingController(text: item.threshold.toString());
+    final noteCtrl = TextEditingController(text: item.note ?? '');
+
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text('编辑物品'),
+      content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: '名称')),
+        TextField(controller: totalCtrl, decoration: const InputDecoration(labelText: '总量'), keyboardType: TextInputType.number),
+        TextField(controller: remainCtrl, decoration: const InputDecoration(labelText: '剩余'), keyboardType: TextInputType.number),
+        Row(children: [
+          Expanded(child: TextField(controller: unitCtrl, decoration: const InputDecoration(labelText: '单位'))),
+          const SizedBox(width: 8),
+          Expanded(child: TextField(controller: thresholdCtrl, decoration: const InputDecoration(labelText: '阈值'), keyboardType: TextInputType.number)),
+        ]),
+        TextField(controller: noteCtrl, decoration: const InputDecoration(labelText: '备注')),
+      ])),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+        FilledButton(onPressed: () {
+          ds.updateInventoryItem(InventoryItem(
+            id: item.id, categoryId: item.categoryId, name: nameCtrl.text.trim(),
+            total: int.tryParse(totalCtrl.text) ?? 0, remaining: int.tryParse(remainCtrl.text) ?? 0,
+            unit: unitCtrl.text.trim().isEmpty ? '个' : unitCtrl.text.trim(),
+            threshold: int.tryParse(thresholdCtrl.text) ?? 1, note: noteCtrl.text.isEmpty ? null : noteCtrl.text,
+          ));
+          Navigator.pop(ctx);
+        }, child: const Text('保存')),
+      ],
+    ));
+  }
+
+  void _useItemDialog(InventoryItem item, DataService ds) {
+    final ctrl = TextEditingController(text: '1');
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text('使用 ${item.name}'),
+      content: TextField(controller: ctrl, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: '使用数量')),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+        FilledButton(onPressed: () {
+          final count = int.tryParse(ctrl.text) ?? 1;
+          if (count > 0 && item.remaining >= count) {
+            final newRemaining = item.remaining - count;
+            ds.updateInventoryItem(InventoryItem(
+              id: item.id, categoryId: item.categoryId, name: item.name,
+              total: item.total, remaining: newRemaining, unit: item.unit,
+              threshold: item.threshold, note: item.note,
+            ));
+            ds.addInventoryUsage(InventoryUsage(itemId: item.id, usedCount: count, usedAt: DateTime.now()));
+            // 低于阈值自动加入购物清单
+            if (newRemaining <= item.threshold &&
+                !ds.shoppingItems.any((s) => s.itemId == item.id && !s.isDone)) {
+              ds.addShoppingItem(ShoppingItem(
+                itemId: item.id, itemName: '${item.name} (库存不足)',
+              ));
+            }
+            Navigator.pop(ctx);
+          }
+        }, child: const Text('确定')),
+      ],
+    ));
+  }
+
+  void _restockItemDialog(InventoryItem item, DataService ds) {
+    final ctrl = TextEditingController(text: '1');
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text('补货 ${item.name}'),
+      content: TextField(controller: ctrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: '补货数量')),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+        FilledButton(onPressed: () {
+          final count = int.tryParse(ctrl.text) ?? 1;
+          if (count > 0) {
+            ds.updateInventoryItem(InventoryItem(
+              id: item.id, categoryId: item.categoryId, name: item.name,
+              total: item.total + count, remaining: item.remaining + count, unit: item.unit,
+              threshold: item.threshold, note: item.note,
+            ));
+            Navigator.pop(ctx);
+          }
+        }, child: const Text('补货')),
+      ],
+    ));
+  }
+
+  void _deleteItemConfirm(InventoryItem item, DataService ds) {
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text('确认删除'),
+      content: Text('确定要删除 ${item.name} 吗？'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+        FilledButton(onPressed: () { Navigator.pop(ctx); ds.deleteInventoryItem(item.id); }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('删除')),
+      ],
+    ));
+  }
+
+  void _addShoppingItemDialog(DataService ds) {
+    final ctrl = TextEditingController();
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text('添加待购'),
+      content: TextField(controller: ctrl, decoration: const InputDecoration(labelText: '物品名称')),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+        FilledButton(onPressed: () {
+          if (ctrl.text.trim().isNotEmpty) {
+            ds.addShoppingItem(ShoppingItem(itemName: ctrl.text.trim()));
+            Navigator.pop(ctx);
+          }
+        }, child: const Text('添加')),
+      ],
+    ));
+  }
+}
