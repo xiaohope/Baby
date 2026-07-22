@@ -96,7 +96,7 @@ router.get('/sync', auth, async (req, res) => {
     const tables = [
       'feeding_records', 'diaper_records', 'sleep_records',
       'growth_records', 'milestone_records', 'supplement_records',
-      'moment_records', 'simple_records', 'food_records', 'temperature_records', 'milk_storage_records', 'inventory_categories', 'inventory_items', 'inventory_usage', 'shopping_items', 'tooth_records', 'inventory_categories', 'inventory_items', 'inventory_usage', 'shopping_items',
+      'moment_records', 'simple_records', 'food_records', 'temperature_records', 'milk_storage_records', 'inventory_categories', 'inventory_items', 'inventory_usage', 'shopping_items', 'tooth_records',
     ];
 
     const result = {};
@@ -128,7 +128,7 @@ router.delete('/:table/:id', auth, async (req, res) => {
     const allowedTables = [
       'feeding_records', 'diaper_records', 'sleep_records',
       'growth_records', 'milestone_records', 'supplement_records',
-      'moment_records', 'simple_records', 'food_records', 'temperature_records', 'milk_storage_records', 'inventory_categories', 'inventory_items', 'inventory_usage', 'shopping_items', 'tooth_records' 'inventory_categories' 'inventory_items' 'inventory_usage' 'shopping_items',
+      'moment_records', 'simple_records', 'food_records', 'temperature_records', 'milk_storage_records', 'inventory_categories', 'inventory_items', 'inventory_usage', 'shopping_items', 'tooth_records',
     ];
     if (!allowedTables.includes(table)) {
       return res.status(400).json({ error: '无效的表名' });
