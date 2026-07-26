@@ -729,7 +729,6 @@ class DataService extends ChangeNotifier {
       notifyListeners();
     }
   }
-  }
 
   // ---- 今日统计 ----
   Map<String, dynamic> todayStats() {
