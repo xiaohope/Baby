@@ -63,7 +63,13 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _addItemDialog(context.read<DataService>()),
+        onPressed: () {
+          if (_tabController.index == 1) {
+            _addShoppingItemDialog(context.read<DataService>());
+          } else {
+            _addItemDialog(context.read<DataService>());
+          }
+        },
         backgroundColor: const Color(0xFF6C63FF),
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -482,25 +488,44 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('添加物品'),
         content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const SizedBox(height: 4),
           DropdownButtonFormField<String>(
             value: selCat,
             items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text('${c.icon} ${c.name}'))).toList(),
             onChanged: (v) => setDState(() => selCat = v),
-            decoration: const InputDecoration(labelText: '分类', contentPadding: EdgeInsets.symmetric(horizontal: 12)),
+            decoration: const InputDecoration(
+              labelText: '分类', contentPadding: EdgeInsets.symmetric(horizontal: 12),
+              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+            ),
           ),
-          const SizedBox(height: 8),
-          TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: '名称')),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
+          TextField(controller: nameCtrl, decoration: const InputDecoration(
+            labelText: '名称',
+            border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+          )),
+          const SizedBox(height: 12),
           Row(children: [
-            Expanded(child: TextField(controller: totalCtrl, decoration: const InputDecoration(labelText: '总量'), keyboardType: TextInputType.number)),
+            Expanded(child: TextField(controller: totalCtrl, decoration: const InputDecoration(
+              labelText: '总量',
+              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+            ), keyboardType: TextInputType.number)),
             const SizedBox(width: 8),
-            Expanded(child: TextField(controller: remainCtrl, decoration: const InputDecoration(labelText: '剩余'), keyboardType: TextInputType.number)),
+            Expanded(child: TextField(controller: remainCtrl, decoration: const InputDecoration(
+              labelText: '剩余',
+              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+            ), keyboardType: TextInputType.number)),
           ]),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Row(children: [
-            Expanded(child: TextField(controller: unitCtrl, decoration: const InputDecoration(labelText: '单位'))),
+            Expanded(child: TextField(controller: unitCtrl, decoration: const InputDecoration(
+              labelText: '单位',
+              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+            ))),
             const SizedBox(width: 8),
-            Expanded(child: TextField(controller: thresholdCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: '阈值'))),
+            Expanded(child: TextField(controller: thresholdCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(
+              labelText: '阈值',
+              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+            ))),
           ]),
         ])),
         actions: [
