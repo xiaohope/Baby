@@ -62,6 +62,11 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _addItemDialog(context.read<DataService>()),
+        backgroundColor: const Color(0xFF6C63FF),
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
   }
 
@@ -129,13 +134,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                 ),
         ),
       ],
-    
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _addItemDialog(ds),
-        backgroundColor: const Color(0xFF6C63FF),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-);
+    );
   }
 
   Widget _buildItemCard(InventoryItem item, InventoryCategory? cat, DataService ds, bool isDark) {
