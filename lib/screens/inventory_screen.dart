@@ -99,7 +99,6 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                   onPressed: () => _addCategoryDialog(ds),
                 ),
               ),
-                          ],
               // 删除分类按钮(已选时显示)
               if (_selectedCategoryId != null)
                 Padding(
