@@ -255,17 +255,6 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                   },
                 ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _addShoppingItemDialog(ds),
-              icon: const Icon(Icons.add),
-              label: const Text('手动添加待购'),
-            ),
-          ),
-        ),
       ],
     );
   }
