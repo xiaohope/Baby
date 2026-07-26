@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS inventory_categories (
   user_id VARCHAR(36) NOT NULL,
   family_id VARCHAR(36) NOT NULL,
   name VARCHAR(50) NOT NULL,
-  icon VARCHAR(10) DEFAULT '📦',
+  icon VARCHAR(10) DEFAULT 'box',
   sort_order INT DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id),
