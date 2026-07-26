@@ -353,15 +353,34 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: const Text('编辑物品'),
       content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: '名称')),
-        TextField(controller: totalCtrl, decoration: const InputDecoration(labelText: '总量'), keyboardType: TextInputType.number),
-        TextField(controller: remainCtrl, decoration: const InputDecoration(labelText: '剩余'), keyboardType: TextInputType.number),
+        const SizedBox(height: 4),
+        TextField(controller: nameCtrl, decoration: const InputDecoration(
+          labelText: '名称', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+        )),
+        const SizedBox(height: 12),
         Row(children: [
-          Expanded(child: TextField(controller: unitCtrl, decoration: const InputDecoration(labelText: '单位'))),
+          Expanded(child: TextField(controller: totalCtrl, decoration: const InputDecoration(
+            labelText: '总量', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+          ), keyboardType: TextInputType.number)),
           const SizedBox(width: 8),
-          Expanded(child: TextField(controller: thresholdCtrl, decoration: const InputDecoration(labelText: '阈值'), keyboardType: TextInputType.number)),
+          Expanded(child: TextField(controller: remainCtrl, decoration: const InputDecoration(
+            labelText: '剩余', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+          ), keyboardType: TextInputType.number)),
         ]),
-        TextField(controller: noteCtrl, decoration: const InputDecoration(labelText: '备注')),
+        const SizedBox(height: 12),
+        Row(children: [
+          Expanded(child: TextField(controller: unitCtrl, decoration: const InputDecoration(
+            labelText: '单位', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+          ))),
+          const SizedBox(width: 8),
+          Expanded(child: TextField(controller: thresholdCtrl, decoration: const InputDecoration(
+            labelText: '阈值', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+          ), keyboardType: TextInputType.number)),
+        ]),
+        const SizedBox(height: 12),
+        TextField(controller: noteCtrl, decoration: const InputDecoration(
+          labelText: '备注', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+        )),
       ])),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
