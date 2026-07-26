@@ -36,7 +36,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('📦 仓库'),
+        title: const Text('仓库'),
         centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
@@ -99,6 +99,17 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                   onPressed: () => _addCategoryDialog(ds),
                 ),
               ),
+                          ],
+              // 删除分类按钮(已选时显示)
+              if (_selectedCategoryId != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: ActionChip(
+                    avatar: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                    label: Text('删除', style: TextStyle(fontSize: 12, color: Colors.red)),
+                    onPressed: () => _deleteCategoryConfirm(_selectedCategoryId!, ds),
+                  ),
+                ),
             ],
           ),
         ),
@@ -119,7 +130,13 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                 ),
         ),
       ],
-    );
+    
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _addItemDialog(ds),
+        backgroundColor: const Color(0xFF6C63FF),
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+);
   }
 
   Widget _buildItemCard(InventoryItem item, InventoryCategory? cat, DataService ds, bool isDark) {
@@ -425,19 +442,101 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   }
 
   void _addShoppingItemDialog(DataService ds) {
-    final ctrl = TextEditingController();
+    final nameCtrl = TextEditingController();
+    final qtyCtrl = TextEditingController(text: '1');
     showDialog(context: context, builder: (ctx) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: const Text('添加待购'),
-      content: TextField(controller: ctrl, decoration: const InputDecoration(labelText: '物品名称')),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: '物品名称')),
+        const SizedBox(height: 8),
+        TextField(controller: qtyCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: '数量')),
+      ]),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
         FilledButton(onPressed: () {
-          if (ctrl.text.trim().isNotEmpty) {
-            ds.addShoppingItem(ShoppingItem(itemName: ctrl.text.trim()));
+          if (nameCtrl.text.trim().isNotEmpty) {
+            ds.addShoppingItem(ShoppingItem(
+              itemName: nameCtrl.text.trim(),
+              quantity: int.tryParse(qtyCtrl.text) ?? 1,
+            ));
             Navigator.pop(ctx);
           }
         }, child: const Text('添加')),
+      ],
+    ));
+  }
+
+  void _addItemDialog(DataService ds) {
+    final categories = ds.inventoryCategories;
+    if (categories.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请先添加分类')));
+      return;
+    }
+    String? selCat = _selectedCategoryId ?? categories.first.id;
+    final nameCtrl = TextEditingController();
+    final totalCtrl = TextEditingController();
+    final remainCtrl = TextEditingController();
+    final unitCtrl = TextEditingController(text: '个');
+    final thresholdCtrl = TextEditingController(text: '1');
+    showDialog(context: context, builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setDState) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('添加物品'),
+        content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+          DropdownButtonFormField<String>(
+            value: selCat,
+            items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text('${c.icon} ${c.name}'))).toList(),
+            onChanged: (v) => setDState(() => selCat = v),
+            decoration: const InputDecoration(labelText: '分类', contentPadding: EdgeInsets.symmetric(horizontal: 12)),
+          ),
+          const SizedBox(height: 8),
+          TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: '名称')),
+          const SizedBox(height: 8),
+          Row(children: [
+            Expanded(child: TextField(controller: totalCtrl, decoration: const InputDecoration(labelText: '总量'), keyboardType: TextInputType.number)),
+            const SizedBox(width: 8),
+            Expanded(child: TextField(controller: remainCtrl, decoration: const InputDecoration(labelText: '剩余'), keyboardType: TextInputType.number)),
+          ]),
+          const SizedBox(height: 8),
+          Row(children: [
+            Expanded(child: TextField(controller: unitCtrl, decoration: const InputDecoration(labelText: '单位'))),
+            const SizedBox(width: 8),
+            Expanded(child: TextField(controller: thresholdCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: '阈值'))),
+          ]),
+        ])),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+          FilledButton(onPressed: () {
+            if (nameCtrl.text.trim().isNotEmpty && selCat != null) {
+              ds.addInventoryItem(InventoryItem(
+                categoryId: selCat!, name: nameCtrl.text.trim(),
+                total: int.tryParse(totalCtrl.text) ?? 0,
+                remaining: int.tryParse(remainCtrl.text) ?? 0,
+                unit: unitCtrl.text.trim().isEmpty ? '个' : unitCtrl.text.trim(),
+                threshold: int.tryParse(thresholdCtrl.text) ?? 1,
+              ));
+              Navigator.pop(ctx);
+            }
+          }, child: const Text('添加')),
+        ],
+      ),
+    ));
+  }
+
+  void _deleteCategoryConfirm(String id, DataService ds) {
+    final cat = ds.inventoryCategories.cast<InventoryCategory?>().firstWhere((c) => c?.id == id, orElse: () => null);
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text('确认删除'),
+      content: Text('确定要删除分类「${cat?.name ?? ''}」吗？该分类下的物品也会被删除。'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+        FilledButton(onPressed: () {
+          ds.deleteInventoryCategory(id);
+          if (_selectedCategoryId == id) setState(() => _selectedCategoryId = null);
+          Navigator.pop(ctx);
+        }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('删除')),
       ],
     ));
   }
