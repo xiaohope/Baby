@@ -655,6 +655,7 @@ class DataService extends ChangeNotifier {
       _toothRecords.removeWhere((r) => r.id == id);
       notifyListeners();
     }
+  }
 
   // ---- 仓库 ----
   Future<void> addInventoryCategory(InventoryCategory cat) async {
