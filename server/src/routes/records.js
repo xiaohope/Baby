@@ -38,11 +38,6 @@ router.post('/upload', auth, async (req, res) => {
           inventory_item: { name: 'inventory_items', timeField: 'created_at' },
           inventory_usage: { name: 'inventory_usage', timeField: 'used_at' },
           shopping_item: { name: 'shopping_items', timeField: 'created_at' },
-          inventory_category: { name: 'inventory_categories', timeField: 'created_at' },
-          inventory_item: { name: 'inventory_items', timeField: 'created_at' },
-          inventory_usage: { name: 'inventory_usage', timeField: 'used_at' },
-          shopping_item: { name: 'shopping_items', timeField: 'created_at' },
-        
         };
 
         const tableInfo = tableMap[table];
