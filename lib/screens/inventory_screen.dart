@@ -271,7 +271,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
     showDialog(context: context, builder: (ctx) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: const Text('确认删除'),
-      content: Text('确定要删除「\${item.itemName}」吗？'),
+      content: Text('确定要删除「${item.itemName}」吗？'),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
         FilledButton(onPressed: () { Navigator.pop(ctx); ds.deleteShoppingItem(item.id); }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('删除')),
