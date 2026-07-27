@@ -51,13 +51,13 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
           dividerColor: Colors.transparent,
         ),
       ),
-      body: RefreshIndicator(
+      body: Container(
+        color: isDark ? const Color(0xFF121212) : null,
+        child: RefreshIndicator(
         onRefresh: () async {
           await context.read<DataService>().reloadFromServer();
           if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已刷新'), duration: Duration(seconds: 1)));
         },
-        child: Container(
-        color: isDark ? const Color(0xFF121212) : null,
         child: TabBarView(
           controller: _tabController,
           children: [
