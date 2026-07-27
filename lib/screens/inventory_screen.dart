@@ -214,7 +214,8 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
       }
     }
     final shoppingItems = ds.shoppingItems.where((s) => !s.isDone).toList();
-    final allItems = [...autoItems, ...shoppingItems];
+    final doneItems = ds.shoppingItems.where((s) => s.isDone).toList();
+    final allItems = [...autoItems, ...shoppingItems, ...doneItems];
 
     return Column(
       children: [
@@ -227,24 +228,25 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                   itemBuilder: (ctx, i) {
                     final item = allItems[i];
                     final isAuto = item.itemId != null && autoItems.contains(item);
+                    final isDone = item.isDone;
                     return Card(
                       color: isDark ? const Color(0xFF1E1E1E) : null,
                       child: ListTile(
-                        leading: Icon(isAuto ? Icons.warning_amber : Icons.shopping_cart, color: const Color(0xFF6C63FF)),
-                        title: Text(item.itemName, style: TextStyle(color: isDark ? Colors.white : null)),
+                        leading: Icon(isAuto ? Icons.warning_amber : (isDone ? Icons.check_circle : Icons.shopping_cart), color: isDone ? Colors.green : const Color(0xFF6C63FF)),
+                        title: Text(item.itemName, style: TextStyle(color: isDone ? Colors.grey : (isDark ? Colors.white : null), decoration: isDone ? TextDecoration.lineThrough : null)),
                         subtitle: isAuto ? const Text('库存不足，自动加入', style: TextStyle(fontSize: 11, color: Colors.red)) : null,
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             if (!isAuto) IconButton(
-                              icon: const Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
+                              icon: Icon(isDone ? Icons.undo : Icons.check_circle_outline, color: isDone ? Colors.orange : Colors.green, size: 20),
                               onPressed: () => ds.toggleShoppingItem(item.id),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
                             ),
-                            if (!isAuto) IconButton(
+                            IconButton(
                               icon: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
-                              onPressed: () => ds.deleteShoppingItem(item.id),
+                              onPressed: () => _deleteShoppingItemConfirm(item, ds),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
                             ),
@@ -257,6 +259,18 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
         ),
       ],
     );
+  }
+
+  void _deleteShoppingItemConfirm(ShoppingItem item, DataService ds) {
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text('确认删除'),
+      content: Text('确定要删除「\${item.itemName}」吗？'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+        FilledButton(onPressed: () { Navigator.pop(ctx); ds.deleteShoppingItem(item.id); }, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('删除')),
+      ],
+    ));
   }
 
   // ====== 统计 Tab ======
