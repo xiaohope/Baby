@@ -91,43 +91,49 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
     return Column(
       children: [
-        // 分类横向滚动
-        SizedBox(
-          height: 48,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            children: [
-              ...categories.map((c) => Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: ChoiceChip(
-                  label: Text('${c.icon} ${c.name}', style: const TextStyle(fontSize: 13)),
-                  selected: _selectedCategoryId == c.id,
-                  onSelected: (v) => setState(() => _selectedCategoryId = v ? c.id : null),
-                  selectedColor: const Color(0xFF6C63FF).withValues(alpha: 0.2),
-                ),
-              )),
-              // 添加分类按钮
-              Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: ActionChip(
-                  avatar: const Icon(Icons.add, size: 16),
-                  label: const Text('分类', style: TextStyle(fontSize: 12)),
-                  onPressed: () => _addCategoryDialog(ds),
+        // 分类横向滚动（添加按钮固定右侧）
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 48,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.only(left: 8, vertical: 4),
+                  children: [
+                    ...categories.map((c) => Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: ChoiceChip(
+                        label: Text('${c.icon} ${c.name}', style: const TextStyle(fontSize: 13)),
+                        selected: _selectedCategoryId == c.id,
+                        onSelected: (v) => setState(() => _selectedCategoryId = v ? c.id : null),
+                        selectedColor: const Color(0xFF6C63FF).withValues(alpha: 0.2),
+                      ),
+                    )),
+                    // 删除分类按钮(已选时显示)
+                    if (_selectedCategoryId != null)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: ActionChip(
+                          avatar: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                          label: Text('删除', style: TextStyle(fontSize: 12, color: Colors.red)),
+                          onPressed: () => _deleteCategoryConfirm(_selectedCategoryId!, ds),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              // 删除分类按钮(已选时显示)
-              if (_selectedCategoryId != null)
-                Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: ActionChip(
-                    avatar: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
-                    label: Text('删除', style: TextStyle(fontSize: 12, color: Colors.red)),
-                    onPressed: () => _deleteCategoryConfirm(_selectedCategoryId!, ds),
-                  ),
-                ),
-            ],
-          ),
+            ),
+            // 添加分类按钮（固定右侧）
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: ActionChip(
+                avatar: const Icon(Icons.add, size: 16),
+                label: const Text('分类', style: TextStyle(fontSize: 12)),
+                onPressed: () => _addCategoryDialog(ds),
+              ),
+            ),
+          ],
         ),
         const Divider(height: 1),
         // 物品列表
