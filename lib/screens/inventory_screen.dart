@@ -99,7 +99,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                 height: 48,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(left: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   children: [
                     ...categories.map((c) => Padding(
                       padding: const EdgeInsets.only(right: 6),
