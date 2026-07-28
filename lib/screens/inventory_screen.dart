@@ -53,11 +53,6 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
       ),
       body: Container(
         color: isDark ? const Color(0xFF121212) : null,
-        child: RefreshIndicator(
-        onRefresh: () async {
-          await context.read<DataService>().reloadFromServer();
-          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已刷新'), duration: Duration(seconds: 1)));
-        },
         child: TabBarView(
           controller: _tabController,
           children: [
@@ -66,7 +61,6 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
             _buildStatsTab(ds, isDark),
           ],
         ),
-      ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -138,18 +132,21 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
         const Divider(height: 1),
         // 物品列表
         Expanded(
-          child: items.isEmpty
-              ? Center(child: Text('暂无物品，点击右下角添加', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400)))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: items.length,
-                  itemBuilder: (ctx, i) {
-                    final item = items[i];
-                    final cat = categories.cast<InventoryCategory?>().firstWhere(
-                      (c) => c?.id == item.categoryId, orElse: () => null);
-                    return _buildItemCard(item, cat, ds, isDark);
-                  },
-                ),
+          child: RefreshIndicator(
+            onRefresh: _onRefresh,
+            child: items.isEmpty
+                ? ListView(children: [Center(child: Padding(padding: EdgeInsets.only(top:80), child: Text('暂无物品，点击右下角添加', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400))))])
+                : ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: items.length,
+                    itemBuilder: (ctx, i) {
+                      final item = items[i];
+                      final cat = categories.cast<InventoryCategory?>().firstWhere(
+                        (c) => c?.id == item.categoryId, orElse: () => null);
+                      return _buildItemCard(item, cat, ds, isDark);
+                    },
+                  ),
+          ),
         ),
       ],
     );
@@ -232,12 +229,14 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
     return Column(
       children: [
         Expanded(
-          child: allItems.isEmpty
-              ? Center(child: Text('暂无待购物品', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400)))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: allItems.length,
-                  itemBuilder: (ctx, i) {
+          child: RefreshIndicator(
+            onRefresh: _onRefresh,
+            child: allItems.isEmpty
+                ? ListView(children: [Center(child: Padding(padding: EdgeInsets.only(top:80), child: Text('暂无待购物品', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400))))])
+                : ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: allItems.length,
+                    itemBuilder: (ctx, i) {
                     final item = allItems[i];
                     final isAuto = item.itemId != null && autoItems.contains(item);
                     final isDone = item.isDone;
@@ -292,7 +291,9 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
       return Center(child: Text('暂无数据', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400)));
     }
 
-    return ListView(
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      child: ListView(
       padding: const EdgeInsets.all(16),
       children: categories.map((cat) {
         final catItems = ds.inventoryItems.where((i) => i.categoryId == cat.id).toList();
@@ -327,6 +328,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
           ),
         );
       }).toList(),
+      ),
     );
   }
 
@@ -579,6 +581,11 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
         ],
       ),
     ));
+  }
+
+  Future<void> _onRefresh() async {
+    await context.read<DataService>().reloadFromServer();
+    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已刷新'), duration: Duration(seconds: 1)));
   }
 
   void _deleteCategoryConfirm(String id, DataService ds) {
