@@ -267,6 +267,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                     );
                   },
                 ),
+          ),
         ),
       ],
     );
@@ -328,7 +329,6 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
           ),
         );
       }).toList(),
-      ),
       ),
     );
   }
