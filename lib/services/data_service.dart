@@ -140,6 +140,22 @@ class DataService extends ChangeNotifier {
       'amount_g': record.amountG, 'note': record.note,
       'consumed': record.consumed ? 1 : 0,
     };
+        if (record is InventoryCategory) return {
+      'id': record.id, 'name': record.name, 'icon': record.icon, 'sort_order': record.sortOrder,
+    };
+    if (record is InventoryItem) return {
+      'id': record.id, 'category_id': record.categoryId, 'name': record.name,
+      'total': record.total, 'remaining': record.remaining, 'unit': record.unit,
+      'threshold': record.threshold, 'note': record.note,
+    };
+    if (record is InventoryUsage) return {
+      'id': record.id, 'item_id': record.itemId, 'used_count': record.usedCount,
+      'used_at': _localDt(record.usedAt), 'note': record.note,
+    };
+    if (record is ShoppingItem) return {
+      'id': record.id, 'item_id': record.itemId, 'item_name': record.itemName,
+      'quantity': record.quantity, 'is_done': record.isDone ? 1 : 0, 'note': record.note,
+    };
     return {};
   }
 
